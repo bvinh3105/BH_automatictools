@@ -1,0 +1,335 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>San Francisco Font Demo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap">
+<!-- SF Pro mirror (community-hosted; Apple licenses SF Pro but doesn't provide official CDN) -->
+<link rel="stylesheet" href="https://fonts.cdnfonts.com/css/sf-pro-display">
+<style>
+  :root {
+    --bg: #0F0F10;
+    --surface: #1A1A1C;
+    --border: #2A2A2E;
+    --text: #F2F2F5;
+    --muted: #8E8E93;
+    --accent: #0A84FF;
+    --warm: #FF9F0A;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: "SF Pro Display", "SF Pro Text", -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+    min-height: 100vh;
+    padding: 40px 24px 80px;
+  }
+  .wrap { max-width: 1080px; margin: 0 auto; }
+
+  header {
+    margin-bottom: 56px;
+    padding-bottom: 32px;
+    border-bottom: 1px solid var(--border);
+  }
+  .kicker {
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 12px;
+  }
+  h1 {
+    font-size: clamp(40px, 8vw, 80px);
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    line-height: 1;
+    margin-bottom: 16px;
+  }
+  .lede {
+    font-size: 18px;
+    line-height: 1.6;
+    color: var(--muted);
+    max-width: 720px;
+  }
+  .lede b { color: var(--text); font-weight: 500; }
+
+  .section { margin-bottom: 64px; }
+  .section-title {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 20px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .hamburge {
+    font-size: clamp(56px, 10vw, 120px);
+    font-weight: 500;
+    letter-spacing: -0.03em;
+    line-height: 1.05;
+    margin: 24px 0 8px;
+  }
+  .caption {
+    color: var(--muted);
+    font-size: 13px;
+    letter-spacing: 0.05em;
+  }
+  .caption b { color: var(--warm); font-weight: 500; }
+
+  /* Weight showcase */
+  .weights {
+    display: grid;
+    grid-template-columns: 90px 1fr;
+    gap: 12px 24px;
+    align-items: baseline;
+    margin-top: 24px;
+  }
+  .weights .label {
+    color: var(--muted);
+    font-size: 13px;
+    font-weight: 400;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+  .weights .sample {
+    font-size: 32px;
+    letter-spacing: -0.01em;
+    line-height: 1.2;
+  }
+  .w-thin { font-weight: 100; }
+  .w-light { font-weight: 300; }
+  .w-regular { font-weight: 400; }
+  .w-medium { font-weight: 500; }
+  .w-semibold { font-weight: 600; }
+  .w-bold { font-weight: 700; }
+  .w-black { font-weight: 900; }
+
+  /* Sample paragraph */
+  .para-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 32px; }
+  @media (max-width: 720px) { .para-grid { grid-template-columns: 1fr; } }
+  .para {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px;
+  }
+  .para h3 {
+    font-size: 22px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    margin-bottom: 12px;
+  }
+  .para p {
+    font-size: 15px;
+    line-height: 1.55;
+    color: var(--muted);
+  }
+  .para p + p { margin-top: 12px; }
+
+  /* Numbers */
+  .numgrid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-top: 20px;
+  }
+  @media (max-width: 720px) { .numgrid { grid-template-columns: repeat(2, 1fr); } }
+  .stat {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+  }
+  .stat .n {
+    font-size: 48px;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+  }
+  .stat .l {
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 8px;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+
+  /* Info card */
+  .info {
+    background: linear-gradient(135deg, rgba(10,132,255,0.08), rgba(255,159,10,0.04));
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 28px;
+    margin-top: 24px;
+  }
+  .info h4 {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 12px;
+  }
+  .info ul { list-style: none; }
+  .info li {
+    padding: 6px 0;
+    color: var(--muted);
+    font-size: 14px;
+    line-height: 1.5;
+    display: grid;
+    grid-template-columns: 130px 1fr;
+    gap: 12px;
+  }
+  .info li b { color: var(--text); font-weight: 500; }
+  .info a { color: var(--accent); text-decoration: none; }
+  .info a:hover { text-decoration: underline; }
+  .badge {
+    display: inline-block;
+    background: rgba(255,159,10,0.15);
+    color: var(--warm);
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 4px;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    font-weight: 500;
+    margin-left: 8px;
+    vertical-align: middle;
+  }
+
+  /* Comparison row */
+  .compare { display: grid; grid-template-columns: 1fr; gap: 24px; margin-top: 20px; }
+  .compare-row {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px;
+  }
+  .compare-row .name {
+    font-size: 12px;
+    color: var(--muted);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+  .compare-row .sample {
+    font-size: 44px;
+    font-weight: 500;
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+  }
+  .sf { font-family: "SF Pro Display", -apple-system, BlinkMacSystemFont, sans-serif; }
+  .inter { font-family: "Inter", sans-serif; }
+  .roboto { font-family: "Roboto", sans-serif; }
+  .helv { font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; }
+  .segoe { font-family: "Segoe UI", sans-serif; }
+</style>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap">
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="kicker">Font Showcase</div>
+    <h1>San Francisco</h1>
+    <p class="lede">
+      Font hệ thống của Apple từ 2015, thay thế Helvetica Neue trên iOS/macOS/watchOS.
+      Thiết kế bởi <b>Apple's Design Team</b>, tối ưu cho màn hình Retina, dễ đọc từ Apple Watch tới màn 6K Pro Display XDR.
+      Là font mặc định của toàn bộ hệ sinh thái Apple hôm nay.
+    </p>
+  </header>
+
+  <section class="section">
+    <div class="section-title">Hamburgefonts</div>
+    <div class="hamburge">Hamburgefonts</div>
+    <div class="caption"><b>SF Pro Display</b> · Medium 500 · optical scale for large display</div>
+  </section>
+
+  <section class="section">
+    <div class="section-title">Weights</div>
+    <div class="weights">
+      <div class="label">Thin 100</div><div class="sample w-thin">The quick brown fox</div>
+      <div class="label">Light 300</div><div class="sample w-light">The quick brown fox</div>
+      <div class="label">Regular 400</div><div class="sample w-regular">The quick brown fox</div>
+      <div class="label">Medium 500</div><div class="sample w-medium">The quick brown fox</div>
+      <div class="label">Semibold 600</div><div class="sample w-semibold">The quick brown fox</div>
+      <div class="label">Bold 700</div><div class="sample w-bold">The quick brown fox</div>
+      <div class="label">Black 900</div><div class="sample w-black">The quick brown fox</div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="section-title">Numerals · tabular</div>
+    <div class="numgrid">
+      <div class="stat"><div class="n">1,024</div><div class="l">Users</div></div>
+      <div class="stat"><div class="n">98.7%</div><div class="l">Uptime</div></div>
+      <div class="stat"><div class="n">$3.2B</div><div class="l">Revenue</div></div>
+      <div class="stat"><div class="n">42ms</div><div class="l">Latency</div></div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="section-title">Sample paragraph · Vietnamese</div>
+    <div class="para-grid">
+      <div class="para">
+        <h3>Một buổi chiều Hà Nội</h3>
+        <p>Nắng vàng cuối chiều nhuộm lên mái ngói của những căn nhà cổ trên phố Hàng Ngang. Trong quán cà phê nhỏ, những người khách ngồi lặng lẽ đọc báo, thỉnh thoảng nhấp một ngụm cà phê đen đá đắng ngọt.</p>
+        <p>Mùi hoa sữa thoảng đâu đó trong gió heo may. Đằng xa, tiếng còi xe rì rào như bản nhạc quen thuộc của thành phố nghìn năm tuổi này.</p>
+      </div>
+      <div class="para">
+        <h3>Design principles</h3>
+        <p>SF Pro is designed to be legible at small sizes on high-resolution displays. It supports 40+ scripts and features dynamic optical sizing, tabular numerals, and a matched monospace variant called SF Mono.</p>
+        <p>The typeface family includes Display (18pt+) and Text (17pt and below), each hand-optimized for its size range.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="section-title">Nếu font mirror không load — so sánh với các font khác</div>
+    <div class="compare">
+      <div class="compare-row">
+        <div class="name">SF Pro Display (Apple)</div>
+        <div class="sample sf">Photo Timestamp Watermark</div>
+      </div>
+      <div class="compare-row">
+        <div class="name">Inter (Google Fonts) — thay thế gần nhất</div>
+        <div class="sample inter">Photo Timestamp Watermark</div>
+      </div>
+      <div class="compare-row">
+        <div class="name">Roboto (Google) — hiện đang dùng trong tool</div>
+        <div class="sample roboto">Photo Timestamp Watermark</div>
+      </div>
+      <div class="compare-row">
+        <div class="name">Segoe UI (Windows mặc định)</div>
+        <div class="sample segoe">Photo Timestamp Watermark</div>
+      </div>
+      <div class="compare-row">
+        <div class="name">Helvetica Neue</div>
+        <div class="sample helv">Photo Timestamp Watermark</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="section-title">Thông tin về font</div>
+    <div class="info">
+      <h4>San Francisco Pro <span class="badge">Apple exclusive</span></h4>
+      <ul>
+        <li><b>Ra mắt</b><span>2015 (SF Compact cho Watch), 2017 (SF Pro Display/Text)</span></li>
+        <li><b>Bao gồm</b><span>SF Pro Display, SF Pro Text, SF Compact, SF Mono, SF Symbols, SF Arabic, SF Hebrew</span></li>
+        <li><b>Trọng lượng</b><span>Ultralight (100) → Black (900) — 9 weights, mỗi cái có Italic</span></li>
+        <li><b>Tải chính chủ</b><span><a href="https://developer.apple.com/fonts/" target="_blank" rel="noopener">developer.apple.com/fonts</a> — miễn phí .otf để cài local</span></li>
+        <li><b>License</b><span>Chỉ dùng trong app Apple platform; không được embed vào web/print product</span></li>
+        <li><b>Trên web</b><span>Dùng <code style="background:rgba(255,255,255,0.06); padding:1px 6px; border-radius:3px; font-size:12px;">-apple-system, BlinkMacSystemFont</code> — render đúng SF trên Apple, fallback trên OS khác</span></li>
+        <li><b>Alternative</b><span>Inter (open source, do Rasmus Andersson thiết kế theo hướng SF Pro)</span></li>
+      </ul>
+    </div>
+  </section>
+</div>
+</body>
+</html>
