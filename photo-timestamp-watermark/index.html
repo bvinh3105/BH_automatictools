@@ -12,92 +12,100 @@
 <title>Photo Timestamp Watermark</title>
 <style>
   :root {
-    /* Light theme — muted greige with moss-green accents */
-    --bg: #D3CFBE;
-    --bg-orb-1: #6B7A4E;   /* moss */
-    --bg-orb-2: #3F4A2E;   /* deep olive */
-    --bg-orb-3: #8A9A6E;   /* sage */
-    --bg-orb-4: #9AA88C;   /* muted olive gray */
-    --glass: rgba(243, 240, 230, 0.55);
-    --glass-strong: rgba(243, 240, 230, 0.78);
-    --glass-hover: rgba(243, 240, 230, 0.68);
-    --border: rgba(26, 26, 26, 0.10);
-    --border-strong: rgba(26, 26, 26, 0.22);
-    --divider: rgba(26, 26, 26, 0.08);
-    --text: #1E1F18;
-    --muted: #656760;
-    --accent: #556B2F;
-    --accent-hover: #445524;
-    --accent-fg: #F3F0E6;
-    --danger: #A63838;
-    --success: #3D7B4A;
-    --shadow: 0 8px 28px rgba(20, 24, 12, 0.14), 0 2px 6px rgba(20, 24, 12, 0.07);
-    --input-bg: rgba(243, 240, 230, 0.48);
+    /* Light theme — soft pastel sage + powder blue */
+    --bg: #E8EAD8;
+    --bg-orb-1: #B8CC9E;   /* pastel sage */
+    --bg-orb-2: #9DB884;   /* mint */
+    --bg-orb-3: #B4CFD8;   /* powder blue */
+    --bg-orb-4: #C9D8B5;   /* pale moss */
+    --glass: rgba(250, 250, 244, 0.60);
+    --glass-strong: rgba(250, 250, 244, 0.82);
+    --glass-hover: rgba(250, 250, 244, 0.72);
+    --border: rgba(60, 70, 50, 0.10);
+    --border-strong: rgba(60, 70, 50, 0.22);
+    --divider: rgba(60, 70, 50, 0.08);
+    --text: #2C3324;
+    --muted: #7A7F70;
+    --accent: #7A9556;
+    --accent-hover: #647F42;
+    --accent-fg: #FAFAF4;
+    --accent-2: #6A9AB2;   /* powder blue counterpoint */
+    --accent-2-hover: #557F94;
+    --danger: #B36868;
+    --success: #7A9F5E;
+    --shadow: 0 8px 28px rgba(60, 70, 50, 0.12), 0 2px 6px rgba(60, 70, 50, 0.06);
+    --input-bg: rgba(250, 250, 244, 0.50);
     --radius: 14px;
     --radius-sm: 8px;
   }
   @media (prefers-color-scheme: dark) {
     :root {
-      /* Dark — deep muted charcoal with moss accents */
-      --bg: #17181A;
-      --bg-orb-1: #4A5A2E;   /* deep moss */
-      --bg-orb-2: #3E4A36;
-      --bg-orb-3: #6B7A4E;   /* moss */
-      --bg-orb-4: #7A8A5E;   /* sage */
-      --glass: rgba(240, 245, 235, 0.04);
-      --glass-strong: rgba(240, 245, 235, 0.08);
-      --glass-hover: rgba(240, 245, 235, 0.06);
-      --border: rgba(240, 245, 235, 0.08);
-      --border-strong: rgba(240, 245, 235, 0.18);
-      --divider: rgba(240, 245, 235, 0.07);
-      --text: #E6E8DE;
-      --muted: #8B9084;
-      --accent: #8FA25E;
-      --accent-hover: #A3B677;
-      --accent-fg: #171B10;
+      /* Dark — deep charcoal with dreamy pastel accents */
+      --bg: #1B1E1A;
+      --bg-orb-1: #6E8A50;   /* muted pastel moss glow */
+      --bg-orb-2: #4A6640;
+      --bg-orb-3: #5C859F;   /* powder blue glow */
+      --bg-orb-4: #7A9A70;
+      --glass: rgba(230, 240, 220, 0.04);
+      --glass-strong: rgba(230, 240, 220, 0.08);
+      --glass-hover: rgba(230, 240, 220, 0.06);
+      --border: rgba(230, 240, 220, 0.09);
+      --border-strong: rgba(230, 240, 220, 0.20);
+      --divider: rgba(230, 240, 220, 0.07);
+      --text: #E4E8DA;
+      --muted: #8E9584;
+      --accent: #B8CC94;
+      --accent-hover: #CDDDA9;
+      --accent-fg: #1B1E12;
+      --accent-2: #92B8CE;
+      --accent-2-hover: #A9CBDD;
       --shadow: 0 12px 48px rgba(0, 0, 0, 0.45), 0 2px 8px rgba(0, 0, 0, 0.28);
-      --input-bg: rgba(240, 245, 235, 0.04);
+      --input-bg: rgba(230, 240, 220, 0.04);
     }
   }
   :root[data-theme="light"] {
-    --bg: #D3CFBE;
-    --bg-orb-1: #6B7A4E;
-    --bg-orb-2: #3F4A2E;
-    --bg-orb-3: #8A9A6E;
-    --bg-orb-4: #9AA88C;
-    --glass: rgba(243, 240, 230, 0.55);
-    --glass-strong: rgba(243, 240, 230, 0.78);
-    --glass-hover: rgba(243, 240, 230, 0.68);
-    --border: rgba(26, 26, 26, 0.10);
-    --border-strong: rgba(26, 26, 26, 0.22);
-    --divider: rgba(26, 26, 26, 0.08);
-    --text: #1E1F18;
-    --muted: #656760;
-    --accent: #556B2F;
-    --accent-hover: #445524;
-    --accent-fg: #F3F0E6;
-    --shadow: 0 8px 28px rgba(20, 24, 12, 0.14), 0 2px 6px rgba(20, 24, 12, 0.07);
-    --input-bg: rgba(243, 240, 230, 0.48);
+    --bg: #E8EAD8;
+    --bg-orb-1: #B8CC9E;
+    --bg-orb-2: #9DB884;
+    --bg-orb-3: #B4CFD8;
+    --bg-orb-4: #C9D8B5;
+    --glass: rgba(250, 250, 244, 0.60);
+    --glass-strong: rgba(250, 250, 244, 0.82);
+    --glass-hover: rgba(250, 250, 244, 0.72);
+    --border: rgba(60, 70, 50, 0.10);
+    --border-strong: rgba(60, 70, 50, 0.22);
+    --divider: rgba(60, 70, 50, 0.08);
+    --text: #2C3324;
+    --muted: #7A7F70;
+    --accent: #7A9556;
+    --accent-hover: #647F42;
+    --accent-fg: #FAFAF4;
+    --accent-2: #6A9AB2;
+    --accent-2-hover: #557F94;
+    --shadow: 0 8px 28px rgba(60, 70, 50, 0.12), 0 2px 6px rgba(60, 70, 50, 0.06);
+    --input-bg: rgba(250, 250, 244, 0.50);
   }
   :root[data-theme="dark"] {
-    --bg: #17181A;
-    --bg-orb-1: #4A5A2E;
-    --bg-orb-2: #3E4A36;
-    --bg-orb-3: #6B7A4E;
-    --bg-orb-4: #7A8A5E;
-    --glass: rgba(240, 245, 235, 0.04);
-    --glass-strong: rgba(240, 245, 235, 0.08);
-    --glass-hover: rgba(240, 245, 235, 0.06);
-    --border: rgba(240, 245, 235, 0.08);
-    --border-strong: rgba(240, 245, 235, 0.18);
-    --divider: rgba(240, 245, 235, 0.07);
-    --text: #E6E8DE;
-    --muted: #8B9084;
-    --accent: #8FA25E;
-    --accent-hover: #A3B677;
-    --accent-fg: #171B10;
+    --bg: #1B1E1A;
+    --bg-orb-1: #6E8A50;
+    --bg-orb-2: #4A6640;
+    --bg-orb-3: #5C859F;
+    --bg-orb-4: #7A9A70;
+    --glass: rgba(230, 240, 220, 0.04);
+    --glass-strong: rgba(230, 240, 220, 0.08);
+    --glass-hover: rgba(230, 240, 220, 0.06);
+    --border: rgba(230, 240, 220, 0.09);
+    --border-strong: rgba(230, 240, 220, 0.20);
+    --divider: rgba(230, 240, 220, 0.07);
+    --text: #E4E8DA;
+    --muted: #8E9584;
+    --accent: #B8CC94;
+    --accent-hover: #CDDDA9;
+    --accent-fg: #1B1E12;
+    --accent-2: #92B8CE;
+    --accent-2-hover: #A9CBDD;
     --shadow: 0 12px 48px rgba(0, 0, 0, 0.45), 0 2px 8px rgba(0, 0, 0, 0.28);
-    --input-bg: rgba(240, 245, 235, 0.04);
+    --input-bg: rgba(230, 240, 220, 0.04);
   }
 
   /* Signal color scheme to browser so native pickers (date/time) match theme */
@@ -485,13 +493,13 @@
   button:disabled { cursor: not-allowed; opacity: 0.4; }
   button:not(:disabled):active { transform: scale(0.97); }
   .btn-primary {
-    background: linear-gradient(135deg, var(--accent), var(--accent-hover));
+    background: linear-gradient(135deg, var(--accent) 0%, var(--accent-2) 100%);
     color: var(--accent-fg);
-    box-shadow: 0 4px 16px color-mix(in srgb, var(--accent) 40%, transparent), inset 0 1px 0 rgba(255,255,255,0.25);
+    box-shadow: 0 4px 16px color-mix(in srgb, var(--accent) 35%, transparent), inset 0 1px 0 rgba(255,255,255,0.25);
   }
   .btn-primary:hover:not(:disabled) {
     filter: brightness(1.08);
-    box-shadow: 0 6px 20px color-mix(in srgb, var(--accent) 50%, transparent), inset 0 1px 0 rgba(255,255,255,0.3);
+    box-shadow: 0 6px 22px color-mix(in srgb, var(--accent-2) 40%, transparent), inset 0 1px 0 rgba(255,255,255,0.3);
   }
   .btn-ghost {
     background: var(--glass);
@@ -667,10 +675,10 @@
   }
   .progress > div {
     height: 100%;
-    background: linear-gradient(90deg, var(--accent), var(--accent-hover));
+    background: linear-gradient(90deg, var(--accent) 0%, var(--accent-2) 100%);
     width: 0%;
     transition: width 0.2s ease-out;
-    box-shadow: 0 0 12px var(--accent);
+    box-shadow: 0 0 12px color-mix(in srgb, var(--accent-2) 60%, transparent);
   }
 
   /* Preview */
