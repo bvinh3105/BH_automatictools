@@ -864,15 +864,24 @@
     max-height: 280px;
     overflow-y: auto;
     opacity: 0;
-    transform: translateY(-6px) scale(0.98);
+    transform: translateY(-12px) scale(0.94);
     transform-origin: top center;
     pointer-events: none;
-    transition: opacity 0.15s ease-out, transform 0.15s ease-out;
+    /* Closing: quick ease-in — snappy dismiss */
+    transition: opacity 0.22s cubic-bezier(0.4, 0, 1, 1),
+                transform 0.22s cubic-bezier(0.4, 0, 1, 1);
+    will-change: opacity, transform;
   }
   .cs-menu.open {
     opacity: 1;
     transform: translateY(0) scale(1);
     pointer-events: auto;
+    /* Opening: expressive easing with slight settle — smoother dynamic */
+    transition: opacity 0.32s cubic-bezier(0.16, 1, 0.3, 1),
+                transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .cs-menu, .cs-menu.open { transition: opacity 0.12s linear; transform: none !important; }
   }
   .cs-item {
     padding: 9px 12px;
