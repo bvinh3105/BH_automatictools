@@ -12,12 +12,12 @@
 <title>Photo Timestamp Watermark</title>
 <style>
   :root {
-    /* Light theme — soft pastel sage + powder blue */
-    --bg: #E8EAD8;
-    --bg-orb-1: #B8CC9E;   /* pastel sage */
-    --bg-orb-2: #9DB884;   /* mint */
-    --bg-orb-3: #B4CFD8;   /* powder blue */
-    --bg-orb-4: #C9D8B5;   /* pale moss */
+    /* Light theme — soft sage muted + more present powder blue */
+    --bg: #E4E7DA;
+    --bg-orb-1: #A5C0D0;   /* powder blue (primary) */
+    --bg-orb-2: #B8C9AE;   /* muted pale sage */
+    --bg-orb-3: #7FA5BF;   /* deeper blue */
+    --bg-orb-4: #CAD3C0;   /* barely-there sage */
     --glass: rgba(250, 250, 244, 0.60);
     --glass-strong: rgba(250, 250, 244, 0.82);
     --glass-hover: rgba(250, 250, 244, 0.72);
@@ -26,11 +26,11 @@
     --divider: rgba(60, 70, 50, 0.08);
     --text: #2C3324;
     --muted: #7A7F70;
-    --accent: #7A9556;
-    --accent-hover: #647F42;
+    --accent: #8FA57B;
+    --accent-hover: #778C64;
     --accent-fg: #FAFAF4;
-    --accent-2: #6A9AB2;   /* powder blue counterpoint */
-    --accent-2-hover: #557F94;
+    --accent-2: #4E8BA8;
+    --accent-2-hover: #3D7591;
     --danger: #B36868;
     --success: #7A9F5E;
     --shadow: 0 8px 28px rgba(60, 70, 50, 0.12), 0 2px 6px rgba(60, 70, 50, 0.06);
@@ -40,12 +40,12 @@
   }
   @media (prefers-color-scheme: dark) {
     :root {
-      /* Dark — deep charcoal with dreamy pastel accents */
-      --bg: #1B1E1A;
-      --bg-orb-1: #6E8A50;   /* muted pastel moss glow */
-      --bg-orb-2: #4A6640;
-      --bg-orb-3: #5C859F;   /* powder blue glow */
-      --bg-orb-4: #7A9A70;
+      /* Dark — deep charcoal with more blue presence, muted sage */
+      --bg: #181B1E;
+      --bg-orb-1: #5A8BAA;   /* powder blue glow (primary) */
+      --bg-orb-2: #6E8A6E;   /* muted sage */
+      --bg-orb-3: #4E7C99;   /* deeper blue */
+      --bg-orb-4: #7A9088;   /* dusty sage-blue */
       --glass: rgba(230, 240, 220, 0.04);
       --glass-strong: rgba(230, 240, 220, 0.08);
       --glass-hover: rgba(230, 240, 220, 0.06);
@@ -54,21 +54,21 @@
       --divider: rgba(230, 240, 220, 0.07);
       --text: #E4E8DA;
       --muted: #8E9584;
-      --accent: #B8CC94;
-      --accent-hover: #CDDDA9;
+      --accent: #A5BB92;
+      --accent-hover: #BACEA9;
       --accent-fg: #1B1E12;
-      --accent-2: #92B8CE;
-      --accent-2-hover: #A9CBDD;
+      --accent-2: #7BB2CE;
+      --accent-2-hover: #96C6DD;
       --shadow: 0 12px 48px rgba(0, 0, 0, 0.45), 0 2px 8px rgba(0, 0, 0, 0.28);
       --input-bg: rgba(230, 240, 220, 0.04);
     }
   }
   :root[data-theme="light"] {
-    --bg: #E8EAD8;
-    --bg-orb-1: #B8CC9E;
-    --bg-orb-2: #9DB884;
-    --bg-orb-3: #B4CFD8;
-    --bg-orb-4: #C9D8B5;
+    --bg: #E4E7DA;
+    --bg-orb-1: #A5C0D0;
+    --bg-orb-2: #B8C9AE;
+    --bg-orb-3: #7FA5BF;
+    --bg-orb-4: #CAD3C0;
     --glass: rgba(250, 250, 244, 0.60);
     --glass-strong: rgba(250, 250, 244, 0.82);
     --glass-hover: rgba(250, 250, 244, 0.72);
@@ -77,20 +77,20 @@
     --divider: rgba(60, 70, 50, 0.08);
     --text: #2C3324;
     --muted: #7A7F70;
-    --accent: #7A9556;
-    --accent-hover: #647F42;
+    --accent: #8FA57B;
+    --accent-hover: #778C64;
     --accent-fg: #FAFAF4;
-    --accent-2: #6A9AB2;
-    --accent-2-hover: #557F94;
+    --accent-2: #4E8BA8;
+    --accent-2-hover: #3D7591;
     --shadow: 0 8px 28px rgba(60, 70, 50, 0.12), 0 2px 6px rgba(60, 70, 50, 0.06);
     --input-bg: rgba(250, 250, 244, 0.50);
   }
   :root[data-theme="dark"] {
-    --bg: #1B1E1A;
-    --bg-orb-1: #6E8A50;
-    --bg-orb-2: #4A6640;
-    --bg-orb-3: #5C859F;
-    --bg-orb-4: #7A9A70;
+    --bg: #181B1E;
+    --bg-orb-1: #5A8BAA;
+    --bg-orb-2: #6E8A6E;
+    --bg-orb-3: #4E7C99;
+    --bg-orb-4: #7A9088;
     --glass: rgba(230, 240, 220, 0.04);
     --glass-strong: rgba(230, 240, 220, 0.08);
     --glass-hover: rgba(230, 240, 220, 0.06);
@@ -99,11 +99,11 @@
     --divider: rgba(230, 240, 220, 0.07);
     --text: #E4E8DA;
     --muted: #8E9584;
-    --accent: #B8CC94;
-    --accent-hover: #CDDDA9;
+    --accent: #A5BB92;
+    --accent-hover: #BACEA9;
     --accent-fg: #1B1E12;
-    --accent-2: #92B8CE;
-    --accent-2-hover: #A9CBDD;
+    --accent-2: #7BB2CE;
+    --accent-2-hover: #96C6DD;
     --shadow: 0 12px 48px rgba(0, 0, 0, 0.45), 0 2px 8px rgba(0, 0, 0, 0.28);
     --input-bg: rgba(230, 240, 220, 0.04);
   }
