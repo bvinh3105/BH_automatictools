@@ -363,13 +363,15 @@
     background-repeat: no-repeat;
     background-position: right 12px center;
     background-size: 10px 7px;
-    background-color: #EDE6DA;  /* opaque, no transparency */
-    backdrop-filter: none !important;
-    -webkit-backdrop-filter: none !important;
+    background-color: var(--input-bg);  /* match other inputs */
   }
-  :root[data-theme="dark"] select { background-color: #26231F; }
   @media (prefers-color-scheme: dark) {
-    select { background-color: #26231F; }
+    select {
+      background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8' fill='none' stroke='%2394897E' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><polyline points='1 1.5 6 6.5 11 1.5'/></svg>");
+    }
+  }
+  :root[data-theme="dark"] select {
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8' fill='none' stroke='%2394897E' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><polyline points='1 1.5 6 6.5 11 1.5'/></svg>");
   }
   /* Native <option> styling — cùng tone opaque với select */
   select option {
@@ -446,15 +448,8 @@
     background-color: color-mix(in srgb, var(--input-bg) 60%, var(--glass-strong));
     box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 25%, transparent);
   }
-  /* Select giữ nguyên background-color opaque khi hover/focus (không pha
-     với glass để không lộ spots trở lại) */
-  select:hover { background-color: #E5DDCF; }
-  select:focus { background-color: #E5DDCF; }
-  :root[data-theme="dark"] select:hover,
-  :root[data-theme="dark"] select:focus { background-color: #2E2B26; }
-  @media (prefers-color-scheme: dark) {
-    select:hover, select:focus { background-color: #2E2B26; }
-  }
+  /* Select hover/focus: dùng cùng logic pha glass như input khác,
+     KHÔNG dùng shorthand để tránh reset background-image (arrow SVG). */
   textarea {
     resize: vertical;
     min-height: 90px;
