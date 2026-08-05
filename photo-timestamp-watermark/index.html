@@ -1,0 +1,1197 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Photo Timestamp Watermark</title>
+<style>
+  :root {
+    --bg: #FAFAF7;
+    --surface: #FFFFFF;
+    --surface-2: #F3F1EC;
+    --border: #E4E1DB;
+    --border-strong: #C9C5BD;
+    --text: #1A1917;
+    --muted: #6B6866;
+    --accent: #3B5F8A;
+    --accent-hover: #2A4870;
+    --accent-fg: #FFFFFF;
+    --danger: #A63838;
+    --success: #3D7B4A;
+    --shadow: 0 1px 2px rgba(20, 18, 14, 0.04), 0 4px 12px rgba(20, 18, 14, 0.05);
+    --radius: 10px;
+    --radius-sm: 6px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #131313;
+      --surface: #1C1C1B;
+      --surface-2: #232322;
+      --border: #2E2E2C;
+      --border-strong: #3D3D3A;
+      --text: #F0EEE9;
+      --muted: #9A9793;
+      --accent: #7BA3D4;
+      --accent-hover: #A0BEE1;
+      --accent-fg: #0F1928;
+      --shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 4px 12px rgba(0, 0, 0, 0.35);
+    }
+  }
+  :root[data-theme="light"] {
+    --bg: #FAFAF7;
+    --surface: #FFFFFF;
+    --surface-2: #F3F1EC;
+    --border: #E4E1DB;
+    --border-strong: #C9C5BD;
+    --text: #1A1917;
+    --muted: #6B6866;
+    --accent: #3B5F8A;
+    --accent-hover: #2A4870;
+    --accent-fg: #FFFFFF;
+    --shadow: 0 1px 2px rgba(20, 18, 14, 0.04), 0 4px 12px rgba(20, 18, 14, 0.05);
+  }
+  :root[data-theme="dark"] {
+    --bg: #131313;
+    --surface: #1C1C1B;
+    --surface-2: #232322;
+    --border: #2E2E2C;
+    --border-strong: #3D3D3A;
+    --text: #F0EEE9;
+    --muted: #9A9793;
+    --accent: #7BA3D4;
+    --accent-hover: #A0BEE1;
+    --accent-fg: #0F1928;
+    --shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 4px 12px rgba(0, 0, 0, 0.35);
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "SF Pro Display", "Helvetica Neue", Arial, sans-serif;
+    font-size: 14px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    min-height: 100vh;
+  }
+
+  .app {
+    max-width: 1240px;
+    margin: 0 auto;
+    padding: 28px 24px 120px;
+  }
+
+  header.top {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 20px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--border);
+  }
+  header.top h1 {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+  header.top .sub {
+    color: var(--muted);
+    font-size: 13px;
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: 380px minmax(0, 1fr);
+    gap: 20px;
+  }
+  @media (max-width: 880px) {
+    .grid { grid-template-columns: 1fr; }
+  }
+
+  .panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 18px;
+    box-shadow: var(--shadow);
+  }
+  .panel h2 {
+    margin: 0 0 4px;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .panel .hint {
+    color: var(--muted);
+    font-size: 12px;
+    margin: 0 0 14px;
+  }
+
+  .field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: 14px;
+  }
+  .field:last-child { margin-bottom: 0; }
+  .field label {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--muted);
+  }
+  .field-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 14px;
+  }
+
+  input[type="text"],
+  input[type="date"],
+  input[type="time"],
+  input[type="number"],
+  select,
+  textarea {
+    width: 100%;
+    background: var(--surface);
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 8px 10px;
+    font: inherit;
+    font-size: 13px;
+    outline: none;
+    transition: border-color 0.15s, box-shadow 0.15s;
+  }
+  input:focus, select:focus, textarea:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 18%, transparent);
+  }
+  textarea {
+    resize: vertical;
+    min-height: 90px;
+    font-family: -apple-system, "Segoe UI", "SF Pro Display", "Helvetica Neue", Arial, sans-serif;
+    line-height: 1.45;
+  }
+  input[type="range"] { padding: 0; }
+
+  .row-inline {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 13px;
+    color: var(--muted);
+  }
+  .row-inline .val { color: var(--text); font-variant-numeric: tabular-nums; }
+
+  /* Buttons */
+  button {
+    font: inherit;
+    cursor: pointer;
+    border: none;
+    border-radius: var(--radius-sm);
+    padding: 8px 14px;
+    font-size: 13px;
+    font-weight: 500;
+    transition: background 0.15s, color 0.15s, border-color 0.15s, opacity 0.15s;
+  }
+  button:disabled { cursor: not-allowed; opacity: 0.5; }
+  .btn-primary {
+    background: var(--accent);
+    color: var(--accent-fg);
+  }
+  .btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
+  .btn-ghost {
+    background: transparent;
+    color: var(--text);
+    border: 1px solid var(--border-strong);
+  }
+  .btn-ghost:hover:not(:disabled) { background: var(--surface-2); }
+  .btn-danger {
+    background: transparent;
+    color: var(--danger);
+    border: 1px solid transparent;
+    padding: 4px 8px;
+    font-size: 12px;
+  }
+  .btn-danger:hover:not(:disabled) { background: color-mix(in srgb, var(--danger) 10%, transparent); }
+
+  /* Dropzone */
+  .drop {
+    border: 1.5px dashed var(--border-strong);
+    border-radius: var(--radius);
+    background: var(--surface-2);
+    padding: 24px;
+    text-align: center;
+    color: var(--muted);
+    transition: border-color 0.15s, background 0.15s, color 0.15s;
+    margin-bottom: 14px;
+  }
+  .drop.drag { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 8%, var(--surface)); color: var(--text); }
+  .drop .drop-title { font-size: 14px; color: var(--text); font-weight: 500; margin-bottom: 4px; }
+  .drop .drop-sub { font-size: 12px; margin-bottom: 12px; }
+  .drop .drop-actions { display: flex; justify-content: center; gap: 8px; flex-wrap: wrap; }
+  .drop input { display: none; }
+
+  /* File list */
+  .files {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 12px;
+  }
+  .file-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+    position: relative;
+    aspect-ratio: 4 / 3;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .file-card img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+  .file-card .name {
+    position: absolute;
+    left: 0; right: 0; bottom: 0;
+    background: linear-gradient(to top, rgba(0,0,0,0.75) 0%, rgba(0,0,0,0) 100%);
+    color: #fff;
+    padding: 20px 8px 6px;
+    font-size: 11px;
+    line-height: 1.3;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .file-card .ts {
+    position: absolute;
+    top: 6px; right: 6px;
+    background: rgba(0,0,0,0.55);
+    color: #fff;
+    font-size: 10px;
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-variant-numeric: tabular-nums;
+  }
+  .file-card .rm {
+    position: absolute;
+    top: 6px; left: 6px;
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    background: rgba(0,0,0,0.55);
+    color: #fff;
+    border: none;
+    padding: 0;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    line-height: 1;
+    cursor: pointer;
+  }
+  .file-card:hover .rm { display: flex; }
+  .file-card.done { outline: 2px solid var(--success); outline-offset: -2px; }
+  .file-card.processing::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: rgba(0,0,0,0.35);
+    animation: pulse 1s infinite alternate;
+  }
+  @keyframes pulse {
+    from { opacity: 0.4; }
+    to { opacity: 0.85; }
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--muted);
+    font-size: 13px;
+  }
+
+  /* Actions bar */
+  .actions-bar {
+    position: sticky;
+    bottom: 0;
+    margin-top: 20px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    box-shadow: var(--shadow);
+    flex-wrap: wrap;
+  }
+  .actions-info { color: var(--muted); font-size: 13px; }
+  .actions-info b { color: var(--text); font-weight: 600; }
+  .actions-right { display: flex; gap: 8px; align-items: center; }
+
+  .progress {
+    height: 4px;
+    background: var(--surface-2);
+    border-radius: 2px;
+    overflow: hidden;
+    flex: 1 1 200px;
+    margin: 0 12px;
+    max-width: 260px;
+  }
+  .progress > div {
+    height: 100%;
+    background: var(--accent);
+    width: 0%;
+    transition: width 0.2s ease-out;
+  }
+
+  /* Preview */
+  .preview-block {
+    margin-top: 14px;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 12px;
+  }
+  .preview-block .plabel {
+    font-size: 11px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 8px;
+  }
+  .preview-block .pbox {
+    background: #2b2f3a;
+    background-image:
+      linear-gradient(120deg, #4a5568 0%, #2d3748 50%, #1a202c 100%);
+    color: #fff;
+    padding: 12px 14px;
+    border-radius: 4px;
+    text-align: right;
+    font-family: -apple-system, "Segoe UI Semibold", "SF Pro Display", "Helvetica Neue", Arial, sans-serif;
+    font-weight: 600;
+    font-size: 13px;
+    line-height: 1.35;
+    text-shadow: 0 1px 1px rgba(0,0,0,0.4);
+  }
+
+  .toolbar-theme {
+    display: inline-flex;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 2px;
+  }
+  .toolbar-theme button {
+    background: transparent;
+    color: var(--muted);
+    padding: 4px 10px;
+    font-size: 12px;
+    border-radius: 4px;
+  }
+  .toolbar-theme button.active {
+    background: var(--surface);
+    color: var(--text);
+    box-shadow: 0 1px 2px rgba(0,0,0,0.08);
+  }
+
+  /* Sample-position grid */
+  .pos-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 6px;
+  }
+  .pos-grid button {
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    color: var(--muted);
+    padding: 8px;
+    font-size: 12px;
+    border-radius: var(--radius-sm);
+  }
+  .pos-grid button.active {
+    background: var(--surface);
+    color: var(--text);
+    border-color: var(--accent);
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 20%, transparent);
+  }
+
+  .split { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+  .split .r { color: var(--muted); font-size: 12px; }
+</style>
+
+</head>
+<body>
+<div class="app">
+  <header class="top">
+    <div>
+      <h1>Photo Timestamp Watermark</h1>
+      <div class="sub">iOS-style location stamp · batch process client-side · export as ZIP</div>
+    </div>
+    <div class="toolbar-theme" id="themeToggle">
+      <button data-theme="light">Light</button>
+      <button data-theme="dark">Dark</button>
+    </div>
+  </header>
+
+  <div class="grid">
+    <!-- CONFIG -->
+    <section class="panel" aria-label="Watermark settings">
+      <h2>Nội dung watermark</h2>
+      <p class="hint">Dòng đầu chèn tự động ngày + giờ. Mỗi dòng dưới là 1 dòng địa chỉ.</p>
+
+      <div class="field-row">
+        <div class="field">
+          <label for="date">Ngày</label>
+          <input type="date" id="date" />
+        </div>
+        <div class="field">
+          <label for="dateFormat">Định dạng ngày</label>
+          <select id="dateFormat">
+            <option value="D MMMM YYYY">8 July 2026</option>
+            <option value="D MMM YYYY">8 Jul 2026</option>
+            <option value="MMMM D, YYYY">July 8, 2026</option>
+            <option value="D thg M, YYYY">8 thg 7, 2026</option>
+            <option value="DD/MM/YYYY">08/07/2026</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="field-row">
+        <div class="field">
+          <label for="baseTime">Giờ bắt đầu</label>
+          <input type="time" id="baseTime" step="1" value="11:46:52" />
+        </div>
+        <div class="field">
+          <label for="interval">Cách nhau (giây)</label>
+          <input type="number" id="interval" min="1" max="600" value="12" />
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="lines">Các dòng địa chỉ (mỗi dòng một dòng hiển thị)</label>
+        <textarea id="lines" spellcheck="false">Thành phố Hà Nội
+Việt Nam</textarea>
+      </div>
+
+      <h2 style="margin-top:20px">Kiểu hiển thị</h2>
+
+      <div class="field">
+        <label>Vị trí</label>
+        <div class="pos-grid" id="posGrid">
+          <button data-pos="tl">↖ Trên trái</button>
+          <button data-pos="tr" class="active">↗ Trên phải</button>
+          <button data-pos="bl">↙ Dưới trái</button>
+          <button data-pos="br">↘ Dưới phải</button>
+        </div>
+      </div>
+
+      <div class="field">
+        <div class="split"><label for="fontSize">Cỡ chữ (% chiều rộng ảnh)</label><span class="r val" id="fontSizeLabel">2.6%</span></div>
+        <input type="range" id="fontSize" min="1.5" max="5" step="0.1" value="2.6" />
+      </div>
+
+      <div class="field">
+        <div class="row-inline">
+          <input type="checkbox" id="shadow" checked style="width:auto; margin:0" />
+          <label for="shadow" style="cursor:pointer">Đổ bóng mờ (dễ đọc trên nền sáng)</label>
+        </div>
+      </div>
+
+      <div class="preview-block">
+        <div class="plabel">Preview dòng đầu</div>
+        <div class="pbox" id="preview"></div>
+      </div>
+    </section>
+
+    <!-- FILES -->
+    <section class="panel" aria-label="Files">
+      <div class="split">
+        <div>
+          <h2 style="margin:0">Ảnh</h2>
+          <p class="hint" style="margin:2px 0 0"><span id="fileCount">0</span> ảnh · sắp xếp theo tên</p>
+        </div>
+        <button class="btn-ghost" id="clearAll" style="display:none">Xoá tất cả</button>
+      </div>
+
+      <div class="drop" id="drop">
+        <div class="drop-title">Kéo thả ảnh, thư mục, hoặc file .zip vào đây</div>
+        <div class="drop-sub">Hỗ trợ JPG · PNG · ZIP (tự động giải nén) · RAR cần convert sang ZIP</div>
+        <div class="drop-actions">
+          <button class="btn-ghost" id="pickFiles">Chọn file…</button>
+          <button class="btn-ghost" id="pickFolder">Chọn thư mục…</button>
+          <button class="btn-ghost" id="pickZip">Chọn ZIP…</button>
+          <input type="file" id="fileInput" accept="image/*,.zip" multiple />
+          <input type="file" id="folderInput" webkitdirectory directory multiple />
+          <input type="file" id="zipInput" accept=".zip,application/zip,application/x-zip-compressed" multiple />
+        </div>
+        <div id="dropStatus" style="margin-top: 10px; font-size: 12px; color: var(--muted); min-height: 16px;"></div>
+      </div>
+
+      <div id="fileList">
+        <div class="empty-state">Chưa có ảnh nào. Kéo thả hoặc chọn file để bắt đầu.</div>
+      </div>
+    </section>
+  </div>
+
+  <div class="actions-bar" id="actionsBar" style="display:none">
+    <div class="actions-info">
+      <b id="statFiles">0</b> ảnh
+      · <span id="statDone">0</span> đã xử lý
+    </div>
+    <div class="progress"><div id="progressBar"></div></div>
+    <div class="actions-right">
+      <button class="btn-ghost" id="btnReset">Reset kết quả</button>
+      <button class="btn-primary" id="btnProcess">Xử lý tất cả</button>
+      <button class="btn-primary" id="btnDownload" style="display:none">Tải ZIP</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  // ---------- Theme ----------
+  const themeToggle = document.getElementById('themeToggle');
+  function applyTheme(t) {
+    document.documentElement.setAttribute('data-theme', t);
+    themeToggle.querySelectorAll('button').forEach(b => {
+      b.classList.toggle('active', b.dataset.theme === t);
+    });
+  }
+  const savedTheme = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  applyTheme(savedTheme);
+  themeToggle.addEventListener('click', e => {
+    if (e.target.dataset.theme) applyTheme(e.target.dataset.theme);
+  });
+
+  // ---------- Date formatting ----------
+  const MONTHS_EN_LONG = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  const MONTHS_EN_SHORT = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  function formatDate(dateStr, fmt) {
+    // dateStr: YYYY-MM-DD
+    if (!dateStr) return '';
+    const [y, m, d] = dateStr.split('-').map(Number);
+    switch (fmt) {
+      case 'D MMMM YYYY': return `${d} ${MONTHS_EN_LONG[m-1]} ${y}`;
+      case 'D MMM YYYY':  return `${d} ${MONTHS_EN_SHORT[m-1]} ${y}`;
+      case 'MMMM D, YYYY':return `${MONTHS_EN_LONG[m-1]} ${d}, ${y}`;
+      case 'D thg M, YYYY':return `${d} thg ${m}, ${y}`;
+      case 'DD/MM/YYYY':  return `${String(d).padStart(2,'0')}/${String(m).padStart(2,'0')}/${y}`;
+      default: return `${d} ${MONTHS_EN_LONG[m-1]} ${y}`;
+    }
+  }
+  function pad(n) { return String(n).padStart(2, '0'); }
+  function timeToSec(t) {
+    if (!t) return 0;
+    const [h, m, s = 0] = t.split(':').map(Number);
+    return h*3600 + m*60 + s;
+  }
+  function secToTime(s) {
+    s = ((s % 86400) + 86400) % 86400;
+    return `${pad(Math.floor(s/3600))}:${pad(Math.floor(s/60)%60)}:${pad(s%60)}`;
+  }
+  // Sequence with small natural jitter (±25%)
+  function buildTimestamps(baseSec, intervalSec, count, seed=1) {
+    let rand = mulberry32(seed);
+    let times = [];
+    let cur = baseSec;
+    for (let i = 0; i < count; i++) {
+      times.push(cur);
+      const jitter = intervalSec * (0.75 + rand() * 0.5); // 0.75x .. 1.25x
+      cur += Math.round(jitter);
+    }
+    return times;
+  }
+  function mulberry32(a) {
+    return function() {
+      a |= 0; a = a + 0x6D2B79F5 | 0;
+      let t = a;
+      t = Math.imul(t ^ t >>> 15, t | 1);
+      t ^= t + Math.imul(t ^ t >>> 7, t | 61);
+      return ((t ^ t >>> 14) >>> 0) / 4294967296;
+    }
+  }
+
+  // ---------- State ----------
+  const state = {
+    files: [],   // {id, file, url, ts, processedBlob, status:'idle'|'processing'|'done'|'error'}
+    position: 'tr',
+    processing: false,
+  };
+
+  // Initialize date to today
+  const today = new Date();
+  document.getElementById('date').value = `${today.getFullYear()}-${pad(today.getMonth()+1)}-${pad(today.getDate())}`;
+
+  // ---------- Position selector ----------
+  document.getElementById('posGrid').addEventListener('click', e => {
+    const b = e.target.closest('button');
+    if (!b) return;
+    state.position = b.dataset.pos;
+    document.querySelectorAll('#posGrid button').forEach(x => x.classList.toggle('active', x === b));
+  });
+
+  // ---------- Font size label ----------
+  const fontSizeEl = document.getElementById('fontSize');
+  const fontSizeLabel = document.getElementById('fontSizeLabel');
+  fontSizeEl.addEventListener('input', () => {
+    fontSizeLabel.textContent = fontSizeEl.value + '%';
+  });
+
+  // ---------- Preview ----------
+  function updatePreview() {
+    const date = formatDate(document.getElementById('date').value, document.getElementById('dateFormat').value);
+    const time = document.getElementById('baseTime').value || '00:00:00';
+    // ensure HH:MM:SS
+    const parts = time.split(':');
+    while (parts.length < 3) parts.push('00');
+    const line1 = `${date} at ${parts.map(x => pad(parseInt(x)||0)).join(':')}`;
+    const rest = document.getElementById('lines').value.split('\n').filter(l => l.trim());
+    const pv = document.getElementById('preview');
+    pv.innerHTML = [line1, ...rest].map(l => escapeHtml(l)).join('<br>');
+  }
+  function escapeHtml(s) {
+    return s.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+  ['date','dateFormat','baseTime','lines'].forEach(id => {
+    document.getElementById(id).addEventListener('input', updatePreview);
+    document.getElementById(id).addEventListener('change', updatePreview);
+  });
+  updatePreview();
+
+  // ---------- File input & drop ----------
+  const drop = document.getElementById('drop');
+  const fileInput = document.getElementById('fileInput');
+  const folderInput = document.getElementById('folderInput');
+  const zipInput = document.getElementById('zipInput');
+  document.getElementById('pickFiles').addEventListener('click', () => fileInput.click());
+  document.getElementById('pickFolder').addEventListener('click', () => folderInput.click());
+  document.getElementById('pickZip').addEventListener('click', () => zipInput.click());
+  fileInput.addEventListener('change', e => addFiles([...e.target.files]));
+  folderInput.addEventListener('change', e => addFiles([...e.target.files]));
+  zipInput.addEventListener('change', e => addFiles([...e.target.files]));
+
+  ['dragenter','dragover'].forEach(ev => drop.addEventListener(ev, e => {
+    e.preventDefault(); drop.classList.add('drag');
+  }));
+  ['dragleave','drop'].forEach(ev => drop.addEventListener(ev, e => {
+    e.preventDefault();
+    if (ev === 'drop' || !drop.contains(e.relatedTarget)) drop.classList.remove('drag');
+  }));
+  drop.addEventListener('drop', async e => {
+    const items = e.dataTransfer.items;
+    const files = [];
+    if (items && items.length && items[0].webkitGetAsEntry) {
+      // Support folder drop
+      const promises = [];
+      for (const it of items) {
+        const entry = it.webkitGetAsEntry();
+        if (entry) promises.push(traverse(entry, files));
+      }
+      await Promise.all(promises);
+    } else {
+      for (const f of e.dataTransfer.files) files.push(f);
+    }
+    addFiles(files);
+  });
+  function traverse(entry, files) {
+    return new Promise(resolve => {
+      if (entry.isFile) {
+        entry.file(f => { files.push(f); resolve(); });
+      } else if (entry.isDirectory) {
+        const reader = entry.createReader();
+        const readAll = () => reader.readEntries(async (entries) => {
+          if (!entries.length) return resolve();
+          await Promise.all(entries.map(e => traverse(e, files)));
+          readAll();
+        });
+        readAll();
+      } else resolve();
+    });
+  }
+
+  const dropStatus = document.getElementById('dropStatus');
+  function setStatus(msg, isError = false) {
+    dropStatus.textContent = msg || '';
+    dropStatus.style.color = isError ? 'var(--danger)' : 'var(--muted)';
+  }
+
+  async function addFiles(list) {
+    // Split into images vs archives
+    const images = [];
+    const archives = [];
+    const unsupported = [];
+    for (const file of list) {
+      if (!file) continue;
+      const lower = file.name.toLowerCase();
+      if (file.type.startsWith('image/')) {
+        images.push(file);
+      } else if (lower.endsWith('.zip') || file.type === 'application/zip' || file.type === 'application/x-zip-compressed') {
+        archives.push(file);
+      } else if (lower.endsWith('.rar')) {
+        unsupported.push(file.name);
+      }
+    }
+
+    if (unsupported.length) {
+      setStatus(`RAR chưa hỗ trợ trực tiếp (${unsupported.join(', ')}). Vui lòng convert sang ZIP rồi thử lại.`, true);
+    }
+
+    // Extract archives
+    for (const archive of archives) {
+      setStatus(`Đang giải nén ${archive.name}…`);
+      try {
+        const extracted = await extractZip(archive);
+        for (const {name, blob} of extracted) {
+          // Create File-like wrapper preserving name
+          const f = new File([blob], name, { type: blob.type || guessMime(name), lastModified: archive.lastModified });
+          if (f.type.startsWith('image/')) images.push(f);
+        }
+        setStatus(`Đã giải nén ${archive.name}: ${extracted.filter(e => guessMime(e.name).startsWith('image/')).length} ảnh`);
+      } catch (err) {
+        console.error(err);
+        setStatus(`Lỗi giải nén ${archive.name}: ${err.message}`, true);
+      }
+    }
+
+    // Dedupe by name + size + lastModified
+    const seen = new Set(state.files.map(f => key(f.file)));
+    let added = 0;
+    for (const file of images) {
+      const k = key(file);
+      if (seen.has(k)) continue;
+      seen.add(k);
+      const id = crypto.randomUUID();
+      state.files.push({
+        id, file, url: URL.createObjectURL(file),
+        ts: '', processedBlob: null, status: 'idle',
+        name: file.webkitRelativePath || file.name,
+      });
+      added++;
+    }
+    // Sort by filename (stable, deterministic)
+    state.files.sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: 'base' }));
+    renderFiles();
+    if (added) {
+      // Reset any processed state since order changed
+      state.files.forEach(f => { if (f.status === 'done') { f.processedBlob = null; f.status = 'idle'; } });
+      // Clear inputs so re-selecting same files works
+      fileInput.value = '';
+      folderInput.value = '';
+      document.getElementById('btnDownload').style.display = 'none';
+    }
+  }
+  function key(f) { return `${f.name}|${f.size}|${f.lastModified}`; }
+
+  function removeFile(id) {
+    const idx = state.files.findIndex(f => f.id === id);
+    if (idx < 0) return;
+    URL.revokeObjectURL(state.files[idx].url);
+    state.files.splice(idx, 1);
+    renderFiles();
+  }
+  document.getElementById('clearAll').addEventListener('click', () => {
+    state.files.forEach(f => URL.revokeObjectURL(f.url));
+    state.files = [];
+    renderFiles();
+    document.getElementById('btnDownload').style.display = 'none';
+  });
+
+  function renderFiles() {
+    const list = document.getElementById('fileList');
+    document.getElementById('fileCount').textContent = state.files.length;
+    document.getElementById('clearAll').style.display = state.files.length ? '' : 'none';
+    document.getElementById('actionsBar').style.display = state.files.length ? 'flex' : 'none';
+    document.getElementById('statFiles').textContent = state.files.length;
+    document.getElementById('statDone').textContent = state.files.filter(f => f.status === 'done').length;
+
+    if (!state.files.length) {
+      list.innerHTML = '<div class="empty-state">Chưa có ảnh nào. Kéo thả hoặc chọn file để bắt đầu.</div>';
+      return;
+    }
+    // Compute timestamps for preview labels
+    const baseSec = timeToSec(document.getElementById('baseTime').value || '00:00:00');
+    const interval = Math.max(1, parseInt(document.getElementById('interval').value) || 12);
+    const times = buildTimestamps(baseSec, interval, state.files.length);
+
+    list.innerHTML = '';
+    const grid = document.createElement('div');
+    grid.className = 'files';
+    state.files.forEach((f, i) => {
+      const card = document.createElement('div');
+      card.className = `file-card ${f.status === 'done' ? 'done' : ''} ${f.status === 'processing' ? 'processing' : ''}`;
+      card.innerHTML = `
+        <img src="${f.url}" alt="" loading="lazy" />
+        <button class="rm" title="Bỏ ảnh này" aria-label="Bỏ ảnh này">×</button>
+        <div class="ts">${secToTime(times[i])}</div>
+        <div class="name">${escapeHtml(f.name)}</div>
+      `;
+      card.querySelector('.rm').addEventListener('click', () => removeFile(f.id));
+      grid.appendChild(card);
+    });
+    list.appendChild(grid);
+  }
+
+  // Re-render timestamps on config change
+  ['baseTime','interval'].forEach(id =>
+    document.getElementById(id).addEventListener('input', renderFiles)
+  );
+
+  // ---------- Canvas stamping ----------
+  async function stampOne(fileObj, dateStr, timeStr, addressLines, opts) {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => {
+        try {
+          const canvas = document.createElement('canvas');
+          canvas.width = img.naturalWidth;
+          canvas.height = img.naturalHeight;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0);
+
+          const W = canvas.width, H = canvas.height;
+          const fontPx = Math.max(20, Math.round(W * opts.fontPercent / 100));
+          ctx.font = `600 ${fontPx}px "Segoe UI Semibold", -apple-system, "SF Pro Display", "Helvetica Neue", Arial, sans-serif`;
+          ctx.textBaseline = 'top';
+
+          const lines = [`${dateStr} at ${timeStr}`, ...addressLines];
+          const marginX = Math.round(W * 0.028);
+          const marginY = Math.round(H * 0.022);
+          const lineH = Math.round(fontPx * 1.15);
+          const totalH = lineH * lines.length;
+
+          let originX, originY, align;
+          switch (opts.position) {
+            case 'tl': originX = marginX;         originY = marginY;         align = 'left';  break;
+            case 'tr': originX = W - marginX;     originY = marginY;         align = 'right'; break;
+            case 'bl': originX = marginX;         originY = H - marginY - totalH; align = 'left';  break;
+            case 'br': originX = W - marginX;     originY = H - marginY - totalH; align = 'right'; break;
+          }
+          ctx.textAlign = align;
+
+          let y = originY;
+          for (const line of lines) {
+            if (opts.shadow) {
+              ctx.fillStyle = 'rgba(0,0,0,0.35)';
+              ctx.fillText(line, originX + 1, y + 1);
+            }
+            ctx.fillStyle = '#ffffff';
+            ctx.fillText(line, originX, y);
+            y += lineH;
+          }
+
+          canvas.toBlob(blob => {
+            if (!blob) return reject(new Error('toBlob failed'));
+            resolve(blob);
+          }, 'image/jpeg', 0.94);
+        } catch (err) { reject(err); }
+      };
+      img.onerror = () => reject(new Error('image load failed'));
+      img.src = fileObj.url;
+    });
+  }
+
+  // ---------- Process all ----------
+  document.getElementById('btnProcess').addEventListener('click', processAll);
+  document.getElementById('btnReset').addEventListener('click', () => {
+    state.files.forEach(f => { f.processedBlob = null; f.status = 'idle'; });
+    renderFiles();
+    document.getElementById('btnDownload').style.display = 'none';
+    document.getElementById('progressBar').style.width = '0%';
+  });
+
+  async function processAll() {
+    if (state.processing || !state.files.length) return;
+    state.processing = true;
+    const btnProcess = document.getElementById('btnProcess');
+    const btnDownload = document.getElementById('btnDownload');
+    btnProcess.disabled = true;
+    btnDownload.style.display = 'none';
+
+    const dateStr = formatDate(document.getElementById('date').value, document.getElementById('dateFormat').value);
+    const baseSec = timeToSec(document.getElementById('baseTime').value || '00:00:00');
+    const interval = Math.max(1, parseInt(document.getElementById('interval').value) || 12);
+    const addressLines = document.getElementById('lines').value.split('\n').filter(l => l.trim());
+    const opts = {
+      position: state.position,
+      fontPercent: parseFloat(document.getElementById('fontSize').value),
+      shadow: document.getElementById('shadow').checked,
+    };
+    const times = buildTimestamps(baseSec, interval, state.files.length);
+
+    const bar = document.getElementById('progressBar');
+    let done = 0;
+
+    // Sequential processing to keep memory bounded on large batches
+    for (let i = 0; i < state.files.length; i++) {
+      const f = state.files[i];
+      f.status = 'processing';
+      renderFiles();
+      try {
+        const blob = await stampOne(f, dateStr, secToTime(times[i]), addressLines, opts);
+        f.processedBlob = blob;
+        f.status = 'done';
+      } catch (err) {
+        console.error(err);
+        f.status = 'error';
+      }
+      done++;
+      bar.style.width = (done / state.files.length * 100).toFixed(1) + '%';
+      document.getElementById('statDone').textContent = done;
+    }
+    renderFiles();
+    state.processing = false;
+    btnProcess.disabled = false;
+    const anyDone = state.files.some(f => f.status === 'done');
+    btnDownload.style.display = anyDone ? '' : 'none';
+  }
+
+  // ---------- Minimal STORE-only ZIP builder ----------
+  const CRC_TABLE = (() => {
+    const t = new Uint32Array(256);
+    for (let n = 0; n < 256; n++) {
+      let c = n;
+      for (let k = 0; k < 8; k++) c = (c & 1) ? (0xedb88320 ^ (c >>> 1)) : (c >>> 1);
+      t[n] = c;
+    }
+    return t;
+  })();
+  function crc32(u8) {
+    let crc = 0xffffffff;
+    for (let i = 0; i < u8.length; i++) crc = CRC_TABLE[(crc ^ u8[i]) & 0xff] ^ (crc >>> 8);
+    return (crc ^ 0xffffffff) >>> 0;
+  }
+  function dosDate(d) {
+    return ((d.getFullYear() - 1980) << 9) | ((d.getMonth() + 1) << 5) | d.getDate();
+  }
+  function dosTime(d) {
+    return (d.getHours() << 11) | (d.getMinutes() << 5) | Math.floor(d.getSeconds() / 2);
+  }
+  async function buildZip(entries) {
+    // entries: [{name, blob}]
+    const encoder = new TextEncoder();
+    const parts = [];
+    const central = [];
+    let offset = 0;
+    const now = new Date();
+    const dTime = dosTime(now);
+    const dDate = dosDate(now);
+
+    for (const ent of entries) {
+      const nameBytes = encoder.encode(ent.name);
+      const data = new Uint8Array(await ent.blob.arrayBuffer());
+      const crc = crc32(data);
+
+      const local = new Uint8Array(30 + nameBytes.length);
+      const dv = new DataView(local.buffer);
+      dv.setUint32(0, 0x04034b50, true);
+      dv.setUint16(4, 20, true);        // version
+      dv.setUint16(6, 0x0800, true);    // UTF-8 flag
+      dv.setUint16(8, 0, true);         // method: store
+      dv.setUint16(10, dTime, true);
+      dv.setUint16(12, dDate, true);
+      dv.setUint32(14, crc, true);
+      dv.setUint32(18, data.length, true);
+      dv.setUint32(22, data.length, true);
+      dv.setUint16(26, nameBytes.length, true);
+      dv.setUint16(28, 0, true);
+      local.set(nameBytes, 30);
+
+      parts.push(local, data);
+
+      const cd = new Uint8Array(46 + nameBytes.length);
+      const cdv = new DataView(cd.buffer);
+      cdv.setUint32(0, 0x02014b50, true);
+      cdv.setUint16(4, 20, true);
+      cdv.setUint16(6, 20, true);
+      cdv.setUint16(8, 0x0800, true);
+      cdv.setUint16(10, 0, true);
+      cdv.setUint16(12, dTime, true);
+      cdv.setUint16(14, dDate, true);
+      cdv.setUint32(16, crc, true);
+      cdv.setUint32(20, data.length, true);
+      cdv.setUint32(24, data.length, true);
+      cdv.setUint16(28, nameBytes.length, true);
+      cdv.setUint16(30, 0, true);
+      cdv.setUint16(32, 0, true);
+      cdv.setUint16(34, 0, true);
+      cdv.setUint16(36, 0, true);
+      cdv.setUint32(38, 0, true);
+      cdv.setUint32(42, offset, true);
+      cd.set(nameBytes, 46);
+      central.push(cd);
+
+      offset += local.length + data.length;
+    }
+
+    let centralSize = 0;
+    for (const c of central) centralSize += c.length;
+    const eocd = new Uint8Array(22);
+    const edv = new DataView(eocd.buffer);
+    edv.setUint32(0, 0x06054b50, true);
+    edv.setUint16(4, 0, true);
+    edv.setUint16(6, 0, true);
+    edv.setUint16(8, entries.length, true);
+    edv.setUint16(10, entries.length, true);
+    edv.setUint32(12, centralSize, true);
+    edv.setUint32(16, offset, true);
+    edv.setUint16(20, 0, true);
+
+    return new Blob([...parts, ...central, eocd], { type: 'application/zip' });
+  }
+
+  document.getElementById('btnDownload').addEventListener('click', async () => {
+    const done = state.files.filter(f => f.status === 'done' && f.processedBlob);
+    if (!done.length) return;
+    // If only 1 file, download directly
+    if (done.length === 1) {
+      const f = done[0];
+      triggerDownload(f.processedBlob, outputName(f.name));
+      return;
+    }
+    // Otherwise build ZIP
+    const btn = document.getElementById('btnDownload');
+    btn.disabled = true;
+    const originalText = btn.textContent;
+    btn.textContent = 'Đang đóng gói…';
+    try {
+      // Dedupe names in case of collisions
+      const usedNames = new Set();
+      const entries = done.map(f => {
+        let name = outputName(f.name);
+        let i = 1;
+        while (usedNames.has(name)) {
+          const dot = name.lastIndexOf('.');
+          const base = dot >= 0 ? name.slice(0, dot) : name;
+          const ext = dot >= 0 ? name.slice(dot) : '';
+          name = `${base}_${i++}${ext}`;
+        }
+        usedNames.add(name);
+        return { name, blob: f.processedBlob };
+      });
+      const zip = await buildZip(entries);
+      const stamp = new Date().toISOString().slice(0,10);
+      triggerDownload(zip, `stamped_${stamp}.zip`);
+    } catch (err) {
+      console.error(err);
+      alert('Lỗi khi đóng gói ZIP: ' + err.message);
+    } finally {
+      btn.textContent = originalText;
+      btn.disabled = false;
+    }
+  });
+
+  function outputName(originalName) {
+    // Strip folder path, replace with just the file basename
+    const base = originalName.split('/').pop();
+    // Force .jpg extension since we always output JPEG
+    const dot = base.lastIndexOf('.');
+    return (dot > 0 ? base.slice(0, dot) : base) + '.jpg';
+  }
+  function triggerDownload(blob, filename) {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = filename;
+    document.body.appendChild(a); a.click();
+    setTimeout(() => { URL.revokeObjectURL(url); a.remove(); }, 100);
+  }
+
+  // ---------- ZIP reader (STORE + DEFLATE via DecompressionStream) ----------
+  function guessMime(name) {
+    const ext = name.toLowerCase().split('.').pop();
+    return {
+      jpg: 'image/jpeg', jpeg: 'image/jpeg',
+      png: 'image/png', webp: 'image/webp',
+      gif: 'image/gif', bmp: 'image/bmp',
+      heic: 'image/heic', heif: 'image/heif',
+    }[ext] || '';
+  }
+  async function extractZip(file) {
+    const buf = new Uint8Array(await file.arrayBuffer());
+    // Locate End Of Central Directory (search backwards)
+    let eocd = -1;
+    const searchStart = Math.max(0, buf.length - 65558);
+    for (let i = buf.length - 22; i >= searchStart; i--) {
+      if (buf[i] === 0x50 && buf[i+1] === 0x4b && buf[i+2] === 0x05 && buf[i+3] === 0x06) {
+        eocd = i; break;
+      }
+    }
+    if (eocd < 0) throw new Error('File không phải ZIP hợp lệ');
+
+    const dv = new DataView(buf.buffer, buf.byteOffset, buf.byteLength);
+    const centralCount = dv.getUint16(eocd + 10, true);
+    const centralOffset = dv.getUint32(eocd + 16, true);
+    const decoder = new TextDecoder('utf-8');
+    const decoderCp = new TextDecoder('cp437'); // fallback for non-UTF8 names
+
+    const entries = [];
+    let p = centralOffset;
+    for (let i = 0; i < centralCount; i++) {
+      if (dv.getUint32(p, true) !== 0x02014b50) throw new Error('Central directory hỏng');
+      const flags = dv.getUint16(p + 8, true);
+      const method = dv.getUint16(p + 10, true);
+      const compSize = dv.getUint32(p + 20, true);
+      const uncompSize = dv.getUint32(p + 24, true);
+      const nameLen = dv.getUint16(p + 28, true);
+      const extraLen = dv.getUint16(p + 30, true);
+      const commentLen = dv.getUint16(p + 32, true);
+      const localOffset = dv.getUint32(p + 42, true);
+      const nameBytes = buf.subarray(p + 46, p + 46 + nameLen);
+      const isUtf8 = !!(flags & 0x0800);
+      let name;
+      try {
+        name = (isUtf8 ? decoder : decoderCp).decode(nameBytes);
+      } catch {
+        name = decoder.decode(nameBytes);
+      }
+      p += 46 + nameLen + extraLen + commentLen;
+
+      if (name.endsWith('/')) continue; // directory
+      // Skip Mac metadata
+      if (name.includes('__MACOSX/') || name.split('/').pop().startsWith('._')) continue;
+      // Only extract images
+      if (!guessMime(name)) continue;
+
+      // Read local header to find real data offset (extra fields can differ)
+      if (dv.getUint32(localOffset, true) !== 0x04034b50) throw new Error('Local header hỏng');
+      const locNameLen = dv.getUint16(localOffset + 26, true);
+      const locExtraLen = dv.getUint16(localOffset + 28, true);
+      const dataStart = localOffset + 30 + locNameLen + locExtraLen;
+      const compressed = buf.subarray(dataStart, dataStart + compSize);
+
+      let data;
+      if (method === 0) {
+        // STORE
+        data = compressed;
+      } else if (method === 8) {
+        // DEFLATE — use browser's built-in decompression
+        try {
+          const stream = new Blob([compressed]).stream().pipeThrough(new DecompressionStream('deflate-raw'));
+          data = new Uint8Array(await new Response(stream).arrayBuffer());
+        } catch (err) {
+          console.warn('Skip', name, ': deflate failed', err);
+          continue;
+        }
+      } else {
+        console.warn('Skip', name, ': method', method, 'not supported');
+        continue;
+      }
+
+      const basename = name.split('/').pop();
+      entries.push({ name: basename, blob: new Blob([data], { type: guessMime(name) }) });
+    }
+    return entries;
+  }
+</script>
+</body>
+</html>
