@@ -1031,7 +1031,7 @@ Việt Nam</textarea>
 
           const W = canvas.width, H = canvas.height;
           const fontPx = Math.max(20, Math.round(W * opts.fontPercent / 100));
-          const fontSpec = `600 ${fontPx}px "San Francisco Display", "SF Pro Display", -apple-system, "Roboto", "Segoe UI", "Helvetica Neue", Arial, sans-serif`;
+          const fontSpec = `300 ${fontPx}px "San Francisco Display", "SF Pro Display", -apple-system, "Roboto", "Segoe UI", "Helvetica Neue", Arial, sans-serif`;
           // Ensure Roboto is loaded before drawing (canvas doesn't wait for fonts otherwise)
           if (document.fonts && document.fonts.load) {
             try { await document.fonts.load(fontSpec); } catch (_) {}
