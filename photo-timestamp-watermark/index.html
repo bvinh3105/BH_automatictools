@@ -75,25 +75,32 @@
   :root[data-theme="light"] { color-scheme: light; }
   :root[data-theme="dark"]  { color-scheme: dark; }
 
+  /* Force color-scheme on inputs themselves so browser paints native icons in matching theme */
+  input[type="date"], input[type="time"] { color-scheme: light dark; }
+  :root[data-theme="dark"] input[type="date"],
+  :root[data-theme="dark"] input[type="time"] { color-scheme: dark; }
+  :root[data-theme="light"] input[type="date"],
+  :root[data-theme="light"] input[type="time"] { color-scheme: light; }
+
   /* Invert the calendar/clock icons in dark mode for legibility */
   @media (prefers-color-scheme: dark) {
     input[type="date"]::-webkit-calendar-picker-indicator,
     input[type="time"]::-webkit-calendar-picker-indicator {
-      filter: invert(1) brightness(1.4);
-      opacity: 0.85;
+      filter: invert(1) brightness(1.5) !important;
+      opacity: 0.9 !important;
       cursor: pointer;
     }
   }
   :root[data-theme="dark"] input[type="date"]::-webkit-calendar-picker-indicator,
   :root[data-theme="dark"] input[type="time"]::-webkit-calendar-picker-indicator {
-    filter: invert(1) brightness(1.4);
-    opacity: 0.85;
+    filter: invert(1) brightness(1.5) !important;
+    opacity: 0.9 !important;
     cursor: pointer;
   }
   :root[data-theme="light"] input[type="date"]::-webkit-calendar-picker-indicator,
   :root[data-theme="light"] input[type="time"]::-webkit-calendar-picker-indicator {
-    filter: none;
-    opacity: 0.65;
+    filter: none !important;
+    opacity: 0.65 !important;
     cursor: pointer;
   }
 
