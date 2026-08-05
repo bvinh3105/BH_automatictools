@@ -847,10 +847,8 @@
   .cs-btn.no-arrow::after { display: none; }
 
   .cs-menu {
-    position: absolute;
-    top: calc(100% + 6px);
-    left: 0;
-    min-width: 100%;
+    position: fixed;
+    /* top/left/width set at open time via JS (portal to body) */
     /* Opaque frosted glass: bg at high alpha + strong blur.
        Backdrop-filter creates the frost; the alpha makes it hide text
        even when nested inside another backdrop-filter panel. */
@@ -1351,6 +1349,36 @@ Việt Nam</textarea>
 </div>
 
 <script>
+  // ---------- Shared open-menu registry + portal helpers ----------
+  const csRegistry = []; // { btn, menu, close }
+  function csCloseAll(except) {
+    csRegistry.forEach(r => { if (r !== except && r.menu.classList.contains('open')) r.close(); });
+  }
+  function csPositionMenu(btn, menu) {
+    const r = btn.getBoundingClientRect();
+    const menuW = Math.max(r.width, menu.offsetWidth || r.width);
+    let left = r.left;
+    // Keep within viewport
+    const vw = document.documentElement.clientWidth;
+    if (left + menuW > vw - 8) left = Math.max(8, vw - menuW - 8);
+    let top = r.bottom + 6;
+    // Flip up if not enough space below
+    const menuH = menu.offsetHeight || 200;
+    const vh = document.documentElement.clientHeight;
+    if (top + menuH > vh - 8 && r.top - menuH - 6 > 8) {
+      top = r.top - menuH - 6;
+    }
+    menu.style.top = top + 'px';
+    menu.style.left = left + 'px';
+    menu.style.minWidth = r.width + 'px';
+  }
+  function csAttachMenu(menu) {
+    if (menu.parentNode !== document.body) document.body.appendChild(menu);
+  }
+  // Close on window scroll/resize to avoid stale positions
+  window.addEventListener('scroll', () => csCloseAll(null), true);
+  window.addEventListener('resize', () => csCloseAll(null));
+
   // ---------- Enhance <select> with glass custom dropdown ----------
   function enhanceSelect(sel) {
     if (sel.dataset.enhanced) return;
@@ -1403,9 +1431,20 @@ Việt Nam</textarea>
       });
     }
 
+    const entry = { btn, menu, close: () => close() };
+    csRegistry.push(entry);
+
     function open() {
-      btn.classList.add('open');
+      csCloseAll(entry);
+      csAttachMenu(menu);
+      menu.style.visibility = 'hidden';
       menu.classList.add('open');
+      // Position after DOM paint measure
+      requestAnimationFrame(() => {
+        csPositionMenu(btn, menu);
+        menu.style.visibility = '';
+      });
+      btn.classList.add('open');
       btn.setAttribute('aria-expanded', 'true');
     }
     function close() {
@@ -1416,9 +1455,9 @@ Việt Nam</textarea>
     function toggle() { menu.classList.contains('open') ? close() : open(); }
 
     btn.addEventListener('click', e => { e.stopPropagation(); toggle(); });
-    // Outside click closes
+    // Outside click closes (menu is now on body; check both wrap and menu)
     document.addEventListener('click', e => {
-      if (!wrap.contains(e.target)) close();
+      if (!wrap.contains(e.target) && !menu.contains(e.target)) close();
     });
     // Keyboard
     btn.addEventListener('keydown', e => {
@@ -1557,10 +1596,21 @@ Việt Nam</textarea>
         close();
       });
     }
-    function open() { initView(); buildCal(); btn.classList.add('open'); menu.classList.add('open'); }
+    const entry = { btn, menu, close: () => close() };
+    csRegistry.push(entry);
+    function open() {
+      csCloseAll(entry);
+      initView();
+      buildCal();
+      csAttachMenu(menu);
+      menu.style.visibility = 'hidden';
+      menu.classList.add('open');
+      requestAnimationFrame(() => { csPositionMenu(btn, menu); menu.style.visibility = ''; });
+      btn.classList.add('open');
+    }
     function close() { btn.classList.remove('open'); menu.classList.remove('open'); }
     btn.addEventListener('click', e => { e.stopPropagation(); menu.classList.contains('open') ? close() : open(); });
-    document.addEventListener('click', e => { if (!wrap.contains(e.target)) close(); });
+    document.addEventListener('click', e => { if (!wrap.contains(e.target) && !menu.contains(e.target)) close(); });
     input.addEventListener('change', refreshBtn);
     refreshBtn();
   }
@@ -1625,10 +1675,20 @@ Việt Nam</textarea>
       ih.focus();
       ih.select();
     }
-    function open() { build(); btn.classList.add('open'); menu.classList.add('open'); }
+    const entry = { btn, menu, close: () => close() };
+    csRegistry.push(entry);
+    function open() {
+      csCloseAll(entry);
+      build();
+      csAttachMenu(menu);
+      menu.style.visibility = 'hidden';
+      menu.classList.add('open');
+      requestAnimationFrame(() => { csPositionMenu(btn, menu); menu.style.visibility = ''; });
+      btn.classList.add('open');
+    }
     function close() { btn.classList.remove('open'); menu.classList.remove('open'); }
     btn.addEventListener('click', e => { e.stopPropagation(); menu.classList.contains('open') ? close() : open(); });
-    document.addEventListener('click', e => { if (!wrap.contains(e.target)) close(); });
+    document.addEventListener('click', e => { if (!wrap.contains(e.target) && !menu.contains(e.target)) close(); });
     input.addEventListener('change', refreshBtn);
     refreshBtn();
   }
