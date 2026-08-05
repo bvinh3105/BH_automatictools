@@ -1038,6 +1038,21 @@
     background: rgba(255,255,255,0.14);
     box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-2) 25%, transparent);
   }
+  .cs-time-part.invalid {
+    border-color: var(--danger);
+    color: var(--danger);
+    background: color-mix(in srgb, var(--danger) 18%, rgba(255,255,255,0.08));
+    animation: shakeX 0.35s cubic-bezier(.36,.07,.19,.97);
+  }
+  .cs-time-part.invalid:focus {
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--danger) 30%, transparent);
+  }
+  @keyframes shakeX {
+    10%, 90% { transform: translateX(-1px); }
+    20%, 80% { transform: translateX(2px); }
+    30%, 50%, 70% { transform: translateX(-4px); }
+    40%, 60% { transform: translateX(4px); }
+  }
   .cs-time-part::-webkit-inner-spin-button,
   .cs-time-part::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
   .cs-time-sep { font-size: 18px; color: var(--muted); font-variant-numeric: tabular-nums; padding: 0 2px; }
@@ -1654,9 +1669,42 @@ Việt Nam</textarea>
           <button type="button" class="cs-cal-action" data-action="now">Bây giờ</button>
         </div>`;
       const [ih, im, is] = menu.querySelectorAll('.cs-time-part');
-      const readAll = () => commit(parseInt(ih.value)||0, parseInt(im.value)||0, parseInt(is.value)||0);
+      const validate = el => {
+        const max = parseInt(el.max);
+        const min = parseInt(el.min);
+        const raw = el.value.trim();
+        // Empty is allowed during editing; not invalid
+        if (raw === '') { el.classList.remove('invalid'); return true; }
+        const n = Number(raw);
+        const ok = Number.isFinite(n) && n >= min && n <= max && /^\d+$/.test(raw);
+        // Retrigger animation by removing/adding
+        if (!ok) {
+          el.classList.remove('invalid');
+          void el.offsetWidth; // force reflow to restart anim
+          el.classList.add('invalid');
+        } else {
+          el.classList.remove('invalid');
+        }
+        return ok;
+      };
+      const readAll = () => {
+        const okH = validate(ih), okM = validate(im), okS = validate(is);
+        if (okH && okM && okS) {
+          commit(parseInt(ih.value)||0, parseInt(im.value)||0, parseInt(is.value)||0);
+        }
+      };
+      const clampOnBlur = el => {
+        const max = parseInt(el.max), min = parseInt(el.min);
+        let n = parseInt(el.value);
+        if (!Number.isFinite(n)) n = 0;
+        n = Math.max(min, Math.min(max, n));
+        el.value = pad2(n);
+        el.classList.remove('invalid');
+        readAll();
+      };
       [ih, im, is].forEach(el => {
         el.addEventListener('input', readAll);
+        el.addEventListener('blur', () => clampOnBlur(el));
         el.addEventListener('click', e => e.stopPropagation());
       });
       menu.querySelector('[data-action="clear"]').addEventListener('click', e => {
