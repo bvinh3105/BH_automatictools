@@ -404,13 +404,19 @@
     color: #fff;
     padding: 12px 14px;
     border-radius: 4px;
-    text-align: right;
-    font-family: "San Francisco Display Regular", "San Francisco Display", "SF Pro Display", -apple-system, "Roboto", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
-    font-weight: 600;
-    font-size: 13px;
+    font-family: "San Francisco Display Light", "SF Pro Display Light", "SF Pro Display", -apple-system, "Roboto", "Segoe UI Light", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+    font-weight: 300;
     line-height: 1.35;
-    text-shadow: 0 1px 1px rgba(0,0,0,0.4);
+    min-height: 80px;
+    display: flex;
+    flex-direction: column;
+    transition: text-align 0.15s;
   }
+  .preview-block .pbox.pos-tl { text-align: left;  justify-content: flex-start; }
+  .preview-block .pbox.pos-tr { text-align: right; justify-content: flex-start; }
+  .preview-block .pbox.pos-bl { text-align: left;  justify-content: flex-end; }
+  .preview-block .pbox.pos-br { text-align: right; justify-content: flex-end; }
+  .preview-block .pbox.shadow { text-shadow: 0 1px 1px rgba(0,0,0,0.4); }
 
   .toolbar-theme {
     display: inline-flex;
@@ -825,14 +831,25 @@ Việt Nam</textarea>
     const rest = document.getElementById('lines').value.split('\n').filter(l => l.trim());
     const pv = document.getElementById('preview');
     pv.innerHTML = [line1, ...rest].map(l => escapeHtml(l)).join('<br>');
+    // Position class — reflect vị trí đã chọn
+    pv.classList.remove('pos-tl','pos-tr','pos-bl','pos-br');
+    pv.classList.add('pos-' + state.position);
+    // Shadow toggle
+    pv.classList.toggle('shadow', document.getElementById('shadow').checked);
+    // Font size — scale theo % chiều rộng ảnh giả định 1500px để preview trực quan
+    const pct = parseFloat(document.getElementById('fontSize').value) || 2.6;
+    const previewPx = Math.max(11, Math.round(pct * 1500 / 100 * 0.35)); // ~14–26px
+    pv.style.fontSize = previewPx + 'px';
   }
   function escapeHtml(s) {
     return s.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   }
-  ['date','dateFormat','baseTime','lines'].forEach(id => {
+  ['date','dateFormat','baseTime','lines','fontSize','shadow'].forEach(id => {
     document.getElementById(id).addEventListener('input', updatePreview);
     document.getElementById(id).addEventListener('change', updatePreview);
   });
+  // Position selector cũng phải trigger preview
+  document.getElementById('posGrid').addEventListener('click', updatePreview);
   updatePreview();
 
   // ---------- File input & drop ----------
