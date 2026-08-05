@@ -12,92 +12,92 @@
 <title>Photo Timestamp Watermark</title>
 <style>
   :root {
-    /* Light theme — muted warm greige, workable */
-    --bg: #D9D2C6;
-    --bg-orb-1: #C56A4B;
-    --bg-orb-2: #40332C;
-    --bg-orb-3: #A85238;
-    --bg-orb-4: #8B9EB4;
-    --glass: rgba(245, 240, 232, 0.55);
-    --glass-strong: rgba(245, 240, 232, 0.78);
-    --glass-hover: rgba(245, 240, 232, 0.68);
+    /* Light theme — muted greige with moss-green accents */
+    --bg: #D3CFBE;
+    --bg-orb-1: #6B7A4E;   /* moss */
+    --bg-orb-2: #3F4A2E;   /* deep olive */
+    --bg-orb-3: #8A9A6E;   /* sage */
+    --bg-orb-4: #9AA88C;   /* muted olive gray */
+    --glass: rgba(243, 240, 230, 0.55);
+    --glass-strong: rgba(243, 240, 230, 0.78);
+    --glass-hover: rgba(243, 240, 230, 0.68);
     --border: rgba(26, 26, 26, 0.10);
     --border-strong: rgba(26, 26, 26, 0.22);
     --divider: rgba(26, 26, 26, 0.08);
-    --text: #1E1A16;
-    --muted: #6B6560;
-    --accent: #C7451D;
-    --accent-hover: #A4381A;
-    --accent-fg: #F5F0E8;
+    --text: #1E1F18;
+    --muted: #656760;
+    --accent: #556B2F;
+    --accent-hover: #445524;
+    --accent-fg: #F3F0E6;
     --danger: #A63838;
     --success: #3D7B4A;
-    --shadow: 0 8px 28px rgba(26, 20, 15, 0.14), 0 2px 6px rgba(26, 20, 15, 0.07);
-    --input-bg: rgba(245, 240, 232, 0.48);
+    --shadow: 0 8px 28px rgba(20, 24, 12, 0.14), 0 2px 6px rgba(20, 24, 12, 0.07);
+    --input-bg: rgba(243, 240, 230, 0.48);
     --radius: 14px;
     --radius-sm: 8px;
   }
   @media (prefers-color-scheme: dark) {
     :root {
-      /* Dark — deep muted charcoal, workable */
-      --bg: #1A1917;
-      --bg-orb-1: #A84A2C;
-      --bg-orb-2: #6E4A38;
-      --bg-orb-3: #5A6D80;
-      --bg-orb-4: #B36A3A;
-      --glass: rgba(255, 250, 240, 0.04);
-      --glass-strong: rgba(255, 250, 240, 0.08);
-      --glass-hover: rgba(255, 250, 240, 0.06);
-      --border: rgba(255, 250, 240, 0.08);
-      --border-strong: rgba(255, 250, 240, 0.18);
-      --divider: rgba(255, 250, 240, 0.07);
-      --text: #E8E2D6;
-      --muted: #94897E;
-      --accent: #D96A45;
-      --accent-hover: #E88358;
-      --accent-fg: #1A1512;
+      /* Dark — deep muted charcoal with moss accents */
+      --bg: #17181A;
+      --bg-orb-1: #4A5A2E;   /* deep moss */
+      --bg-orb-2: #3E4A36;
+      --bg-orb-3: #6B7A4E;   /* moss */
+      --bg-orb-4: #7A8A5E;   /* sage */
+      --glass: rgba(240, 245, 235, 0.04);
+      --glass-strong: rgba(240, 245, 235, 0.08);
+      --glass-hover: rgba(240, 245, 235, 0.06);
+      --border: rgba(240, 245, 235, 0.08);
+      --border-strong: rgba(240, 245, 235, 0.18);
+      --divider: rgba(240, 245, 235, 0.07);
+      --text: #E6E8DE;
+      --muted: #8B9084;
+      --accent: #8FA25E;
+      --accent-hover: #A3B677;
+      --accent-fg: #171B10;
       --shadow: 0 12px 48px rgba(0, 0, 0, 0.45), 0 2px 8px rgba(0, 0, 0, 0.28);
-      --input-bg: rgba(255, 250, 240, 0.04);
+      --input-bg: rgba(240, 245, 235, 0.04);
     }
   }
   :root[data-theme="light"] {
-    --bg: #D9D2C6;
-    --bg-orb-1: #C56A4B;
-    --bg-orb-2: #40332C;
-    --bg-orb-3: #A85238;
-    --bg-orb-4: #8B9EB4;
-    --glass: rgba(245, 240, 232, 0.55);
-    --glass-strong: rgba(245, 240, 232, 0.78);
-    --glass-hover: rgba(245, 240, 232, 0.68);
+    --bg: #D3CFBE;
+    --bg-orb-1: #6B7A4E;
+    --bg-orb-2: #3F4A2E;
+    --bg-orb-3: #8A9A6E;
+    --bg-orb-4: #9AA88C;
+    --glass: rgba(243, 240, 230, 0.55);
+    --glass-strong: rgba(243, 240, 230, 0.78);
+    --glass-hover: rgba(243, 240, 230, 0.68);
     --border: rgba(26, 26, 26, 0.10);
     --border-strong: rgba(26, 26, 26, 0.22);
     --divider: rgba(26, 26, 26, 0.08);
-    --text: #1E1A16;
-    --muted: #6B6560;
-    --accent: #C7451D;
-    --accent-hover: #A4381A;
-    --accent-fg: #F5F0E8;
-    --shadow: 0 8px 28px rgba(26, 20, 15, 0.14), 0 2px 6px rgba(26, 20, 15, 0.07);
-    --input-bg: rgba(245, 240, 232, 0.48);
+    --text: #1E1F18;
+    --muted: #656760;
+    --accent: #556B2F;
+    --accent-hover: #445524;
+    --accent-fg: #F3F0E6;
+    --shadow: 0 8px 28px rgba(20, 24, 12, 0.14), 0 2px 6px rgba(20, 24, 12, 0.07);
+    --input-bg: rgba(243, 240, 230, 0.48);
   }
   :root[data-theme="dark"] {
-    --bg: #1A1917;
-    --bg-orb-1: #A84A2C;
-    --bg-orb-2: #6E4A38;
-    --bg-orb-3: #5A6D80;
-    --bg-orb-4: #B36A3A;
-    --glass: rgba(255, 250, 240, 0.04);
-    --glass-strong: rgba(255, 250, 240, 0.08);
-    --glass-hover: rgba(255, 250, 240, 0.06);
-    --border: rgba(255, 250, 240, 0.08);
-    --border-strong: rgba(255, 250, 240, 0.18);
-    --divider: rgba(255, 250, 240, 0.07);
-    --text: #E8E2D6;
-    --muted: #94897E;
-    --accent: #D96A45;
-    --accent-hover: #E88358;
-    --accent-fg: #1A1512;
+    --bg: #17181A;
+    --bg-orb-1: #4A5A2E;
+    --bg-orb-2: #3E4A36;
+    --bg-orb-3: #6B7A4E;
+    --bg-orb-4: #7A8A5E;
+    --glass: rgba(240, 245, 235, 0.04);
+    --glass-strong: rgba(240, 245, 235, 0.08);
+    --glass-hover: rgba(240, 245, 235, 0.06);
+    --border: rgba(240, 245, 235, 0.08);
+    --border-strong: rgba(240, 245, 235, 0.18);
+    --divider: rgba(240, 245, 235, 0.07);
+    --text: #E6E8DE;
+    --muted: #8B9084;
+    --accent: #8FA25E;
+    --accent-hover: #A3B677;
+    --accent-fg: #171B10;
     --shadow: 0 12px 48px rgba(0, 0, 0, 0.45), 0 2px 8px rgba(0, 0, 0, 0.28);
-    --input-bg: rgba(255, 250, 240, 0.04);
+    --input-bg: rgba(240, 245, 235, 0.04);
   }
 
   /* Signal color scheme to browser so native pickers (date/time) match theme */
@@ -335,14 +335,18 @@
     color: var(--text);
     border: 1px solid var(--border-strong);
     border-radius: var(--radius-sm);
-    padding: 10px 12px;
+    padding: 0 12px;
+    height: 40px;
+    line-height: 1.4;
     font: inherit;
     font-size: 13px;
     outline: none;
     transition: border-color 0.15s, background 0.15s, box-shadow 0.15s;
     backdrop-filter: blur(6px);
     -webkit-backdrop-filter: blur(6px);
+    box-sizing: border-box;
   }
+  textarea { height: auto; padding: 10px 12px; }
 
   /* Hide native number spinners — chúng luôn lạc quẻ với theme custom */
   input[type="number"]::-webkit-inner-spin-button,
