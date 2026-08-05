@@ -363,26 +363,25 @@
     background-repeat: no-repeat;
     background-position: right 12px center;
     background-size: 10px 7px;
-    /* Solid opaque bg — dropdown menu inherits, avoids revealing background spots */
-    background-color: color-mix(in srgb, var(--bg) 85%, #fff 15%);
+    background-color: #EDE6DA;  /* opaque, no transparency */
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
   }
-  :root[data-theme="dark"] select {
-    background-color: color-mix(in srgb, var(--bg) 90%, #fff 10%);
-  }
+  :root[data-theme="dark"] select { background-color: #26231F; }
   @media (prefers-color-scheme: dark) {
-    select { background-color: color-mix(in srgb, var(--bg) 90%, #fff 10%); }
+    select { background-color: #26231F; }
   }
-  /* Native <option> styling — one solid tone matching page */
+  /* Native <option> styling — cùng tone opaque với select */
   select option {
-    background-color: color-mix(in srgb, var(--bg) 85%, #fff 15%);
+    background-color: #EDE6DA;
     color: var(--text);
   }
   :root[data-theme="dark"] select option {
-    background-color: #2A2724;
+    background-color: #26231F;
     color: var(--text);
   }
   @media (prefers-color-scheme: dark) {
-    select option { background-color: #2A2724; color: var(--text); }
+    select option { background-color: #26231F; color: var(--text); }
   }
   :root[data-theme="dark"] select,
   @media (prefers-color-scheme: dark) { :root select {} }
