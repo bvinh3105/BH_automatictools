@@ -1042,16 +1042,19 @@
     border-color: var(--danger);
     color: var(--danger);
     background: color-mix(in srgb, var(--danger) 18%, rgba(255,255,255,0.08));
-    animation: shakeX 0.35s cubic-bezier(.36,.07,.19,.97);
+    animation: shakeRot 0.4s ease-in-out;
+    transform-origin: center;
   }
   .cs-time-part.invalid:focus {
     box-shadow: 0 0 0 3px color-mix(in srgb, var(--danger) 30%, transparent);
   }
-  @keyframes shakeX {
-    10%, 90% { transform: translateX(-1px); }
-    20%, 80% { transform: translateX(2px); }
-    30%, 50%, 70% { transform: translateX(-4px); }
-    40%, 60% { transform: translateX(4px); }
+  @keyframes shakeRot {
+    0%   { transform: rotate(0deg); }
+    20%  { transform: rotate(-2deg); }
+    40%  { transform: rotate(2deg); }
+    60%  { transform: rotate(-1.5deg); }
+    80%  { transform: rotate(1deg); }
+    100% { transform: rotate(0deg); }
   }
   .cs-time-part::-webkit-inner-spin-button,
   .cs-time-part::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
