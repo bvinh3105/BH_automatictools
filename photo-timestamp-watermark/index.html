@@ -843,23 +843,28 @@
     }
   }
   .cs-btn.open::after { transform: translateY(-50%) rotate(180deg); }
+  .cs-btn.no-arrow { padding-right: 12px; }
+  .cs-btn.no-arrow::after { display: none; }
 
   .cs-menu {
     position: absolute;
     top: calc(100% + 6px);
     left: 0;
     min-width: 100%;
-    /* Very translucent tint — let backdrop-filter do the frosting like actions bar */
-    background: var(--glass-strong);
-    backdrop-filter: blur(50px) saturate(200%);
-    -webkit-backdrop-filter: blur(50px) saturate(200%);
+    /* Opaque frosted glass: bg at high alpha + strong blur.
+       Backdrop-filter creates the frost; the alpha makes it hide text
+       even when nested inside another backdrop-filter panel. */
+    background-color: color-mix(in srgb, var(--bg) 78%, transparent);
+    background-image: linear-gradient(180deg, rgba(255,255,255,0.10), rgba(255,255,255,0.02));
+    backdrop-filter: blur(24px) saturate(180%);
+    -webkit-backdrop-filter: blur(24px) saturate(180%);
     border: 1px solid var(--border-strong);
     border-radius: 14px;
     padding: 6px;
-    box-shadow: 0 20px 56px rgba(0, 0, 0, 0.28),
-                0 2px 8px rgba(0, 0, 0, 0.10),
-                inset 0 1px 0 rgba(255, 255, 255, 0.22),
-                inset 0 -1px 0 rgba(0, 0, 0, 0.05);
+    box-shadow: 0 20px 56px rgba(0, 0, 0, 0.32),
+                0 2px 8px rgba(0, 0, 0, 0.12),
+                inset 0 1px 0 rgba(255, 255, 255, 0.20),
+                inset 0 -1px 0 rgba(0, 0, 0, 0.06);
     color: var(--text);
     z-index: 200;
     max-height: 280px;
@@ -901,6 +906,143 @@
     font-weight: 600;
     font-size: 13px;
   }
+
+  /* Trigger button với icon (date/time) — icon phải */
+  .cs-btn .cs-btn-icon {
+    margin-left: auto;
+    color: var(--muted);
+    display: inline-flex;
+    align-items: center;
+  }
+  .cs-btn .cs-btn-icon svg { width: 16px; height: 16px; }
+  .cs-btn.placeholder .cs-btn-label { color: var(--muted); }
+
+  /* Calendar picker */
+  .cs-cal {
+    padding: 12px;
+    min-width: 300px;
+    max-height: none;
+  }
+  .cs-cal-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+    gap: 6px;
+  }
+  .cs-cal-title { font-size: 13px; font-weight: 600; flex: 1; }
+  .cs-cal-nav {
+    background: transparent;
+    color: var(--text);
+    border: none;
+    width: 28px; height: 28px;
+    padding: 0;
+    border-radius: 6px;
+    font-size: 16px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+    transition: background 0.1s;
+  }
+  .cs-cal-nav:hover { background: rgba(255,255,255,0.08); }
+  .cs-cal-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 2px;
+  }
+  .cs-cal-day-name {
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--muted);
+    text-align: center;
+    padding: 4px 0 6px;
+    letter-spacing: 0.03em;
+  }
+  .cs-cal-day {
+    background: transparent;
+    color: var(--text);
+    border: none;
+    padding: 0;
+    width: 100%;
+    aspect-ratio: 1;
+    border-radius: 8px;
+    font-size: 12px;
+    font: inherit;
+    font-size: 12px;
+    cursor: pointer;
+    transition: background 0.1s, color 0.1s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .cs-cal-day:hover:not(:disabled) { background: color-mix(in srgb, var(--accent-2) 15%, transparent); }
+  .cs-cal-day.other { color: color-mix(in srgb, var(--text) 30%, transparent); cursor: default; }
+  .cs-cal-day.today {
+    border: 1px solid var(--accent-2);
+    color: var(--accent-2);
+    font-weight: 600;
+  }
+  .cs-cal-day.selected {
+    background: var(--accent-2);
+    color: #fff;
+    font-weight: 600;
+  }
+  .cs-cal-day.selected:hover { background: var(--accent-2-hover); }
+  .cs-cal-foot {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid var(--divider);
+  }
+  .cs-cal-action {
+    background: transparent;
+    border: none;
+    color: var(--accent-2);
+    font: inherit;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: 6px;
+  }
+  .cs-cal-action:hover { background: color-mix(in srgb, var(--accent-2) 12%, transparent); }
+
+  /* Time picker */
+  .cs-time { padding: 12px; min-width: 240px; }
+  .cs-time-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    margin-bottom: 10px;
+  }
+  .cs-time-part {
+    width: 60px;
+    height: 44px;
+    background: rgba(255,255,255,0.08);
+    border: 1px solid var(--border-strong);
+    border-radius: 8px;
+    color: var(--text);
+    font: inherit;
+    font-size: 18px;
+    font-weight: 500;
+    text-align: center;
+    padding: 0;
+    font-variant-numeric: tabular-nums;
+    outline: none;
+    transition: border-color 0.15s, background 0.15s;
+  }
+  .cs-time-part:focus {
+    border-color: var(--accent-2);
+    background: rgba(255,255,255,0.14);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-2) 25%, transparent);
+  }
+  .cs-time-part::-webkit-inner-spin-button,
+  .cs-time-part::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+  .cs-time-sep { font-size: 18px; color: var(--muted); font-variant-numeric: tabular-nums; padding: 0 2px; }
 
   /* Undo toast — glass pill floating bottom-center */
   .undo-toast {
@@ -1300,6 +1442,199 @@ Việt Nam</textarea>
     refresh();
   }
   document.querySelectorAll('select').forEach(enhanceSelect);
+
+  // ---------- Enhance date/time inputs with glass pickers ----------
+  const pad2 = n => String(n).padStart(2, '0');
+  const ICON_CAL = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>`;
+  const ICON_CLOCK = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>`;
+
+  function makeGlassWrap(input, iconSvg) {
+    input.style.display = 'none';
+    input.dataset.enhanced = '1';
+    const wrap = document.createElement('div');
+    wrap.className = 'cs-wrap';
+    input.parentNode.insertBefore(wrap, input);
+    wrap.appendChild(input);
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'cs-btn';
+    btn.innerHTML = `<span class="cs-btn-label"></span><span class="cs-btn-icon">${iconSvg}</span>`;
+    wrap.appendChild(btn);
+    const menu = document.createElement('div');
+    menu.className = 'cs-menu';
+    wrap.appendChild(menu);
+    // Hide default select arrow (::after) via a class marker
+    btn.classList.add('no-arrow');
+    return { wrap, btn, menu };
+  }
+
+  function enhanceDate(input) {
+    if (input.dataset.enhanced) return;
+    const { wrap, btn, menu } = makeGlassWrap(input, ICON_CAL);
+    menu.classList.add('cs-cal');
+    let viewY, viewM;
+
+    function parseVal() {
+      if (!input.value) return null;
+      const [y, m, d] = input.value.split('-').map(Number);
+      return { y, m, d };
+    }
+    function refreshBtn() {
+      const cd = parseVal();
+      const label = btn.querySelector('.cs-btn-label');
+      if (cd) {
+        label.textContent = `${pad2(cd.d)}/${pad2(cd.m)}/${cd.y}`;
+        btn.classList.remove('placeholder');
+      } else {
+        label.textContent = 'dd/mm/yyyy';
+        btn.classList.add('placeholder');
+      }
+    }
+    function initView() {
+      const cd = parseVal();
+      const t = new Date();
+      viewY = cd?.y ?? t.getFullYear();
+      viewM = cd?.m ?? (t.getMonth() + 1);
+    }
+    function setValue(y, m, d) {
+      input.value = `${y}-${pad2(m)}-${pad2(d)}`;
+      refreshBtn();
+      input.dispatchEvent(new Event('change', { bubbles: true }));
+      input.dispatchEvent(new Event('input', { bubbles: true }));
+    }
+    function buildCal() {
+      const first = new Date(viewY, viewM - 1, 1).getDay();
+      const daysIn = new Date(viewY, viewM, 0).getDate();
+      const daysPrev = new Date(viewY, viewM - 1, 0).getDate();
+      const cells = [];
+      for (let i = first - 1; i >= 0; i--) cells.push({ d: daysPrev - i, other: true });
+      for (let d = 1; d <= daysIn; d++) cells.push({ d, other: false });
+      while (cells.length < 42) cells.push({ d: cells.length - daysIn - first + 1, other: true });
+
+      const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+      const labels = ['Su','Mo','Tu','We','Th','Fr','Sa'];
+      const t = new Date();
+      const isToday = d => d === t.getDate() && viewM === (t.getMonth()+1) && viewY === t.getFullYear();
+      const cd = parseVal();
+      const isSel = d => cd && d === cd.d && viewM === cd.m && viewY === cd.y;
+
+      menu.innerHTML = `
+        <div class="cs-cal-head">
+          <button type="button" class="cs-cal-nav" data-nav="-1" aria-label="Tháng trước">‹</button>
+          <div class="cs-cal-title">${months[viewM-1]} ${viewY}</div>
+          <button type="button" class="cs-cal-nav" data-nav="1" aria-label="Tháng sau">›</button>
+        </div>
+        <div class="cs-cal-grid">
+          ${labels.map(l => `<div class="cs-cal-day-name">${l}</div>`).join('')}
+          ${cells.map(c => `<button type="button" class="cs-cal-day${c.other ? ' other' : ''}${!c.other && isToday(c.d) ? ' today' : ''}${!c.other && isSel(c.d) ? ' selected' : ''}" ${c.other ? 'disabled' : ''} data-d="${c.d}">${c.d}</button>`).join('')}
+        </div>
+        <div class="cs-cal-foot">
+          <button type="button" class="cs-cal-action" data-action="clear">Xoá</button>
+          <button type="button" class="cs-cal-action" data-action="today">Hôm nay</button>
+        </div>`;
+      menu.querySelectorAll('.cs-cal-nav').forEach(b => b.addEventListener('click', e => {
+        e.stopPropagation();
+        viewM += parseInt(b.dataset.nav);
+        if (viewM < 1) { viewM = 12; viewY--; } else if (viewM > 12) { viewM = 1; viewY++; }
+        buildCal();
+      }));
+      menu.querySelectorAll('.cs-cal-day:not(.other):not(:disabled)').forEach(b => b.addEventListener('click', e => {
+        e.stopPropagation();
+        setValue(viewY, viewM, parseInt(b.dataset.d));
+        close();
+      }));
+      menu.querySelector('[data-action="clear"]').addEventListener('click', e => {
+        e.stopPropagation();
+        input.value = '';
+        refreshBtn();
+        input.dispatchEvent(new Event('change', { bubbles: true }));
+        close();
+      });
+      menu.querySelector('[data-action="today"]').addEventListener('click', e => {
+        e.stopPropagation();
+        const t = new Date();
+        setValue(t.getFullYear(), t.getMonth()+1, t.getDate());
+        close();
+      });
+    }
+    function open() { initView(); buildCal(); btn.classList.add('open'); menu.classList.add('open'); }
+    function close() { btn.classList.remove('open'); menu.classList.remove('open'); }
+    btn.addEventListener('click', e => { e.stopPropagation(); menu.classList.contains('open') ? close() : open(); });
+    document.addEventListener('click', e => { if (!wrap.contains(e.target)) close(); });
+    input.addEventListener('change', refreshBtn);
+    refreshBtn();
+  }
+
+  function enhanceTime(input) {
+    if (input.dataset.enhanced) return;
+    const { wrap, btn, menu } = makeGlassWrap(input, ICON_CLOCK);
+    menu.classList.add('cs-time');
+
+    function parseVal() {
+      if (!input.value) return { h: 0, m: 0, s: 0 };
+      const parts = input.value.split(':').map(Number);
+      return { h: parts[0] || 0, m: parts[1] || 0, s: parts[2] || 0 };
+    }
+    function refreshBtn() {
+      const v = parseVal();
+      const label = btn.querySelector('.cs-btn-label');
+      label.textContent = `${pad2(v.h)}:${pad2(v.m)}:${pad2(v.s)}`;
+    }
+    function commit(h, m, s) {
+      h = Math.max(0, Math.min(23, h|0));
+      m = Math.max(0, Math.min(59, m|0));
+      s = Math.max(0, Math.min(59, s|0));
+      input.value = `${pad2(h)}:${pad2(m)}:${pad2(s)}`;
+      refreshBtn();
+      input.dispatchEvent(new Event('change', { bubbles: true }));
+      input.dispatchEvent(new Event('input', { bubbles: true }));
+    }
+    function build() {
+      const v = parseVal();
+      menu.innerHTML = `
+        <div class="cs-time-row">
+          <input type="number" class="cs-time-part" data-p="h" min="0" max="23" value="${pad2(v.h)}">
+          <span class="cs-time-sep">:</span>
+          <input type="number" class="cs-time-part" data-p="m" min="0" max="59" value="${pad2(v.m)}">
+          <span class="cs-time-sep">:</span>
+          <input type="number" class="cs-time-part" data-p="s" min="0" max="59" value="${pad2(v.s)}">
+        </div>
+        <div class="cs-cal-foot">
+          <button type="button" class="cs-cal-action" data-action="clear">Xoá</button>
+          <button type="button" class="cs-cal-action" data-action="now">Bây giờ</button>
+        </div>`;
+      const [ih, im, is] = menu.querySelectorAll('.cs-time-part');
+      const readAll = () => commit(parseInt(ih.value)||0, parseInt(im.value)||0, parseInt(is.value)||0);
+      [ih, im, is].forEach(el => {
+        el.addEventListener('input', readAll);
+        el.addEventListener('click', e => e.stopPropagation());
+      });
+      menu.querySelector('[data-action="clear"]').addEventListener('click', e => {
+        e.stopPropagation();
+        input.value = '';
+        refreshBtn();
+        input.dispatchEvent(new Event('change', { bubbles: true }));
+        close();
+      });
+      menu.querySelector('[data-action="now"]').addEventListener('click', e => {
+        e.stopPropagation();
+        const t = new Date();
+        commit(t.getHours(), t.getMinutes(), t.getSeconds());
+        close();
+      });
+      ih.focus();
+      ih.select();
+    }
+    function open() { build(); btn.classList.add('open'); menu.classList.add('open'); }
+    function close() { btn.classList.remove('open'); menu.classList.remove('open'); }
+    btn.addEventListener('click', e => { e.stopPropagation(); menu.classList.contains('open') ? close() : open(); });
+    document.addEventListener('click', e => { if (!wrap.contains(e.target)) close(); });
+    input.addEventListener('change', refreshBtn);
+    refreshBtn();
+  }
+
+  document.querySelectorAll('input[type="date"]').forEach(enhanceDate);
+  document.querySelectorAll('input[type="time"]').forEach(enhanceTime);
 
   // ---------- Theme ----------
   const themeToggle = document.getElementById('themeToggle');
