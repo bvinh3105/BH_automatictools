@@ -1131,8 +1131,14 @@ Việt Nam</textarea>
     const dv = new DataView(buf.buffer, buf.byteOffset, buf.byteLength);
     const centralCount = dv.getUint16(eocd + 10, true);
     const centralOffset = dv.getUint32(eocd + 16, true);
-    const decoder = new TextDecoder('utf-8');
-    const decoderCp = new TextDecoder('cp437'); // fallback for non-UTF8 names
+    const decoder = new TextDecoder('utf-8', { fatal: false });
+    // Legacy filenames (non-UTF8 flag): spec là CP437 nhưng Chrome/Edge modern
+    // không nhận label 'cp437' → thử vài label thay thế, fallback về utf-8.
+    let decoderLegacy = null;
+    for (const label of ['ibm866', 'windows-1252', 'iso-8859-1']) {
+      try { decoderLegacy = new TextDecoder(label); break; } catch (_) {}
+    }
+    if (!decoderLegacy) decoderLegacy = decoder;
 
     const entries = [];
     let p = centralOffset;
@@ -1150,7 +1156,7 @@ Việt Nam</textarea>
       const isUtf8 = !!(flags & 0x0800);
       let name;
       try {
-        name = (isUtf8 ? decoder : decoderCp).decode(nameBytes);
+        name = (isUtf8 ? decoder : decoderLegacy).decode(nameBytes);
       } catch {
         name = decoder.decode(nameBytes);
       }
