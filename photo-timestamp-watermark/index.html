@@ -6,6 +6,9 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap">
 <title>Photo Timestamp Watermark</title>
 <style>
   :root {
@@ -72,7 +75,7 @@
     margin: 0;
     background: var(--bg);
     color: var(--text);
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "SF Pro Display", "Helvetica Neue", Arial, sans-serif;
+    font-family: "Roboto", -apple-system, BlinkMacSystemFont, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
     font-size: 14px;
     line-height: 1.5;
     -webkit-font-smoothing: antialiased;
@@ -178,7 +181,7 @@
   textarea {
     resize: vertical;
     min-height: 90px;
-    font-family: -apple-system, "Segoe UI", "SF Pro Display", "Helvetica Neue", Arial, sans-serif;
+    font-family: "Roboto", -apple-system, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
     line-height: 1.45;
   }
   input[type="range"] { padding: 0; }
@@ -402,7 +405,7 @@
     padding: 12px 14px;
     border-radius: 4px;
     text-align: right;
-    font-family: -apple-system, "Segoe UI Semibold", "SF Pro Display", "Helvetica Neue", Arial, sans-serif;
+    font-family: "Roboto", -apple-system, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
     font-weight: 600;
     font-size: 13px;
     line-height: 1.35;
@@ -565,7 +568,7 @@
   <header class="top">
     <div>
       <h1>Photo Timestamp Watermark</h1>
-      <div class="sub">iOS-style location stamp · batch process client-side · export as ZIP</div>
+      <div class="sub">bạn Vinh làm cho bạn Thảo</div>
     </div>
     <div class="toolbar-theme" id="themeToggle">
       <button data-theme="light">Light</button>
@@ -1018,7 +1021,7 @@ Việt Nam</textarea>
   async function stampOne(fileObj, dateStr, timeStr, addressLines, opts) {
     return new Promise((resolve, reject) => {
       const img = new Image();
-      img.onload = () => {
+      img.onload = async () => {
         try {
           const canvas = document.createElement('canvas');
           canvas.width = img.naturalWidth;
@@ -1028,7 +1031,12 @@ Việt Nam</textarea>
 
           const W = canvas.width, H = canvas.height;
           const fontPx = Math.max(20, Math.round(W * opts.fontPercent / 100));
-          ctx.font = `600 ${fontPx}px "Segoe UI Semibold", -apple-system, "SF Pro Display", "Helvetica Neue", Arial, sans-serif`;
+          const fontSpec = `500 ${fontPx}px "Roboto", -apple-system, "Segoe UI", "Helvetica Neue", Arial, sans-serif`;
+          // Ensure Roboto is loaded before drawing (canvas doesn't wait for fonts otherwise)
+          if (document.fonts && document.fonts.load) {
+            try { await document.fonts.load(fontSpec); } catch (_) {}
+          }
+          ctx.font = fontSpec;
           ctx.textBaseline = 'top';
 
           const lines = [`${dateStr} at ${timeStr}`, ...addressLines];
