@@ -257,7 +257,27 @@
     display: flex;
     align-items: center;
     justify-content: center;
+    cursor: pointer;
+    transition: transform 0.15s;
   }
+  .file-card:hover { transform: translateY(-1px); }
+  .file-card.done::before {
+    content: '✓ Đã xử lý · bấm để xem';
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.55);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.15s;
+    font-size: 12px;
+    font-weight: 500;
+    z-index: 2;
+    pointer-events: none;
+  }
+  .file-card.done:hover::before { opacity: 1; }
   .file-card img {
     width: 100%;
     height: 100%;
@@ -432,6 +452,111 @@
 
   .split { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
   .split .r { color: var(--muted); font-size: 12px; }
+
+  /* Lightbox */
+  .lightbox {
+    position: fixed;
+    inset: 0;
+    background: rgba(10, 10, 10, 0.88);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+    padding: 24px;
+    animation: fadein 0.15s ease-out;
+  }
+  .lightbox.open { display: flex; }
+  @keyframes fadein { from { opacity: 0; } to { opacity: 1; } }
+  .lightbox .content {
+    position: relative;
+    max-width: 100%;
+    max-height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+  }
+  .lightbox img {
+    max-width: 100%;
+    max-height: calc(100vh - 120px);
+    object-fit: contain;
+    border-radius: 4px;
+    background: #000;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+  }
+  .lightbox .lbbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    max-width: 900px;
+    gap: 16px;
+    color: rgba(255,255,255,0.85);
+    font-size: 13px;
+    padding: 0 4px;
+  }
+  .lightbox .lbname { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .lightbox .lbnav { display: flex; gap: 8px; align-items: center; }
+  .lightbox .lbbtn {
+    background: rgba(255,255,255,0.15);
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    padding: 6px 12px;
+    font-size: 13px;
+    cursor: pointer;
+    font: inherit;
+    line-height: 1.4;
+  }
+  .lightbox .lbbtn:hover:not(:disabled) { background: rgba(255,255,255,0.25); }
+  .lightbox .lbbtn:disabled { opacity: 0.4; cursor: not-allowed; }
+  .lightbox .lbbtn.primary {
+    background: var(--accent);
+    color: var(--accent-fg);
+  }
+  .lightbox .lbbtn.primary:hover:not(:disabled) { background: var(--accent-hover); }
+  .lightbox .lbclose {
+    position: absolute;
+    top: -8px; right: -8px;
+    width: 32px; height: 32px;
+    background: #fff;
+    color: #000;
+    border-radius: 50%;
+    border: none;
+    font-size: 18px;
+    line-height: 1;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+  }
+  .lightbox .lbstatus {
+    color: rgba(255,255,255,0.85);
+    text-align: center;
+    padding: 60px 20px;
+    font-size: 14px;
+  }
+  .lightbox .lbtoggle {
+    display: inline-flex;
+    background: rgba(255,255,255,0.1);
+    border-radius: 6px;
+    padding: 2px;
+    font-size: 12px;
+  }
+  .lightbox .lbtoggle button {
+    background: transparent;
+    color: rgba(255,255,255,0.65);
+    border: none;
+    padding: 4px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    font: inherit;
+  }
+  .lightbox .lbtoggle button.active {
+    background: rgba(255,255,255,0.9);
+    color: #000;
+  }
 </style>
 
 </head>
@@ -471,16 +596,22 @@
         </div>
       </div>
 
+      <div class="field">
+        <label for="baseTime">Giờ bắt đầu</label>
+        <input type="time" id="baseTime" step="1" value="11:46:52" />
+      </div>
+
       <div class="field-row">
         <div class="field">
-          <label for="baseTime">Giờ bắt đầu</label>
-          <input type="time" id="baseTime" step="1" value="11:46:52" />
+          <label for="intervalMin">Cách nhau tối thiểu (giây)</label>
+          <input type="number" id="intervalMin" min="1" max="600" value="8" />
         </div>
         <div class="field">
-          <label for="interval">Cách nhau (giây)</label>
-          <input type="number" id="interval" min="1" max="600" value="12" />
+          <label for="intervalMax">Cách nhau tối đa (giây)</label>
+          <input type="number" id="intervalMax" min="1" max="600" value="20" />
         </div>
       </div>
+      <p class="hint" style="margin: -8px 0 14px">Mỗi ảnh random trong khoảng min–max để tạo cảm giác chụp tự nhiên.</p>
 
       <div class="field">
         <label for="lines">Các dòng địa chỉ (mỗi dòng một dòng hiển thị)</label>
@@ -548,6 +679,27 @@ Việt Nam</textarea>
     </section>
   </div>
 
+  <div class="lightbox" id="lightbox" role="dialog" aria-modal="true">
+    <div class="content">
+      <button class="lbclose" id="lbClose" title="Đóng (Esc)">×</button>
+      <img id="lbImg" alt="" />
+      <div id="lbStatus" class="lbstatus" style="display:none"></div>
+      <div class="lbbar">
+        <div class="lbname" id="lbName"></div>
+        <div class="lbtoggle" id="lbToggle" style="display:none">
+          <button data-view="stamped" class="active">Đã gắn</button>
+          <button data-view="original">Gốc</button>
+        </div>
+        <div class="lbnav">
+          <button class="lbbtn" id="lbPrev" title="Ảnh trước (←)">‹ Trước</button>
+          <span id="lbCount" style="min-width:60px; text-align:center; font-variant-numeric: tabular-nums;"></span>
+          <button class="lbbtn" id="lbNext" title="Ảnh sau (→)">Sau ›</button>
+          <button class="lbbtn primary" id="lbDownload" style="display:none">Tải ảnh này</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <div class="actions-bar" id="actionsBar" style="display:none">
     <div class="actions-info">
       <b id="statFiles">0</b> ảnh
@@ -603,17 +755,25 @@ Việt Nam</textarea>
     s = ((s % 86400) + 86400) % 86400;
     return `${pad(Math.floor(s/3600))}:${pad(Math.floor(s/60)%60)}:${pad(s%60)}`;
   }
-  // Sequence with small natural jitter (±25%)
-  function buildTimestamps(baseSec, intervalSec, count, seed=1) {
+  // Sequence with random interval within [minSec, maxSec]
+  function buildTimestamps(baseSec, minSec, maxSec, count, seed=1) {
+    if (maxSec < minSec) [minSec, maxSec] = [maxSec, minSec];
     let rand = mulberry32(seed);
     let times = [];
     let cur = baseSec;
     for (let i = 0; i < count; i++) {
       times.push(cur);
-      const jitter = intervalSec * (0.75 + rand() * 0.5); // 0.75x .. 1.25x
-      cur += Math.round(jitter);
+      const gap = minSec + Math.floor(rand() * (maxSec - minSec + 1));
+      cur += gap;
     }
     return times;
+  }
+  function getIntervals() {
+    let min = parseInt(document.getElementById('intervalMin').value) || 1;
+    let max = parseInt(document.getElementById('intervalMax').value) || min;
+    min = Math.max(1, min);
+    max = Math.max(min, max);
+    return [min, max];
   }
   function mulberry32(a) {
     return function() {
@@ -824,8 +984,8 @@ Việt Nam</textarea>
     }
     // Compute timestamps for preview labels
     const baseSec = timeToSec(document.getElementById('baseTime').value || '00:00:00');
-    const interval = Math.max(1, parseInt(document.getElementById('interval').value) || 12);
-    const times = buildTimestamps(baseSec, interval, state.files.length);
+    const [imin, imax] = getIntervals();
+    const times = buildTimestamps(baseSec, imin, imax, state.files.length);
 
     list.innerHTML = '';
     const grid = document.createElement('div');
@@ -839,14 +999,18 @@ Việt Nam</textarea>
         <div class="ts">${secToTime(times[i])}</div>
         <div class="name">${escapeHtml(f.name)}</div>
       `;
-      card.querySelector('.rm').addEventListener('click', () => removeFile(f.id));
+      card.querySelector('.rm').addEventListener('click', e => {
+        e.stopPropagation();
+        removeFile(f.id);
+      });
+      card.addEventListener('click', () => openLightbox(i));
       grid.appendChild(card);
     });
     list.appendChild(grid);
   }
 
   // Re-render timestamps on config change
-  ['baseTime','interval'].forEach(id =>
+  ['baseTime','intervalMin','intervalMax'].forEach(id =>
     document.getElementById(id).addEventListener('input', renderFiles)
   );
 
@@ -923,14 +1087,14 @@ Việt Nam</textarea>
 
     const dateStr = formatDate(document.getElementById('date').value, document.getElementById('dateFormat').value);
     const baseSec = timeToSec(document.getElementById('baseTime').value || '00:00:00');
-    const interval = Math.max(1, parseInt(document.getElementById('interval').value) || 12);
+    const [imin, imax] = getIntervals();
     const addressLines = document.getElementById('lines').value.split('\n').filter(l => l.trim());
     const opts = {
       position: state.position,
       fontPercent: parseFloat(document.getElementById('fontSize').value),
       shadow: document.getElementById('shadow').checked,
     };
-    const times = buildTimestamps(baseSec, interval, state.files.length);
+    const times = buildTimestamps(baseSec, imin, imax, state.files.length);
 
     const bar = document.getElementById('progressBar');
     let done = 0;
@@ -1108,6 +1272,123 @@ Việt Nam</textarea>
     document.body.appendChild(a); a.click();
     setTimeout(() => { URL.revokeObjectURL(url); a.remove(); }, 100);
   }
+
+  // ---------- Lightbox preview ----------
+  const lightbox = document.getElementById('lightbox');
+  const lbImg = document.getElementById('lbImg');
+  const lbName = document.getElementById('lbName');
+  const lbCount = document.getElementById('lbCount');
+  const lbStatus = document.getElementById('lbStatus');
+  const lbToggle = document.getElementById('lbToggle');
+  const lbDownload = document.getElementById('lbDownload');
+  const lbPrev = document.getElementById('lbPrev');
+  const lbNext = document.getElementById('lbNext');
+  let lbIndex = -1;
+  let lbView = 'stamped'; // 'stamped' | 'original'
+  let lbPreviewUrl = null; // blob URL created just for on-the-fly preview
+
+  function releaseLbPreview() {
+    if (lbPreviewUrl) { URL.revokeObjectURL(lbPreviewUrl); lbPreviewUrl = null; }
+  }
+
+  async function openLightbox(index) {
+    if (index < 0 || index >= state.files.length) return;
+    lbIndex = index;
+    lightbox.classList.add('open');
+    document.body.style.overflow = 'hidden';
+    await renderLightbox();
+  }
+  function closeLightbox() {
+    lightbox.classList.remove('open');
+    document.body.style.overflow = '';
+    releaseLbPreview();
+    lbImg.src = '';
+  }
+
+  async function renderLightbox() {
+    const f = state.files[lbIndex];
+    if (!f) return closeLightbox();
+    lbName.textContent = f.name;
+    lbCount.textContent = `${lbIndex + 1} / ${state.files.length}`;
+    lbPrev.disabled = lbIndex === 0;
+    lbNext.disabled = lbIndex === state.files.length - 1;
+
+    // Show original vs stamped
+    lbToggle.style.display = f.status === 'done' ? '' : 'none';
+    lbDownload.style.display = f.status === 'done' ? '' : 'none';
+    lbToggle.querySelectorAll('button').forEach(b =>
+      b.classList.toggle('active', b.dataset.view === lbView));
+
+    releaseLbPreview();
+
+    if (lbView === 'original' || f.status !== 'done') {
+      // If not processed yet, generate a one-off stamped preview so user can preview
+      if (f.status !== 'done' && lbView === 'stamped') {
+        lbStatus.style.display = '';
+        lbImg.style.display = 'none';
+        lbStatus.textContent = 'Đang tạo preview…';
+        try {
+          const blob = await stampOneWithCurrentSettings(lbIndex);
+          if (lbIndex !== -1 && state.files[lbIndex] === f) {
+            lbPreviewUrl = URL.createObjectURL(blob);
+            lbImg.src = lbPreviewUrl;
+            lbImg.style.display = '';
+            lbStatus.style.display = 'none';
+          }
+        } catch (err) {
+          console.error(err);
+          lbStatus.textContent = 'Không tạo được preview: ' + err.message;
+        }
+        return;
+      }
+      // original
+      lbImg.src = f.url;
+      lbImg.style.display = '';
+      lbStatus.style.display = 'none';
+    } else {
+      // stamped (already processed)
+      lbPreviewUrl = URL.createObjectURL(f.processedBlob);
+      lbImg.src = lbPreviewUrl;
+      lbImg.style.display = '';
+      lbStatus.style.display = 'none';
+    }
+  }
+
+  async function stampOneWithCurrentSettings(index) {
+    const f = state.files[index];
+    const dateStr = formatDate(document.getElementById('date').value, document.getElementById('dateFormat').value);
+    const baseSec = timeToSec(document.getElementById('baseTime').value || '00:00:00');
+    const [imin, imax] = getIntervals();
+    const times = buildTimestamps(baseSec, imin, imax, state.files.length);
+    const addressLines = document.getElementById('lines').value.split('\n').filter(l => l.trim());
+    const opts = {
+      position: state.position,
+      fontPercent: parseFloat(document.getElementById('fontSize').value),
+      shadow: document.getElementById('shadow').checked,
+    };
+    return stampOne(f, dateStr, secToTime(times[index]), addressLines, opts);
+  }
+
+  document.getElementById('lbClose').addEventListener('click', closeLightbox);
+  lightbox.addEventListener('click', e => { if (e.target === lightbox) closeLightbox(); });
+  lbPrev.addEventListener('click', () => { if (lbIndex > 0) { lbIndex--; renderLightbox(); }});
+  lbNext.addEventListener('click', () => { if (lbIndex < state.files.length - 1) { lbIndex++; renderLightbox(); }});
+  lbToggle.addEventListener('click', e => {
+    const b = e.target.closest('button');
+    if (!b) return;
+    lbView = b.dataset.view;
+    renderLightbox();
+  });
+  lbDownload.addEventListener('click', () => {
+    const f = state.files[lbIndex];
+    if (f && f.processedBlob) triggerDownload(f.processedBlob, outputName(f.name));
+  });
+  document.addEventListener('keydown', e => {
+    if (!lightbox.classList.contains('open')) return;
+    if (e.key === 'Escape') closeLightbox();
+    else if (e.key === 'ArrowLeft' && lbIndex > 0) { lbIndex--; renderLightbox(); }
+    else if (e.key === 'ArrowRight' && lbIndex < state.files.length - 1) { lbIndex++; renderLightbox(); }
+  });
 
   // ---------- ZIP reader (STORE + DEFLATE via DecompressionStream) ----------
   function guessMime(name) {
