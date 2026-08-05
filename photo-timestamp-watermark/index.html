@@ -435,13 +435,25 @@
 
   /* Checkbox tint theo accent — tránh xanh mặc định lạc quẻ */
   input[type="checkbox"] { accent-color: var(--accent); }
+  /* IMPORTANT: dùng background-color, KHÔNG dùng shorthand 'background'
+     — shorthand sẽ reset image/repeat/size của arrow SVG select, làm
+     arrow bị tile thành pattern hàng/cột nhìn như sóng khi hover. */
   input:hover, select:hover, textarea:hover {
-    background: color-mix(in srgb, var(--input-bg) 60%, var(--glass-hover));
+    background-color: color-mix(in srgb, var(--input-bg) 60%, var(--glass-hover));
   }
   input:focus, select:focus, textarea:focus {
     border-color: var(--accent);
-    background: color-mix(in srgb, var(--input-bg) 60%, var(--glass-strong));
+    background-color: color-mix(in srgb, var(--input-bg) 60%, var(--glass-strong));
     box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 25%, transparent);
+  }
+  /* Select giữ nguyên background-color opaque khi hover/focus (không pha
+     với glass để không lộ spots trở lại) */
+  select:hover { background-color: #E5DDCF; }
+  select:focus { background-color: #E5DDCF; }
+  :root[data-theme="dark"] select:hover,
+  :root[data-theme="dark"] select:focus { background-color: #2E2B26; }
+  @media (prefers-color-scheme: dark) {
+    select:hover, select:focus { background-color: #2E2B26; }
   }
   textarea {
     resize: vertical;
