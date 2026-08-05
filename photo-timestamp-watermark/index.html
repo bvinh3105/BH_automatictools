@@ -790,6 +790,115 @@
   .split { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
   .split .r { color: var(--muted); font-size: 12px; }
 
+  /* Custom glass <select> — replaces native dropdown with liquid glass menu */
+  .cs-wrap { position: relative; width: 100%; }
+  .cs-wrap select { display: none !important; }
+  .cs-btn {
+    width: 100%;
+    height: 40px;
+    padding: 0 36px 0 12px;
+    background: var(--input-bg);
+    color: var(--text);
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-sm);
+    font: inherit;
+    font-size: 13px;
+    line-height: 1.4;
+    text-align: left;
+    cursor: pointer;
+    outline: none;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    transition: border-color 0.15s, background-color 0.15s, box-shadow 0.15s;
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+  }
+  .cs-btn:hover { background-color: color-mix(in srgb, var(--input-bg) 60%, var(--glass-hover)); }
+  .cs-btn.open,
+  .cs-btn:focus {
+    border-color: var(--accent-2);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-2) 25%, transparent);
+  }
+  .cs-btn::after {
+    content: '';
+    position: absolute;
+    right: 12px; top: 50%;
+    width: 10px; height: 7px;
+    transform: translateY(-50%);
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8' fill='none' stroke='%236B6560' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><polyline points='1 1.5 6 6.5 11 1.5'/></svg>");
+    background-size: contain;
+    background-repeat: no-repeat;
+    transition: transform 0.2s;
+  }
+  :root[data-theme="dark"] .cs-btn::after,
+  @media (prefers-color-scheme: dark) { :root .cs-btn::after { } }
+  :root[data-theme="dark"] .cs-btn::after {
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8' fill='none' stroke='%2394897E' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><polyline points='1 1.5 6 6.5 11 1.5'/></svg>");
+  }
+  @media (prefers-color-scheme: dark) {
+    .cs-btn::after {
+      background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8' fill='none' stroke='%2394897E' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><polyline points='1 1.5 6 6.5 11 1.5'/></svg>");
+    }
+  }
+  .cs-btn.open::after { transform: translateY(-50%) rotate(180deg); }
+
+  .cs-menu {
+    position: absolute;
+    top: calc(100% + 6px);
+    left: 0;
+    right: 0;
+    background: var(--glass-strong);
+    backdrop-filter: blur(30px) saturate(180%);
+    -webkit-backdrop-filter: blur(30px) saturate(180%);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 6px;
+    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.22),
+                0 2px 6px rgba(0, 0, 0, 0.08),
+                inset 0 1px 0 rgba(255, 255, 255, 0.18);
+    z-index: 50;
+    max-height: 280px;
+    overflow-y: auto;
+    opacity: 0;
+    transform: translateY(-6px) scale(0.98);
+    transform-origin: top center;
+    pointer-events: none;
+    transition: opacity 0.15s ease-out, transform 0.15s ease-out;
+  }
+  .cs-menu.open {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    pointer-events: auto;
+  }
+  .cs-item {
+    padding: 9px 12px;
+    font-size: 13px;
+    color: var(--text);
+    cursor: pointer;
+    border-radius: 8px;
+    line-height: 1.35;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    transition: background 0.1s;
+  }
+  .cs-item + .cs-item { margin-top: 1px; }
+  .cs-item:hover { background: color-mix(in srgb, var(--accent-2) 15%, transparent); }
+  .cs-item.active {
+    background: color-mix(in srgb, var(--accent-2) 22%, transparent);
+    color: var(--text);
+    font-weight: 500;
+  }
+  .cs-item.active::after {
+    content: '✓';
+    color: var(--accent-2);
+    font-weight: 600;
+    font-size: 13px;
+  }
+
   /* Undo toast — glass pill floating bottom-center */
   .undo-toast {
     position: fixed;
@@ -1097,6 +1206,98 @@ Việt Nam</textarea>
 </div>
 
 <script>
+  // ---------- Enhance <select> with glass custom dropdown ----------
+  function enhanceSelect(sel) {
+    if (sel.dataset.enhanced) return;
+    sel.dataset.enhanced = '1';
+    const wrap = document.createElement('div');
+    wrap.className = 'cs-wrap';
+    sel.parentNode.insertBefore(wrap, sel);
+    wrap.appendChild(sel);
+
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'cs-btn';
+    btn.setAttribute('aria-haspopup', 'listbox');
+    btn.setAttribute('aria-expanded', 'false');
+    if (sel.id) btn.setAttribute('aria-controls', sel.id + '_menu');
+    wrap.appendChild(btn);
+
+    const menu = document.createElement('div');
+    menu.className = 'cs-menu';
+    menu.setAttribute('role', 'listbox');
+    if (sel.id) menu.id = sel.id + '_menu';
+    wrap.appendChild(menu);
+
+    function refresh() {
+      const currentVal = sel.value;
+      // Update button label
+      const opt = Array.from(sel.options).find(o => o.value === currentVal);
+      btn.textContent = opt ? opt.textContent : '';
+      // Rebuild menu items
+      menu.innerHTML = '';
+      Array.from(sel.options).forEach(o => {
+        const item = document.createElement('div');
+        item.className = 'cs-item' + (o.value === currentVal ? ' active' : '');
+        item.textContent = o.textContent;
+        item.dataset.value = o.value;
+        item.setAttribute('role', 'option');
+        item.setAttribute('aria-selected', o.value === currentVal ? 'true' : 'false');
+        item.tabIndex = -1;
+        item.addEventListener('click', e => {
+          e.stopPropagation();
+          if (sel.value !== o.value) {
+            sel.value = o.value;
+            sel.dispatchEvent(new Event('change', { bubbles: true }));
+            sel.dispatchEvent(new Event('input', { bubbles: true }));
+          }
+          close();
+          refresh();
+        });
+        menu.appendChild(item);
+      });
+    }
+
+    function open() {
+      btn.classList.add('open');
+      menu.classList.add('open');
+      btn.setAttribute('aria-expanded', 'true');
+    }
+    function close() {
+      btn.classList.remove('open');
+      menu.classList.remove('open');
+      btn.setAttribute('aria-expanded', 'false');
+    }
+    function toggle() { menu.classList.contains('open') ? close() : open(); }
+
+    btn.addEventListener('click', e => { e.stopPropagation(); toggle(); });
+    // Outside click closes
+    document.addEventListener('click', e => {
+      if (!wrap.contains(e.target)) close();
+    });
+    // Keyboard
+    btn.addEventListener('keydown', e => {
+      if (e.key === 'Enter' || e.key === ' ' || e.key === 'ArrowDown') {
+        e.preventDefault(); open();
+        const first = menu.querySelector('.cs-item.active') || menu.querySelector('.cs-item');
+        if (first) first.focus();
+      } else if (e.key === 'Escape') { close(); }
+    });
+    menu.addEventListener('keydown', e => {
+      const items = Array.from(menu.querySelectorAll('.cs-item'));
+      const idx = items.indexOf(document.activeElement);
+      if (e.key === 'ArrowDown') { e.preventDefault(); items[Math.min(idx + 1, items.length - 1)]?.focus(); }
+      else if (e.key === 'ArrowUp') { e.preventDefault(); items[Math.max(idx - 1, 0)]?.focus(); }
+      else if (e.key === 'Enter') { e.preventDefault(); document.activeElement.click(); }
+      else if (e.key === 'Escape') { close(); btn.focus(); }
+    });
+
+    // If underlying select value changes elsewhere, refresh UI
+    sel.addEventListener('change', refresh);
+    refresh();
+  }
+  document.querySelectorAll('select').forEach(enhanceSelect);
+
   // ---------- Theme ----------
   const themeToggle = document.getElementById('themeToggle');
   function applyTheme(t) {
