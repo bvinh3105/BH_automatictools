@@ -12,29 +12,30 @@
 <title>Thảo Tools</title>
 <style>
   :root {
-    /* Light theme — soft sage muted + more present powder blue */
-    --bg: #E4E7DA;
-    --bg-orb-1: #A5C0D0;   /* powder blue (primary) */
-    --bg-orb-2: #B8C9AE;   /* muted pale sage */
-    --bg-orb-3: #7FA5BF;   /* deeper blue */
-    --bg-orb-4: #CAD3C0;   /* barely-there sage */
-    --glass: rgba(250, 250, 244, 0.60);
-    --glass-strong: rgba(250, 250, 244, 0.82);
-    --glass-hover: rgba(250, 250, 244, 0.72);
-    --border: rgba(60, 70, 50, 0.10);
-    --border-strong: rgba(60, 70, 50, 0.22);
-    --divider: rgba(60, 70, 50, 0.08);
-    --text: #2C3324;
-    --muted: #7A7F70;
-    --accent: #8FA57B;
-    --accent-hover: #778C64;
-    --accent-fg: #FAFAF4;
-    --accent-2: #4E8BA8;
-    --accent-2-hover: #3D7591;
-    --danger: #B36868;
-    --success: #7A9F5E;
-    --shadow: 0 8px 28px rgba(60, 70, 50, 0.12), 0 2px 6px rgba(60, 70, 50, 0.06);
-    --input-bg: rgba(250, 250, 244, 0.50);
+    /* Light theme — muted pastel, easy on eyes for long sessions
+       Warm off-white base, soft desaturated mint/lavender orbs */
+    --bg: #DDE3DC;
+    --bg-orb-1: #AEC4BF;   /* muted seafoam */
+    --bg-orb-2: #B5BCC9;   /* dusty lavender */
+    --bg-orb-3: #A2BDB0;   /* muted sage */
+    --bg-orb-4: #BEC6D0;   /* dusty periwinkle */
+    --glass: rgba(248, 248, 245, 0.55);
+    --glass-strong: rgba(248, 248, 245, 0.75);
+    --glass-hover: rgba(248, 248, 245, 0.65);
+    --border: rgba(80, 95, 100, 0.10);
+    --border-strong: rgba(80, 95, 100, 0.18);
+    --divider: rgba(80, 95, 100, 0.07);
+    --text: #3A4048;
+    --muted: #757F87;
+    --accent: #7BA089;
+    --accent-hover: #5F8971;
+    --accent-fg: #FBFCF9;
+    --accent-2: #5F8CA0;
+    --accent-2-hover: #4B7286;
+    --danger: #B06565;
+    --success: #6E9868;
+    --shadow: 0 8px 28px rgba(80, 100, 105, 0.08), 0 2px 5px rgba(80, 100, 105, 0.05);
+    --input-bg: rgba(248, 248, 245, 0.45);
     --radius: 14px;
     --radius-sm: 8px;
   }
@@ -64,26 +65,26 @@
     }
   }
   :root[data-theme="light"] {
-    --bg: #E4E7DA;
-    --bg-orb-1: #A5C0D0;
-    --bg-orb-2: #B8C9AE;
-    --bg-orb-3: #7FA5BF;
-    --bg-orb-4: #CAD3C0;
-    --glass: rgba(250, 250, 244, 0.60);
-    --glass-strong: rgba(250, 250, 244, 0.82);
-    --glass-hover: rgba(250, 250, 244, 0.72);
-    --border: rgba(60, 70, 50, 0.10);
-    --border-strong: rgba(60, 70, 50, 0.22);
-    --divider: rgba(60, 70, 50, 0.08);
-    --text: #2C3324;
-    --muted: #7A7F70;
-    --accent: #8FA57B;
-    --accent-hover: #778C64;
-    --accent-fg: #FAFAF4;
-    --accent-2: #4E8BA8;
-    --accent-2-hover: #3D7591;
-    --shadow: 0 8px 28px rgba(60, 70, 50, 0.12), 0 2px 6px rgba(60, 70, 50, 0.06);
-    --input-bg: rgba(250, 250, 244, 0.50);
+    --bg: #DDE3DC;
+    --bg-orb-1: #AEC4BF;
+    --bg-orb-2: #B5BCC9;
+    --bg-orb-3: #A2BDB0;
+    --bg-orb-4: #BEC6D0;
+    --glass: rgba(248, 248, 245, 0.55);
+    --glass-strong: rgba(248, 248, 245, 0.75);
+    --glass-hover: rgba(248, 248, 245, 0.65);
+    --border: rgba(80, 95, 100, 0.10);
+    --border-strong: rgba(80, 95, 100, 0.18);
+    --divider: rgba(80, 95, 100, 0.07);
+    --text: #3A4048;
+    --muted: #757F87;
+    --accent: #7BA089;
+    --accent-hover: #5F8971;
+    --accent-fg: #FBFCF9;
+    --accent-2: #5F8CA0;
+    --accent-2-hover: #4B7286;
+    --shadow: 0 8px 28px rgba(80, 100, 105, 0.08), 0 2px 5px rgba(80, 100, 105, 0.05);
+    --input-bg: rgba(248, 248, 245, 0.45);
   }
   :root[data-theme="dark"] {
     --bg: #181B1E;
@@ -166,6 +167,49 @@
     min-height: 100vh;
     position: relative;
     overflow-x: hidden;
+    transition: background-color 0.5s ease;
+  }
+
+  /* Smooth theme color interpolation on all elements — fallback for browsers without View Transitions API */
+  body, .panel, .sidebar, .cs-btn, .cs-menu, .drop, .file-card, .actions-bar,
+  .file-card .name, .file-card .ts, .toolbar-theme, .toolbar-theme button,
+  input, select, textarea, .nav-item, .btn-ghost, .tab-empty h3, .tab-empty p,
+  .preview-block, header.top, header.top h1, header.top .sub,
+  .undo-toast, .undo-toast button, .drop-title, .drop-sub,
+  .pos-grid button, .field label, .split .r {
+    transition: background-color 0.45s ease, color 0.45s ease,
+                border-color 0.45s ease, box-shadow 0.45s ease;
+  }
+  /* Spots also cross-fade so backgrounds don't snap */
+  .spot { transition: background-color 0.6s ease, opacity 0.6s ease; }
+
+  /* ===== View Transitions API — circular ripple from click point ===== */
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation: none;
+    mix-blend-mode: normal;
+  }
+  ::view-transition-old(root) {
+    z-index: 1;
+  }
+  ::view-transition-new(root) {
+    z-index: 2;
+    /* Expand from the origin point set inline via --ripple-x/--ripple-y */
+    animation: theme-ripple 0.7s cubic-bezier(0.4, 0, 0.2, 1) both;
+  }
+  @keyframes theme-ripple {
+    from {
+      clip-path: circle(0% at var(--ripple-x, 50%) var(--ripple-y, 50%));
+    }
+    to {
+      clip-path: circle(150% at var(--ripple-x, 50%) var(--ripple-y, 50%));
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    ::view-transition-new(root) { animation: none; }
+    body, .panel, .sidebar, .cs-btn, .cs-menu, .drop, .file-card, .actions-bar {
+      transition: none;
+    }
   }
 
   /* Risograph-style ink spots — irregular blurred organic blobs */
@@ -2495,18 +2539,53 @@ Việt Nam</textarea>
   document.querySelectorAll('input[type="date"]').forEach(enhanceDate);
   document.querySelectorAll('input[type="time"]').forEach(enhanceTime);
 
-  // ---------- Theme ----------
+  // ---------- Theme with animated ripple transition ----------
   const themeToggle = document.getElementById('themeToggle');
-  function applyTheme(t) {
+
+  function setThemeAttrs(t) {
     document.documentElement.setAttribute('data-theme', t);
     themeToggle.querySelectorAll('button').forEach(b => {
       b.classList.toggle('active', b.dataset.theme === t);
     });
+    try { localStorage.setItem('thao-tools-theme', t); } catch(_) {}
   }
-  const savedTheme = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-  applyTheme(savedTheme);
+
+  function applyTheme(t, origin) {
+    const current = document.documentElement.getAttribute('data-theme');
+    if (current === t) { setThemeAttrs(t); return; }
+
+    // Compute ripple center from click origin (or fallback to toggle button position)
+    let x, y;
+    if (origin && typeof origin.clientX === 'number') {
+      x = origin.clientX; y = origin.clientY;
+    } else {
+      const r = themeToggle.getBoundingClientRect();
+      x = r.left + r.width / 2;
+      y = r.top + r.height / 2;
+    }
+    const root = document.documentElement;
+    root.style.setProperty('--ripple-x', x + 'px');
+    root.style.setProperty('--ripple-y', y + 'px');
+
+    // Use View Transitions API if available
+    const supported = typeof document.startViewTransition === 'function'
+      && !matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (supported) {
+      document.startViewTransition(() => setThemeAttrs(t));
+    } else {
+      // Fallback: CSS color-transition already covers cross-fade
+      setThemeAttrs(t);
+    }
+  }
+
+  // Restore saved theme, else follow system
+  let savedTheme = null;
+  try { savedTheme = localStorage.getItem('thao-tools-theme'); } catch(_) {}
+  if (!savedTheme) savedTheme = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  setThemeAttrs(savedTheme);
+
   themeToggle.addEventListener('click', e => {
-    if (e.target.dataset.theme) applyTheme(e.target.dataset.theme);
+    if (e.target.dataset.theme) applyTheme(e.target.dataset.theme, e);
   });
 
   // ---------- Date formatting ----------
