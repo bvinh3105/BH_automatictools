@@ -183,7 +183,13 @@
   /* Spots also cross-fade so backgrounds don't snap */
   .spot { transition: background-color 0.6s ease, opacity 0.6s ease; }
 
-  /* ===== View Transitions API — circular ripple from click point ===== */
+  /* ===== View Transitions — soft blurred ripple with wavy organic edge ===== */
+  /* Register --r so it interpolates smoothly across keyframes */
+  @property --r {
+    syntax: '<percentage>';
+    inherits: false;
+    initial-value: 0%;
+  }
   ::view-transition-old(root),
   ::view-transition-new(root) {
     animation: none;
@@ -194,19 +200,39 @@
   }
   ::view-transition-new(root) {
     z-index: 2;
-    /* Expand from the origin point set inline via --ripple-x/--ripple-y */
-    animation: theme-ripple 0.7s cubic-bezier(0.4, 0, 0.2, 1) both;
+    /* Soft-edge radial mask — 12% feathered band gives blurred boundary
+       (no harsh clip-path circle edge) */
+    -webkit-mask-image: radial-gradient(
+      circle at var(--ripple-x, 50%) var(--ripple-y, 50%),
+      #000 calc(var(--r) - 6%),
+      rgba(0,0,0,0.5) var(--r),
+      transparent calc(var(--r) + 6%)
+    );
+            mask-image: radial-gradient(
+      circle at var(--ripple-x, 50%) var(--ripple-y, 50%),
+      #000 calc(var(--r) - 6%),
+      rgba(0,0,0,0.5) var(--r),
+      transparent calc(var(--r) + 6%)
+    );
+    /* Subtle wobble filter applied to the transitioning layer for organic edge.
+       Small displacement (scale=5) keeps text readable while boundary undulates. */
+    filter: url(#theme-wobble);
+    /* Timing: fast at start, slows down as ripple approaches viewport edges
+       cubic-bezier(0.16, 0.85, 0.2, 1) is a smooth expo-out variant */
+    animation: theme-ripple 1.3s cubic-bezier(0.16, 0.85, 0.2, 1) both;
+    will-change: --r;
   }
   @keyframes theme-ripple {
-    from {
-      clip-path: circle(0% at var(--ripple-x, 50%) var(--ripple-y, 50%));
-    }
-    to {
-      clip-path: circle(150% at var(--ripple-x, 50%) var(--ripple-y, 50%));
-    }
+    from { --r: 0%; }
+    to   { --r: 160%; }
   }
   @media (prefers-reduced-motion: reduce) {
-    ::view-transition-new(root) { animation: none; }
+    ::view-transition-new(root) {
+      animation: none;
+      filter: none;
+      -webkit-mask-image: none;
+              mask-image: none;
+    }
     body, .panel, .sidebar, .cs-btn, .cs-menu, .drop, .file-card, .actions-bar {
       transition: none;
     }
@@ -1589,6 +1615,15 @@
 
 </head>
 <body>
+<!-- SVG filter for wavy theme-transition edge (used by ::view-transition-new(root)) -->
+<svg width="0" height="0" style="position:absolute;pointer-events:none" aria-hidden="true">
+  <defs>
+    <filter id="theme-wobble" x="-5%" y="-5%" width="110%" height="110%" color-interpolation-filters="sRGB">
+      <feTurbulence type="fractalNoise" baseFrequency="0.012" numOctaves="2" seed="7" result="noise"/>
+      <feDisplacementMap in="SourceGraphic" in2="noise" scale="6" xChannelSelector="R" yChannelSelector="G"/>
+    </filter>
+  </defs>
+</svg>
 <div class="bg-canvas" aria-hidden="true">
   <div class="spot spot-1"></div>
   <div class="spot spot-2"></div>
