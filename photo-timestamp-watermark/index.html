@@ -933,7 +933,70 @@
     margin-bottom: 10px;
     gap: 6px;
   }
-  .cs-cal-title { font-size: 13px; font-weight: 600; flex: 1; }
+  .cs-cal-title { font-size: 13px; font-weight: 600; flex: 1; display: flex; align-items: center; justify-content: center; gap: 4px; }
+  .cs-cal-title-btn {
+    background: transparent;
+    border: none;
+    color: var(--text);
+    font: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    padding: 3px 8px;
+    border-radius: 6px;
+    transition: background 0.1s, color 0.1s;
+    line-height: 1.3;
+  }
+  .cs-cal-title-btn:hover { background: color-mix(in srgb, var(--accent-2) 18%, transparent); color: var(--accent-2); }
+  .cs-cal-title-btn.active { background: color-mix(in srgb, var(--accent-2) 22%, transparent); color: var(--accent-2); }
+
+  /* Month picker grid — 4x3 */
+  .cs-cal-month-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 4px;
+    margin-bottom: 4px;
+  }
+  .cs-cal-month-cell {
+    background: transparent;
+    border: none;
+    color: var(--text);
+    font: inherit;
+    font-size: 12px;
+    padding: 10px 4px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.1s, color 0.1s;
+    text-align: center;
+  }
+  .cs-cal-month-cell:hover { background: color-mix(in srgb, var(--accent-2) 15%, transparent); }
+  .cs-cal-month-cell.current { border: 1px solid var(--accent-2); color: var(--accent-2); font-weight: 600; }
+  .cs-cal-month-cell.selected { background: var(--accent-2); color: #fff; font-weight: 600; }
+  .cs-cal-month-cell.selected:hover { background: var(--accent-2-hover); }
+
+  /* Year picker grid — 4x3 */
+  .cs-cal-year-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 4px;
+    margin-bottom: 4px;
+  }
+  .cs-cal-year-cell {
+    background: transparent;
+    border: none;
+    color: var(--text);
+    font: inherit;
+    font-size: 12px;
+    padding: 10px 4px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.1s, color 0.1s;
+    text-align: center;
+  }
+  .cs-cal-year-cell:hover { background: color-mix(in srgb, var(--accent-2) 15%, transparent); }
+  .cs-cal-year-cell.current { border: 1px solid var(--accent-2); color: var(--accent-2); font-weight: 600; }
+  .cs-cal-year-cell.selected { background: var(--accent-2); color: #fff; font-weight: 600; }
+  .cs-cal-year-cell.selected:hover { background: var(--accent-2-hover); }
   .cs-cal-nav {
     background: transparent;
     color: var(--text);
@@ -1564,7 +1627,19 @@ Việt Nam</textarea>
       input.dispatchEvent(new Event('change', { bubbles: true }));
       input.dispatchEvent(new Event('input', { bubbles: true }));
     }
+    const CAL_MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+    const CAL_MONTHS_SHORT = ['Th1','Th2','Th3','Th4','Th5','Th6','Th7','Th8','Th9','Th10','Th11','Th12'];
+    const CAL_LABELS = ['Su','Mo','Tu','We','Th','Fr','Sa'];
+    let calMode = 'days'; // 'days' | 'months' | 'years'
+    let yearPageStart = 0; // start year of current 12-year page
+
     function buildCal() {
+      if (calMode === 'months') return buildMonthPicker();
+      if (calMode === 'years') return buildYearPicker();
+      buildDayPicker();
+    }
+
+    function buildDayPicker() {
       const first = new Date(viewY, viewM - 1, 1).getDay();
       const daysIn = new Date(viewY, viewM, 0).getDate();
       const daysPrev = new Date(viewY, viewM - 1, 0).getDate();
@@ -1573,8 +1648,6 @@ Việt Nam</textarea>
       for (let d = 1; d <= daysIn; d++) cells.push({ d, other: false });
       while (cells.length < 42) cells.push({ d: cells.length - daysIn - first + 1, other: true });
 
-      const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
-      const labels = ['Su','Mo','Tu','We','Th','Fr','Sa'];
       const t = new Date();
       const isToday = d => d === t.getDate() && viewM === (t.getMonth()+1) && viewY === t.getFullYear();
       const cd = parseVal();
@@ -1583,11 +1656,14 @@ Việt Nam</textarea>
       menu.innerHTML = `
         <div class="cs-cal-head">
           <button type="button" class="cs-cal-nav" data-nav="-1" aria-label="Tháng trước">‹</button>
-          <div class="cs-cal-title">${months[viewM-1]} ${viewY}</div>
+          <div class="cs-cal-title">
+            <button type="button" class="cs-cal-title-btn" data-pick="month">${CAL_MONTHS[viewM-1]}</button>
+            <button type="button" class="cs-cal-title-btn" data-pick="year">${viewY}</button>
+          </div>
           <button type="button" class="cs-cal-nav" data-nav="1" aria-label="Tháng sau">›</button>
         </div>
         <div class="cs-cal-grid">
-          ${labels.map(l => `<div class="cs-cal-day-name">${l}</div>`).join('')}
+          ${CAL_LABELS.map(l => `<div class="cs-cal-day-name">${l}</div>`).join('')}
           ${cells.map(c => `<button type="button" class="cs-cal-day${c.other ? ' other' : ''}${!c.other && isToday(c.d) ? ' today' : ''}${!c.other && isSel(c.d) ? ' selected' : ''}" ${c.other ? 'disabled' : ''} data-d="${c.d}">${c.d}</button>`).join('')}
         </div>
         <div class="cs-cal-foot">
@@ -1600,6 +1676,17 @@ Việt Nam</textarea>
         if (viewM < 1) { viewM = 12; viewY--; } else if (viewM > 12) { viewM = 1; viewY++; }
         buildCal();
       }));
+      menu.querySelector('[data-pick="month"]').addEventListener('click', e => {
+        e.stopPropagation();
+        calMode = 'months';
+        buildCal();
+      });
+      menu.querySelector('[data-pick="year"]').addEventListener('click', e => {
+        e.stopPropagation();
+        yearPageStart = viewY - (viewY % 12);
+        calMode = 'years';
+        buildCal();
+      });
       menu.querySelectorAll('.cs-cal-day:not(.other):not(:disabled)').forEach(b => b.addEventListener('click', e => {
         e.stopPropagation();
         setValue(viewY, viewM, parseInt(b.dataset.d));
@@ -1619,11 +1706,111 @@ Việt Nam</textarea>
         close();
       });
     }
+
+    function buildMonthPicker() {
+      const t = new Date();
+      const curMonth = (t.getMonth() + 1);
+      const curYear = t.getFullYear();
+      const cd = parseVal();
+
+      menu.innerHTML = `
+        <div class="cs-cal-head">
+          <button type="button" class="cs-cal-nav" data-nav="-1" aria-label="Năm trước">‹</button>
+          <div class="cs-cal-title">
+            <button type="button" class="cs-cal-title-btn active" data-pick="month">Chọn tháng</button>
+            <button type="button" class="cs-cal-title-btn" data-pick="year">${viewY}</button>
+          </div>
+          <button type="button" class="cs-cal-nav" data-nav="1" aria-label="Năm sau">›</button>
+        </div>
+        <div class="cs-cal-month-grid">
+          ${CAL_MONTHS_SHORT.map((name, i) => {
+            const m = i + 1;
+            const isCurrent = (m === curMonth && viewY === curYear);
+            const isSelected = (cd && m === cd.m && viewY === cd.y);
+            return `<button type="button" class="cs-cal-month-cell${isCurrent ? ' current' : ''}${isSelected ? ' selected' : ''}" data-m="${m}">${name}</button>`;
+          }).join('')}
+        </div>
+        <div class="cs-cal-foot">
+          <button type="button" class="cs-cal-action" data-action="back">← Quay lại</button>
+        </div>`;
+
+      // Navigate years while in month picker
+      menu.querySelectorAll('.cs-cal-nav').forEach(b => b.addEventListener('click', e => {
+        e.stopPropagation();
+        viewY += parseInt(b.dataset.nav);
+        buildMonthPicker();
+      }));
+      menu.querySelector('[data-pick="year"]').addEventListener('click', e => {
+        e.stopPropagation();
+        yearPageStart = viewY - (viewY % 12);
+        calMode = 'years';
+        buildCal();
+      });
+      menu.querySelectorAll('.cs-cal-month-cell').forEach(b => b.addEventListener('click', e => {
+        e.stopPropagation();
+        viewM = parseInt(b.dataset.m);
+        calMode = 'days';
+        buildCal();
+      }));
+      menu.querySelector('[data-action="back"]').addEventListener('click', e => {
+        e.stopPropagation();
+        calMode = 'days';
+        buildCal();
+      });
+    }
+
+    function buildYearPicker() {
+      const t = new Date();
+      const curYear = t.getFullYear();
+      const cd = parseVal();
+      const endYear = yearPageStart + 11;
+
+      const yearCells = [];
+      for (let y = yearPageStart; y <= endYear; y++) yearCells.push(y);
+
+      menu.innerHTML = `
+        <div class="cs-cal-head">
+          <button type="button" class="cs-cal-nav" data-nav="-1" aria-label="12 năm trước">‹</button>
+          <div class="cs-cal-title">
+            <span class="cs-cal-title-btn active" style="cursor:default">${yearPageStart} – ${endYear}</span>
+          </div>
+          <button type="button" class="cs-cal-nav" data-nav="1" aria-label="12 năm sau">›</button>
+        </div>
+        <div class="cs-cal-year-grid">
+          ${yearCells.map(y => {
+            const isCurrent = (y === curYear);
+            const isSelected = (cd && y === cd.y);
+            return `<button type="button" class="cs-cal-year-cell${isCurrent ? ' current' : ''}${isSelected ? ' selected' : ''}" data-y="${y}">${y}</button>`;
+          }).join('')}
+        </div>
+        <div class="cs-cal-foot">
+          <button type="button" class="cs-cal-action" data-action="back">← Quay lại</button>
+        </div>`;
+
+      // Navigate 12-year pages
+      menu.querySelectorAll('.cs-cal-nav').forEach(b => b.addEventListener('click', e => {
+        e.stopPropagation();
+        yearPageStart += parseInt(b.dataset.nav) * 12;
+        buildYearPicker();
+      }));
+      menu.querySelectorAll('.cs-cal-year-cell').forEach(b => b.addEventListener('click', e => {
+        e.stopPropagation();
+        viewY = parseInt(b.dataset.y);
+        calMode = 'months';
+        buildCal();
+      }));
+      menu.querySelector('[data-action="back"]').addEventListener('click', e => {
+        e.stopPropagation();
+        calMode = 'days';
+        buildCal();
+      });
+    }
     const entry = { btn, menu, close: () => close() };
     csRegistry.push(entry);
     function open() {
       csCloseAll(entry);
       initView();
+      calMode = 'days';
       buildCal();
       csAttachMenu(menu);
       menu.style.visibility = 'hidden';
