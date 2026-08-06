@@ -1263,16 +1263,24 @@
   .undo-toast button:hover { background: var(--accent-hover); }
 
   /* Lightbox */
+  /* ===== Lightbox — clean, floating glass UI =====
+     Constrained to the main-content area (sidebar stays visible on desktop
+     so users don't lose access to nav / theme / language while viewing photos) */
   .lightbox {
     position: fixed;
-    inset: 0;
-    background: rgba(10, 10, 10, 0.88);
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 260px;   /* sidebar width — sidebar remains visible next to lightbox */
+    background: rgba(15, 18, 15, 0.72);
+    backdrop-filter: blur(24px) saturate(140%);
+    -webkit-backdrop-filter: blur(24px) saturate(140%);
     display: none;
     align-items: center;
     justify-content: center;
     z-index: 100;
-    padding: 24px;
-    animation: fadein 0.15s ease-out;
+    padding: 24px 24px 108px;  /* extra bottom padding for floating bar */
+    animation: fadein 0.2s ease-out;
   }
   .lightbox.open { display: flex; }
   @keyframes fadein { from { opacity: 0; } to { opacity: 1; } }
@@ -1281,64 +1289,16 @@
     max-width: 100%;
     max-height: 100%;
     display: flex;
-    flex-direction: column;
     align-items: center;
-    gap: 12px;
+    justify-content: center;
   }
   .lightbox img {
     max-width: 100%;
-    max-height: calc(100vh - 120px);
+    max-height: calc(100vh - 156px);
     object-fit: contain;
-    border-radius: 4px;
-    background: #000;
-    box-shadow: 0 10px 40px rgba(0,0,0,0.5);
-  }
-  .lightbox .lbbar {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    width: 100%;
-    max-width: 900px;
-    gap: 16px;
-    color: rgba(255,255,255,0.85);
-    font-size: 13px;
-    padding: 0 4px;
-  }
-  .lightbox .lbname { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .lightbox .lbnav { display: flex; gap: 8px; align-items: center; }
-  .lightbox .lbbtn {
-    background: rgba(255,255,255,0.15);
-    color: #fff;
-    border: none;
-    border-radius: 6px;
-    padding: 6px 12px;
-    font-size: 13px;
-    cursor: pointer;
-    font: inherit;
-    line-height: 1.4;
-  }
-  .lightbox .lbbtn:hover:not(:disabled) { background: rgba(255,255,255,0.25); }
-  .lightbox .lbbtn:disabled { opacity: 0.4; cursor: not-allowed; }
-  .lightbox .lbbtn.primary {
-    background: var(--accent);
-    color: var(--accent-fg);
-  }
-  .lightbox .lbbtn.primary:hover:not(:disabled) { background: var(--accent-hover); }
-  .lightbox .lbclose {
-    position: absolute;
-    top: -8px; right: -8px;
-    width: 32px; height: 32px;
-    background: #fff;
-    color: #000;
-    border-radius: 50%;
-    border: none;
-    font-size: 18px;
-    line-height: 1;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    border-radius: 12px;
+    background: transparent;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.4);
   }
   .lightbox .lbstatus {
     color: rgba(255,255,255,0.85);
@@ -1346,25 +1306,162 @@
     padding: 60px 20px;
     font-size: 14px;
   }
+
+  /* Floating bottom bar — same recipe as .actions-bar */
+  .lightbox .lbbar {
+    position: fixed;
+    left: 50%;
+    bottom: 20px;
+    transform: translateX(-50%);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 10px 8px 20px;
+    background: rgba(255, 255, 255, 0.10);
+    backdrop-filter: blur(30px) saturate(180%);
+    -webkit-backdrop-filter: blur(30px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    border-radius: 999px;
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35),
+                inset 0 1px 0 rgba(255, 255, 255, 0.15);
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 13px;
+    max-width: calc(100vw - 40px);
+  }
+  .lightbox .lbname {
+    min-width: 0;
+    max-width: 260px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: rgba(255, 255, 255, 0.72);
+    font-size: 12.5px;
+    font-weight: 500;
+    padding-right: 6px;
+    border-right: 1px solid rgba(255,255,255,0.14);
+  }
+  .lightbox .lbnav {
+    display: flex;
+    gap: 4px;
+    align-items: center;
+  }
+  .lightbox .lbbtn {
+    background: transparent;
+    color: rgba(255, 255, 255, 0.85);
+    border: none;
+    border-radius: 999px;
+    padding: 8px 14px;
+    font-size: 12.5px;
+    font-weight: 600;
+    cursor: pointer;
+    font: inherit;
+    line-height: 1;
+    letter-spacing: -0.005em;
+    transition: background 0.15s, color 0.15s, opacity 0.15s;
+  }
+  .lightbox .lbbtn:hover:not(:disabled) {
+    background: rgba(255, 255, 255, 0.14);
+    color: #fff;
+  }
+  .lightbox .lbbtn:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+  }
+  .lightbox .lbbtn.primary {
+    background: rgba(255, 255, 255, 0.92);
+    color: #1A1F1A;
+    padding: 8px 16px;
+    margin-left: 4px;
+  }
+  .lightbox .lbbtn.primary:hover:not(:disabled) {
+    background: #fff;
+  }
+  #lbCount {
+    min-width: 42px;
+    text-align: center;
+    font-variant-numeric: tabular-nums;
+    font-size: 12px;
+    color: rgba(255,255,255,0.6);
+    font-weight: 500;
+  }
+
+  /* Close button — floating top-right */
+  .lightbox .lbclose {
+    position: fixed;
+    top: 20px; right: 20px;
+    width: 40px; height: 40px;
+    background: rgba(255, 255, 255, 0.10);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    color: rgba(255, 255, 255, 0.9);
+    border-radius: 50%;
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    font-size: 20px;
+    line-height: 1;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.25);
+    transition: background 0.15s, transform 0.1s;
+    z-index: 2;
+  }
+  .lightbox .lbclose:hover {
+    background: rgba(255, 255, 255, 0.2);
+    color: #fff;
+  }
+  .lightbox .lbclose:active { transform: scale(0.94); }
+
+  /* Stamped/Original toggle — segmented control style */
   .lightbox .lbtoggle {
     display: inline-flex;
-    background: rgba(255,255,255,0.1);
-    border-radius: 6px;
-    padding: 2px;
-    font-size: 12px;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.10);
+    border-radius: 999px;
+    padding: 3px;
+    font-size: 11.5px;
+    font-weight: 600;
   }
   .lightbox .lbtoggle button {
     background: transparent;
-    color: rgba(255,255,255,0.65);
+    color: rgba(255, 255, 255, 0.65);
     border: none;
-    padding: 4px 10px;
-    border-radius: 4px;
+    padding: 5px 12px;
+    border-radius: 999px;
     cursor: pointer;
     font: inherit;
+    line-height: 1;
+    letter-spacing: -0.005em;
+    transition: background 0.15s, color 0.15s;
+  }
+  .lightbox .lbtoggle button:hover:not(.active) {
+    color: rgba(255,255,255,0.9);
   }
   .lightbox .lbtoggle button.active {
-    background: rgba(255,255,255,0.9);
-    color: #000;
+    background: rgba(255, 255, 255, 0.92);
+    color: #1A1F1A;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+  }
+
+  /* Mobile: sidebar is off-canvas (drawer). Lightbox becomes full-screen. */
+  @media (max-width: 880px) {
+    .lightbox { left: 0; }
+  }
+  @media (max-width: 640px) {
+    .lightbox { padding: 20px 12px 90px; }
+    .lightbox img { max-height: calc(100vh - 140px); border-radius: 10px; }
+    .lightbox .lbbar {
+      padding: 6px 8px 6px 14px;
+      gap: 8px;
+      font-size: 12px;
+    }
+    .lightbox .lbname {
+      max-width: 120px;
+      font-size: 11.5px;
+    }
+    .lightbox .lbbtn { padding: 6px 10px; font-size: 11.5px; }
+    .lightbox .lbbtn.primary { padding: 6px 12px; }
+    .lightbox .lbclose { top: 14px; right: 14px; width: 36px; height: 36px; }
   }
 
   /* ===== Sidebar + Main Layout ===== */
