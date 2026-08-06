@@ -1821,6 +1821,68 @@
     z-index: 45;
   }
 
+  /* ===== Mascot cat — pixel sprite from cats.png ===== */
+  .mascot {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    width: 128px;
+    height: 128px;
+    background-image: url("cats.png?v=1");
+    background-repeat: no-repeat;
+    /* Full sheet scaled 4x: 294*4 = 1176 wide, 1956*4 = 7824 tall */
+    background-size: 1176px 7824px;
+    background-position: 0 0;
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
+    z-index: 40;
+    cursor: pointer;
+    user-select: none;
+    -webkit-user-select: none;
+    filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.22));
+    transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .mascot:hover {
+    transform: translateY(-2px) scale(1.03);
+  }
+  .mascot.flip {
+    transform: scaleX(-1);
+  }
+  .mascot.flip:hover {
+    transform: scaleX(-1) translateY(-2px) scale(1.03);
+  }
+  /* Speech bubble that pops up when the cat is spoken-to */
+  .mascot-bubble {
+    position: fixed;
+    z-index: 41;
+    padding: 8px 14px;
+    background: var(--glass-strong);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    border: 1px solid var(--border);
+    border-radius: 14px 14px 14px 4px;
+    color: var(--text);
+    font-size: 12.5px;
+    font-weight: 600;
+    box-shadow: var(--shadow);
+    opacity: 0;
+    transform: translateY(6px) scale(0.9);
+    transform-origin: bottom left;
+    pointer-events: none;
+    transition: opacity 0.25s cubic-bezier(0.16, 1, 0.3, 1),
+                transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    white-space: nowrap;
+    max-width: 240px;
+  }
+  .mascot-bubble.show {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  /* Hide mascot on very small screens where it steals precious space */
+  @media (max-width: 640px) {
+    .mascot { width: 96px; height: 96px; bottom: 96px; right: 12px; background-size: 882px 5868px; }
+  }
+
   /* Mobile-only floating quick settings (top-right corner) —
      theme + language togglers accessible without opening sidebar */
   .mobile-quick-settings {
@@ -2205,6 +2267,10 @@ Việt Nam</textarea>
 </div><!-- /tab-content-area -->
 </div><!-- /main-content -->
 </div><!-- /master-layout -->
+
+<!-- Pixel mascot cat (bottom-right) -->
+<div class="mascot" id="mascot" aria-label="Meo" role="button" tabindex="0"></div>
+<div class="mascot-bubble" id="mascotBubble" aria-hidden="true"></div>
 
 <script>
   // ---------- Sidebar Navigation ----------
@@ -4011,6 +4077,220 @@ Việt Nam</textarea>
     }
     return entries;
   }
+
+  // ============================================================
+  // Mascot — pixel cat that idles / walks / reacts to user
+  // ============================================================
+  (function initMascot() {
+    const mascot = document.getElementById('mascot');
+    const bubble = document.getElementById('mascotBubble');
+    if (!mascot) return;
+
+    // Sprite geometry
+    const CAT_INDEX = 1;             // 0-9 — orange & white tabby
+    const Y_BASE = CAT_INDEX * 192;  // where this cat's section starts in the sheet
+    const SCALE = 4;                 // matches CSS: width/height 128 = 32 * SCALE
+
+    // Frame table — each animation is a list of {x, y} pairs in the *cat's*
+    // local coord system (y=0 is the top of THIS cat's section)
+    const ANIMS = {
+      idle:    { frames: [[32,   0]], fps: 1 },
+      blink:   { frames: [[32,  32]], fps: 1 },
+      stand:   { frames: [[96,   0]], fps: 1 },
+      run:     { frames: [[160,  0], [192,  0], [224,  0], [256,  0]], fps: 12 },
+      jump:    { frames: [[96,  32], [128, 32], [160, 32]], fps: 8, once: true },
+      fall:    { frames: [[224, 32], [256, 32]], fps: 8 },
+      walk:    { frames: [[32,  64], [64,  64], [96,  64], [128, 64], [160, 64], [192, 64], [224, 64], [256, 64]], fps: 10 },
+      eat:     { frames: [[32,  96], [64,  96], [96,  96]], fps: 6 },
+      inspect: { frames: [[160, 96], [192, 96], [224, 96], [256, 96]], fps: 6 },
+      swim:    { frames: [[32, 128], [64, 128], [96, 128], [128,128], [160,128], [192,128]], fps: 8 },
+      sound:   { frames: [[32, 160], [64, 160], [96, 160], [128,160]], fps: 6, once: true },
+      sleep:   { frames: [[192,160]], fps: 1 },
+    };
+
+    let currentAnim = 'idle';
+    let frameIdx = 0;
+    let animTimer = null;
+    let currentOnce = null;      // { onDone } for one-shot animations
+    let facingLeft = false;      // sprite faces right by default; flip for left-moving
+
+    function bgPosForFrame(x, y) {
+      const abs_x = x;
+      const abs_y = y + Y_BASE;
+      return `-${abs_x * SCALE}px -${abs_y * SCALE}px`;
+    }
+
+    function paint() {
+      const anim = ANIMS[currentAnim] || ANIMS.idle;
+      const [fx, fy] = anim.frames[frameIdx % anim.frames.length];
+      mascot.style.backgroundPosition = bgPosForFrame(fx, fy);
+    }
+
+    function scheduleTick() {
+      if (animTimer) clearTimeout(animTimer);
+      const anim = ANIMS[currentAnim] || ANIMS.idle;
+      animTimer = setTimeout(() => {
+        frameIdx++;
+        if (frameIdx >= anim.frames.length) {
+          if (anim.once) {
+            // Return to previous idle-ish state
+            const cb = currentOnce?.onDone;
+            currentOnce = null;
+            play('idle');
+            if (cb) cb();
+            return;
+          }
+          frameIdx = 0;
+        }
+        paint();
+        scheduleTick();
+      }, 1000 / (anim.fps || 4));
+    }
+
+    function play(name, opts) {
+      const anim = ANIMS[name];
+      if (!anim) return;
+      currentAnim = name;
+      frameIdx = 0;
+      currentOnce = anim.once ? { onDone: opts?.onDone } : null;
+      paint();
+      scheduleTick();
+    }
+
+    function setFacing(left) {
+      facingLeft = left;
+      mascot.classList.toggle('flip', left);
+    }
+
+    // Speech bubble helper — positions itself just above the cat
+    let bubbleTimer = null;
+    function say(text, ms = 2200) {
+      bubble.textContent = text;
+      const r = mascot.getBoundingClientRect();
+      bubble.style.left = (r.left - 6) + 'px';
+      bubble.style.top = (r.top - 42) + 'px';
+      bubble.classList.add('show');
+      clearTimeout(bubbleTimer);
+      bubbleTimer = setTimeout(() => bubble.classList.remove('show'), ms);
+    }
+
+    // Idle activity — random Blink and occasional Walk-in-place across screen
+    let idleTimer = null;
+    let userIdleTimer = null;
+    let isSleeping = false;
+
+    function scheduleIdleActivity() {
+      clearTimeout(idleTimer);
+      const delay = 3500 + Math.random() * 6000;
+      idleTimer = setTimeout(() => {
+        if (isSleeping || currentAnim === 'sound' || currentAnim === 'jump') {
+          scheduleIdleActivity();
+          return;
+        }
+        const r = Math.random();
+        if (r < 0.6) {
+          // quick blink
+          play('blink');
+          setTimeout(() => { if (!isSleeping) play('idle'); scheduleIdleActivity(); }, 400);
+        } else {
+          // brief walk-in-place
+          play('walk');
+          setTimeout(() => { if (!isSleeping) play('idle'); scheduleIdleActivity(); }, 1600);
+        }
+      }, delay);
+    }
+
+    // Track user activity to trigger sleep
+    function resetUserIdle() {
+      clearTimeout(userIdleTimer);
+      if (isSleeping) {
+        isSleeping = false;
+        play('idle');
+        say('meo~ ✨', 1500);
+      }
+      userIdleTimer = setTimeout(() => {
+        isSleeping = true;
+        play('sleep');
+      }, 45_000); // 45s of no interaction → sleep
+    }
+    ['mousemove', 'keydown', 'click', 'wheel', 'touchstart'].forEach(ev => {
+      window.addEventListener(ev, resetUserIdle, { passive: true });
+    });
+
+    // Reactions
+    mascot.addEventListener('mouseenter', () => {
+      if (isSleeping) return;
+      play('sound', { onDone: () => {} });
+      const messages = ['meo meo~', 'meo :3', 'ựm...', 'hí hí', 'chào Thảo', 'còn chỗ nào đau không'];
+      say(messages[Math.floor(Math.random() * messages.length)]);
+    });
+    mascot.addEventListener('click', () => {
+      if (isSleeping) {
+        isSleeping = false;
+        play('idle');
+        say('ơ, gọi ai đấy...');
+        resetUserIdle();
+        return;
+      }
+      play('jump', { onDone: () => {} });
+      const clickMsgs = ['nhảy nhảy!', 'yayyy', 'meoo!', 'hí :3'];
+      say(clickMsgs[Math.floor(Math.random() * clickMsgs.length)]);
+    });
+    mascot.addEventListener('keydown', e => {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); mascot.click(); }
+    });
+
+    // Hook into app events — process/download
+    const btnProcess = document.getElementById('btnProcess');
+    if (btnProcess) {
+      btnProcess.addEventListener('click', () => {
+        if (state.processing) return;
+        // Watch state.processing flag becoming true, then switch to Run animation
+        setTimeout(() => {
+          if (state.processing) {
+            play('run');
+            say('đang gắn watermark cho Thảo...', 3000);
+            // Poll for completion
+            const check = setInterval(() => {
+              if (!state.processing) {
+                clearInterval(check);
+                if (state.files.every(f => f.status === 'done')) {
+                  play('eat', { onDone: () => {} });
+                  setTimeout(() => play('idle'), 3000);
+                  say('xong rồi nhé 🎉', 2600);
+                } else {
+                  play('idle');
+                }
+              }
+            }, 250);
+          }
+        }, 50);
+      });
+    }
+
+    const btnDownload = document.getElementById('btnDownload');
+    if (btnDownload) {
+      btnDownload.addEventListener('click', () => {
+        play('jump', { onDone: () => {} });
+        say('đóng gói ZIP đi thôi!', 2200);
+      });
+    }
+
+    // Start
+    paint();
+    play('idle');
+    scheduleIdleActivity();
+    resetUserIdle();
+
+    // Reposition bubble when window resizes so it doesn't drift
+    window.addEventListener('resize', () => {
+      if (bubble.classList.contains('show')) {
+        const r = mascot.getBoundingClientRect();
+        bubble.style.left = (r.left - 6) + 'px';
+        bubble.style.top = (r.top - 42) + 'px';
+      }
+    });
+  })();
 </script>
 </body>
 </html>
