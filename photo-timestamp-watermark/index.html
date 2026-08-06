@@ -1598,12 +1598,19 @@
   </div>
 
   <div class="sidebar-section">
-    <div class="sidebar-section-title">Settings</div>
+    <div class="sidebar-section-title" data-i18n="settings">Settings</div>
     <div style="display:flex; align-items:center; gap:8px; padding:6px 10px;">
-      <span style="font-size:12px; color:var(--muted);">Theme</span>
+      <span style="font-size:12px; color:var(--muted);" data-i18n="theme">Theme</span>
       <div class="toolbar-theme" id="themeToggle" style="margin-left:auto;">
         <button data-theme="light">Light</button>
         <button data-theme="dark">Dark</button>
+      </div>
+    </div>
+    <div style="display:flex; align-items:center; gap:8px; padding:6px 10px;">
+      <span style="font-size:12px; color:var(--muted);" data-i18n="language">Ngôn ngữ</span>
+      <div class="toolbar-theme" id="langToggle" style="margin-left:auto;">
+        <button data-lang="vi" class="active">VI</button>
+        <button data-lang="en">EN</button>
       </div>
     </div>
   </div>
@@ -1622,23 +1629,23 @@
 <div class="app">
   <header class="top">
     <div>
-      <h1>Photo Timestamp Watermark</h1>
+      <h1 data-i18n="toolTitle">Photo Timestamp Watermark</h1>
     </div>
   </header>
 
   <div class="grid">
     <!-- CONFIG -->
     <section class="panel" aria-label="Watermark settings">
-      <h2>Nội dung watermark</h2>
-      <p class="hint">Dòng đầu chèn tự động ngày + giờ. Mỗi dòng dưới là 1 dòng địa chỉ.</p>
+      <h2 data-i18n="wmContent">Nội dung watermark</h2>
+      <p class="hint" data-i18n="wmHint">Dòng đầu chèn tự động ngày + giờ. Mỗi dòng dưới là 1 dòng địa chỉ.</p>
 
       <div class="field-row">
         <div class="field">
-          <label for="date">Ngày</label>
+          <label for="date" data-i18n="date">Ngày</label>
           <input type="date" id="date" />
         </div>
         <div class="field">
-          <label for="dateFormat">Định dạng ngày</label>
+          <label for="dateFormat" data-i18n="dateFormat">Định dạng ngày</label>
           <select id="dateFormat">
             <option value="D MMMM YYYY">8 July 2026</option>
             <option value="D MMM YYYY">8 Jul 2026</option>
@@ -1650,54 +1657,54 @@
       </div>
 
       <div class="field">
-        <label for="baseTime">Giờ bắt đầu</label>
+        <label for="baseTime" data-i18n="startTime">Giờ bắt đầu</label>
         <input type="time" id="baseTime" step="1" value="11:46:52" />
       </div>
 
       <div class="field-row">
         <div class="field">
-          <label for="intervalMin">Cách nhau tối thiểu (giây)</label>
+          <label for="intervalMin" data-i18n="intervalMin">Cách nhau tối thiểu (giây)</label>
           <input type="number" id="intervalMin" min="1" max="600" value="8" />
         </div>
         <div class="field">
-          <label for="intervalMax">Cách nhau tối đa (giây)</label>
+          <label for="intervalMax" data-i18n="intervalMax">Cách nhau tối đa (giây)</label>
           <input type="number" id="intervalMax" min="1" max="600" value="20" />
         </div>
       </div>
-      <p class="hint" style="margin: -8px 0 14px">Mỗi ảnh random trong khoảng min–max để tạo cảm giác chụp tự nhiên.</p>
+      <p class="hint" style="margin: -8px 0 14px" data-i18n="intervalHint">Mỗi ảnh random trong khoảng min–max để tạo cảm giác chụp tự nhiên.</p>
 
       <div class="field">
-        <label for="lines">Các dòng địa chỉ (mỗi dòng một dòng hiển thị)</label>
+        <label for="lines" data-i18n="addressLines">Các dòng địa chỉ (mỗi dòng một dòng hiển thị)</label>
         <textarea id="lines" spellcheck="false">Thành phố Hà Nội
 Việt Nam</textarea>
       </div>
 
-      <h2 style="margin-top:20px">Kiểu hiển thị</h2>
+      <h2 style="margin-top:20px" data-i18n="displayStyle">Kiểu hiển thị</h2>
 
       <div class="field">
-        <label>Vị trí</label>
+        <label data-i18n="position">Vị trí</label>
         <div class="pos-grid" id="posGrid">
-          <button data-pos="tl">↖ Trên trái</button>
-          <button data-pos="tr" class="active">↗ Trên phải</button>
-          <button data-pos="bl">↙ Dưới trái</button>
-          <button data-pos="br">↘ Dưới phải</button>
+          <button data-pos="tl" data-i18n="posTL">↖ Trên trái</button>
+          <button data-pos="tr" class="active" data-i18n="posTR">↗ Trên phải</button>
+          <button data-pos="bl" data-i18n="posBL">↙ Dưới trái</button>
+          <button data-pos="br" data-i18n="posBR">↘ Dưới phải</button>
         </div>
       </div>
 
       <div class="field">
-        <div class="split"><label for="fontSize">Cỡ chữ (% chiều rộng ảnh)</label><span class="r val" id="fontSizeLabel">2.6%</span></div>
+        <div class="split"><label for="fontSize" data-i18n="fontSize">Cỡ chữ (% chiều rộng ảnh)</label><span class="r val" id="fontSizeLabel">2.6%</span></div>
         <input type="range" id="fontSize" min="1.5" max="5" step="0.1" value="2.6" />
       </div>
 
       <div class="field">
         <div class="row-inline">
           <input type="checkbox" id="shadow" checked style="width:auto; margin:0" />
-          <label for="shadow" style="cursor:pointer">Đổ bóng mờ (dễ đọc trên nền sáng)</label>
+          <label for="shadow" style="cursor:pointer" data-i18n="shadow">Đổ bóng mờ (dễ đọc trên nền sáng)</label>
         </div>
       </div>
 
       <div class="preview-block">
-        <div class="plabel">Preview dòng đầu</div>
+        <div class="plabel" data-i18n="previewLabel">Preview dòng đầu</div>
         <div class="pbox" id="preview"></div>
       </div>
     </section>
@@ -1706,19 +1713,19 @@ Việt Nam</textarea>
     <section class="panel" aria-label="Files">
       <div class="split">
         <div>
-          <h2 style="margin:0">Ảnh</h2>
-          <p class="hint" style="margin:2px 0 0"><span id="fileCount">0</span> ảnh · sắp xếp theo tên</p>
+          <h2 style="margin:0" data-i18n="photos">Ảnh</h2>
+          <p class="hint" style="margin:2px 0 0"><span id="fileCount">0</span> <span data-i18n="photosSortedByName">ảnh · sắp xếp theo tên</span></p>
         </div>
-        <button class="btn-ghost" id="clearAll" style="display:none">Xoá tất cả</button>
+        <button class="btn-ghost" id="clearAll" style="display:none" data-i18n="clearAll">Xoá tất cả</button>
       </div>
 
       <div class="drop" id="drop">
-        <div class="drop-title">Kéo thả ảnh, thư mục, hoặc file .zip vào đây</div>
-        <div class="drop-sub">Hỗ trợ JPG · PNG · ZIP (tự động giải nén) · RAR cần convert sang ZIP</div>
+        <div class="drop-title" data-i18n="dropTitle">Kéo thả ảnh, thư mục, hoặc file .zip vào đây</div>
+        <div class="drop-sub" data-i18n="dropSub">Hỗ trợ JPG · PNG · ZIP (tự động giải nén) · RAR cần convert sang ZIP</div>
         <div class="drop-actions">
-          <button class="btn-ghost" id="pickFiles">Chọn file…</button>
-          <button class="btn-ghost" id="pickFolder">Chọn thư mục…</button>
-          <button class="btn-ghost" id="pickZip">Chọn ZIP…</button>
+          <button class="btn-ghost" id="pickFiles" data-i18n="pickFiles">Chọn file…</button>
+          <button class="btn-ghost" id="pickFolder" data-i18n="pickFolder">Chọn thư mục…</button>
+          <button class="btn-ghost" id="pickZip" data-i18n="pickZip">Chọn ZIP…</button>
           <input type="file" id="fileInput" accept="image/*,.zip" multiple />
           <input type="file" id="folderInput" webkitdirectory directory multiple />
           <input type="file" id="zipInput" accept=".zip,application/zip,application/x-zip-compressed" multiple />
@@ -1727,7 +1734,7 @@ Việt Nam</textarea>
       </div>
 
       <div id="fileList">
-        <div class="empty-state">Chưa có ảnh nào. Kéo thả hoặc chọn file để bắt đầu.</div>
+        <div class="empty-state" data-i18n="emptyState">Chưa có ảnh nào. Kéo thả hoặc chọn file để bắt đầu.</div>
       </div>
     </section>
   </div>
@@ -1740,14 +1747,14 @@ Việt Nam</textarea>
       <div class="lbbar">
         <div class="lbname" id="lbName"></div>
         <div class="lbtoggle" id="lbToggle" style="display:none">
-          <button data-view="stamped" class="active">Đã gắn</button>
-          <button data-view="original">Gốc</button>
+          <button data-view="stamped" class="active" data-i18n="lbStamped">Đã gắn</button>
+          <button data-view="original" data-i18n="lbOriginal">Gốc</button>
         </div>
         <div class="lbnav">
-          <button class="lbbtn" id="lbPrev" title="Ảnh trước (←)">‹ Trước</button>
+          <button class="lbbtn" id="lbPrev" data-i18n="lbPrev">‹ Trước</button>
           <span id="lbCount" style="min-width:60px; text-align:center; font-variant-numeric: tabular-nums;"></span>
-          <button class="lbbtn" id="lbNext" title="Ảnh sau (→)">Sau ›</button>
-          <button class="lbbtn primary" id="lbDownload" style="display:none">Tải ảnh này</button>
+          <button class="lbbtn" id="lbNext" data-i18n="lbNext">Sau ›</button>
+          <button class="lbbtn primary" id="lbDownload" style="display:none" data-i18n="lbDownload">Tải ảnh này</button>
         </div>
       </div>
     </div>
@@ -1755,14 +1762,14 @@ Việt Nam</textarea>
 
   <div class="actions-bar" id="actionsBar" style="display:none">
     <div class="actions-info">
-      <b id="statFiles">0</b> ảnh
-      · <span id="statDone">0</span> đã xử lý
+      <b id="statFiles">0</b> <span data-i18n="actPhotos">ảnh</span>
+      · <span id="statDone">0</span> <span data-i18n="actProcessed">đã xử lý</span>
     </div>
     <div class="progress"><div id="progressBar"></div></div>
     <div class="actions-right">
-      <button class="btn-ghost" id="btnReset">Reset kết quả</button>
-      <button class="btn-primary" id="btnProcess">Xử lý tất cả</button>
-      <button class="btn-primary" id="btnDownload" style="display:none">Tải ZIP</button>
+      <button class="btn-ghost" id="btnReset" data-i18n="btnReset">Reset kết quả</button>
+      <button class="btn-primary" id="btnProcess" data-i18n="btnProcess">Xử lý tất cả</button>
+      <button class="btn-primary" id="btnDownload" style="display:none" data-i18n="btnDownload">Tải ZIP</button>
     </div>
   </div>
 </div>
@@ -1774,8 +1781,8 @@ Việt Nam</textarea>
     <div class="tab-empty">
       <div class="tab-empty-icon">📐</div>
       <h3>Image Resize</h3>
-      <p>Resize ảnh hàng loạt theo kích thước tuỳ chỉnh, giữ tỉ lệ hoặc crop thông minh. Hỗ trợ preset cho các nền tảng phổ biến.</p>
-      <span class="coming-badge">Coming Soon</span>
+      <p data-i18n="resizeDesc">Resize ảnh hàng loạt theo kích thước tuỳ chỉnh, giữ tỉ lệ hoặc crop thông minh. Hỗ trợ preset cho các nền tảng phổ biến.</p>
+      <span class="coming-badge" data-i18n="comingSoon">Coming Soon</span>
     </div>
   </div>
 </div>
@@ -1786,8 +1793,8 @@ Việt Nam</textarea>
     <div class="tab-empty">
       <div class="tab-empty-icon">🗜️</div>
       <h3>Image Compress</h3>
-      <p>Nén ảnh giảm dung lượng mà không mất chất lượng đáng kể. So sánh trước/sau trực quan, xử lý hoàn toàn trên trình duyệt.</p>
-      <span class="coming-badge">Coming Soon</span>
+      <p data-i18n="compressDesc">Nén ảnh giảm dung lượng mà không mất chất lượng đáng kể. So sánh trước/sau trực quan, xử lý hoàn toàn trên trình duyệt.</p>
+      <span class="coming-badge" data-i18n="comingSoon">Coming Soon</span>
     </div>
   </div>
 </div>
@@ -1798,8 +1805,8 @@ Việt Nam</textarea>
     <div class="tab-empty">
       <div class="tab-empty-icon">🔄</div>
       <h3>Format Convert</h3>
-      <p>Chuyển đổi định dạng ảnh hàng loạt: JPG ↔ PNG ↔ WebP ↔ AVIF. Tuỳ chỉnh chất lượng, tải ZIP kết quả.</p>
-      <span class="coming-badge">Coming Soon</span>
+      <p data-i18n="convertDesc">Chuyển đổi định dạng ảnh hàng loạt: JPG ↔ PNG ↔ WebP ↔ AVIF. Tuỳ chỉnh chất lượng, tải ZIP kết quả.</p>
+      <span class="coming-badge" data-i18n="comingSoon">Coming Soon</span>
     </div>
   </div>
 </div>
@@ -1810,8 +1817,8 @@ Việt Nam</textarea>
     <div class="tab-empty">
       <div class="tab-empty-icon">🏷️</div>
       <h3>Metadata Editor</h3>
-      <p>Xem và chỉnh sửa EXIF metadata của ảnh: ngày chụp, GPS, camera model, copyright. Xoá metadata hàng loạt để bảo vệ privacy.</p>
-      <span class="coming-badge">Coming Soon</span>
+      <p data-i18n="metadataDesc">Xem và chỉnh sửa EXIF metadata của ảnh: ngày chụp, GPS, camera model, copyright. Xoá metadata hàng loạt để bảo vệ privacy.</p>
+      <span class="coming-badge" data-i18n="comingSoon">Coming Soon</span>
     </div>
   </div>
 </div>
@@ -1851,6 +1858,138 @@ Việt Nam</textarea>
     sidebarOverlay.classList.toggle('open');
   });
   sidebarOverlay.addEventListener('click', closeSidebar);
+
+  // ---------- i18n — Vietnamese / English ----------
+  const I18N = {
+    vi: {
+      // Sidebar
+      settings: 'Cài đặt',
+      theme: 'Giao diện',
+      language: 'Ngôn ngữ',
+      // Tool title
+      toolTitle: 'Photo Timestamp Watermark',
+      // Config panel
+      wmContent: 'Nội dung watermark',
+      wmHint: 'Dòng đầu chèn tự động ngày + giờ. Mỗi dòng dưới là 1 dòng địa chỉ.',
+      date: 'Ngày',
+      dateFormat: 'Định dạng ngày',
+      startTime: 'Giờ bắt đầu',
+      intervalMin: 'Cách nhau tối thiểu (giây)',
+      intervalMax: 'Cách nhau tối đa (giây)',
+      intervalHint: 'Mỗi ảnh random trong khoảng min–max để tạo cảm giác chụp tự nhiên.',
+      addressLines: 'Các dòng địa chỉ (mỗi dòng một dòng hiển thị)',
+      displayStyle: 'Kiểu hiển thị',
+      position: 'Vị trí',
+      posTL: '↖ Trên trái',
+      posTR: '↗ Trên phải',
+      posBL: '↙ Dưới trái',
+      posBR: '↘ Dưới phải',
+      fontSize: 'Cỡ chữ (% chiều rộng ảnh)',
+      shadow: 'Đổ bóng mờ (dễ đọc trên nền sáng)',
+      previewLabel: 'Preview dòng đầu',
+      // Files panel
+      photos: 'Ảnh',
+      photosSortedByName: 'ảnh · sắp xếp theo tên',
+      clearAll: 'Xoá tất cả',
+      dropTitle: 'Kéo thả ảnh, thư mục, hoặc file .zip vào đây',
+      dropSub: 'Hỗ trợ JPG · PNG · ZIP (tự động giải nén) · RAR cần convert sang ZIP',
+      pickFiles: 'Chọn file…',
+      pickFolder: 'Chọn thư mục…',
+      pickZip: 'Chọn ZIP…',
+      emptyState: 'Chưa có ảnh nào. Kéo thả hoặc chọn file để bắt đầu.',
+      // Lightbox
+      lbStamped: 'Đã gắn',
+      lbOriginal: 'Gốc',
+      lbPrev: '‹ Trước',
+      lbNext: 'Sau ›',
+      lbDownload: 'Tải ảnh này',
+      // Actions bar
+      actPhotos: 'ảnh',
+      actProcessed: 'đã xử lý',
+      btnReset: 'Reset kết quả',
+      btnProcess: 'Xử lý tất cả',
+      btnDownload: 'Tải ZIP',
+      // Empty tabs
+      comingSoon: 'Sắp ra mắt',
+      resizeDesc: 'Resize ảnh hàng loạt theo kích thước tuỳ chỉnh, giữ tỉ lệ hoặc crop thông minh. Hỗ trợ preset cho các nền tảng phổ biến.',
+      compressDesc: 'Nén ảnh giảm dung lượng mà không mất chất lượng đáng kể. So sánh trước/sau trực quan, xử lý hoàn toàn trên trình duyệt.',
+      convertDesc: 'Chuyển đổi định dạng ảnh hàng loạt: JPG ↔ PNG ↔ WebP ↔ AVIF. Tuỳ chỉnh chất lượng, tải ZIP kết quả.',
+      metadataDesc: 'Xem và chỉnh sửa EXIF metadata của ảnh: ngày chụp, GPS, camera model, copyright. Xoá metadata hàng loạt để bảo vệ privacy.',
+    },
+    en: {
+      settings: 'Settings',
+      theme: 'Theme',
+      language: 'Language',
+      toolTitle: 'Photo Timestamp Watermark',
+      wmContent: 'Watermark content',
+      wmHint: 'First line auto-inserts date + time. Each line below becomes one address line.',
+      date: 'Date',
+      dateFormat: 'Date format',
+      startTime: 'Start time',
+      intervalMin: 'Min interval (seconds)',
+      intervalMax: 'Max interval (seconds)',
+      intervalHint: 'Each photo gets a random interval within min–max for a natural feel.',
+      addressLines: 'Address lines (one line = one display line)',
+      displayStyle: 'Display style',
+      position: 'Position',
+      posTL: '↖ Top left',
+      posTR: '↗ Top right',
+      posBL: '↙ Bottom left',
+      posBR: '↘ Bottom right',
+      fontSize: 'Font size (% of image width)',
+      shadow: 'Drop shadow (easier to read on light backgrounds)',
+      previewLabel: 'First line preview',
+      photos: 'Photos',
+      photosSortedByName: 'photos · sorted by name',
+      clearAll: 'Clear all',
+      dropTitle: 'Drag & drop photos, folders, or .zip files here',
+      dropSub: 'Supports JPG · PNG · ZIP (auto-extract) · RAR needs to be converted to ZIP',
+      pickFiles: 'Choose files…',
+      pickFolder: 'Choose folder…',
+      pickZip: 'Choose ZIP…',
+      emptyState: 'No photos yet. Drag & drop or choose files to get started.',
+      lbStamped: 'Stamped',
+      lbOriginal: 'Original',
+      lbPrev: '‹ Prev',
+      lbNext: 'Next ›',
+      lbDownload: 'Download this',
+      actPhotos: 'photos',
+      actProcessed: 'processed',
+      btnReset: 'Reset results',
+      btnProcess: 'Process all',
+      btnDownload: 'Download ZIP',
+      comingSoon: 'Coming Soon',
+      resizeDesc: 'Batch resize images with custom dimensions, maintain aspect ratio or smart crop. Preset support for popular platforms.',
+      compressDesc: 'Compress images without noticeable quality loss. Visual before/after comparison, fully processed in the browser.',
+      convertDesc: 'Batch convert image formats: JPG ↔ PNG ↔ WebP ↔ AVIF. Customize quality, download results as ZIP.',
+      metadataDesc: 'View and edit EXIF metadata: date taken, GPS, camera model, copyright. Batch strip metadata for privacy.',
+    }
+  };
+
+  let currentLang = localStorage.getItem('thao-tools-lang') || 'vi';
+
+  function applyLang(lang) {
+    currentLang = lang;
+    localStorage.setItem('thao-tools-lang', lang);
+    const dict = I18N[lang] || I18N.vi;
+    document.querySelectorAll('[data-i18n]').forEach(el => {
+      const key = el.dataset.i18n;
+      if (dict[key] != null) el.textContent = dict[key];
+    });
+    // Update lang toggle buttons
+    document.querySelectorAll('#langToggle button').forEach(b => {
+      b.classList.toggle('active', b.dataset.lang === lang);
+    });
+    document.documentElement.lang = lang;
+  }
+
+  const langToggle = document.getElementById('langToggle');
+  langToggle.addEventListener('click', e => {
+    if (e.target.dataset.lang) applyLang(e.target.dataset.lang);
+  });
+
+  // Apply saved language on load
+  applyLang(currentLang);
 
   // ---------- Shared open-menu registry + portal helpers ----------
   const csRegistry = []; // { btn, menu, close }
