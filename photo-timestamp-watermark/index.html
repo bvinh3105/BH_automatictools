@@ -1273,71 +1273,169 @@
     color: #000;
   }
 
-  /* ===== Master Tab Bar ===== */
-  .tab-bar {
+  /* ===== Sidebar + Main Layout ===== */
+  .master-layout {
     display: flex;
-    align-items: stretch;
-    gap: 2px;
-    padding: 0 24px;
+    min-height: 100vh;
     position: relative;
-    z-index: 10;
-    max-width: 1240px;
-    margin: 0 auto;
-    padding-top: 10px;
-    overflow-x: auto;
+    z-index: 1;
+  }
+
+  /* Sidebar */
+  .sidebar {
+    width: 240px;
+    min-width: 240px;
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    z-index: 50;
+    display: flex;
+    flex-direction: column;
+    padding: 20px 12px;
+    background: var(--glass);
+    backdrop-filter: blur(30px) saturate(180%);
+    -webkit-backdrop-filter: blur(30px) saturate(180%);
+    border-right: 1px solid var(--border);
+    overflow-y: auto;
     scrollbar-width: none;
   }
-  .tab-bar::-webkit-scrollbar { display: none; }
-  .tab-item {
+  .sidebar::-webkit-scrollbar { display: none; }
+
+  .sidebar-logo {
     display: flex;
     align-items: center;
-    gap: 8px;
-    padding: 10px 18px 10px 14px;
+    gap: 10px;
+    padding: 4px 10px 20px;
+    border-bottom: 1px solid var(--divider);
+    margin-bottom: 16px;
+  }
+  .sidebar-logo-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 10px;
+    background: linear-gradient(135deg, var(--accent) 0%, var(--accent-2) 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    color: #fff;
+    flex-shrink: 0;
+    box-shadow: 0 2px 8px color-mix(in srgb, var(--accent) 35%, transparent);
+  }
+  .sidebar-logo-text {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--text);
+    letter-spacing: -0.02em;
+  }
+  .sidebar-logo-sub {
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 0.04em;
+  }
+
+  .sidebar-section {
+    margin-bottom: 20px;
+  }
+  .sidebar-section-title {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    padding: 0 10px;
+    margin-bottom: 6px;
+  }
+
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    padding: 9px 10px;
     background: transparent;
-    border: 1px solid transparent;
-    border-bottom: none;
-    border-radius: 12px 12px 0 0;
+    border: none;
+    border-radius: 10px;
     color: var(--muted);
     font: inherit;
     font-size: 13px;
     font-weight: 500;
     cursor: pointer;
-    white-space: nowrap;
-    transition: background 0.2s, color 0.2s, border-color 0.2s;
+    transition: background 0.15s, color 0.15s;
+    text-align: left;
     position: relative;
-    min-width: 0;
+    margin-bottom: 2px;
   }
-  .tab-item:hover:not(.active) {
-    background: var(--glass);
+  .nav-item:hover:not(.active) {
+    background: var(--glass-hover);
     color: var(--text);
   }
-  .tab-item.active {
-    background: var(--glass-strong);
-    backdrop-filter: blur(24px) saturate(180%);
-    -webkit-backdrop-filter: blur(24px) saturate(180%);
-    border-color: var(--border);
+  .nav-item.active {
+    background: color-mix(in srgb, var(--accent-2) 18%, transparent);
     color: var(--text);
-    box-shadow: inset 0 1px 0 rgba(255,255,255,0.15);
+    font-weight: 600;
   }
-  /* Hide bottom border line under active tab to merge with content */
-  .tab-item.active::after {
+  /* Active indicator bar */
+  .nav-item.active::before {
     content: '';
     position: absolute;
-    bottom: -1px;
     left: 0;
-    right: 0;
-    height: 2px;
-    background: var(--glass-strong);
+    top: 6px;
+    bottom: 6px;
+    width: 3px;
+    border-radius: 0 3px 3px 0;
+    background: var(--accent-2);
   }
-  .tab-icon {
+  .nav-icon {
     font-size: 16px;
     line-height: 1;
     flex-shrink: 0;
+    width: 22px;
+    text-align: center;
   }
-  .tab-label {
+  .nav-label {
+    flex: 1;
     overflow: hidden;
     text-overflow: ellipsis;
+    white-space: nowrap;
   }
+  .nav-badge {
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 2px 6px;
+    border-radius: 4px;
+    background: color-mix(in srgb, var(--accent-2) 12%, transparent);
+    color: var(--accent-2);
+    flex-shrink: 0;
+  }
+
+  /* Sidebar footer */
+  .sidebar-footer {
+    margin-top: auto;
+    padding-top: 16px;
+    border-top: 1px solid var(--divider);
+  }
+  .sidebar-credit {
+    font-size: 11px;
+    color: var(--muted);
+    padding: 0 10px;
+    line-height: 1.5;
+  }
+  .sidebar-credit b {
+    color: var(--text);
+    font-weight: 500;
+  }
+
+  /* Main content area */
+  .main-content {
+    flex: 1;
+    margin-left: 240px;
+    min-width: 0;
+  }
+
   .tab-content-area {
     position: relative;
     z-index: 1;
@@ -1348,13 +1446,14 @@
   .tab-pane.active {
     display: block;
   }
+
   /* Empty tab placeholder */
   .tab-empty {
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    min-height: 50vh;
+    min-height: 70vh;
     text-align: center;
     padding: 60px 24px;
   }
@@ -1390,6 +1489,58 @@
     color: var(--accent-2);
     border: 1px solid color-mix(in srgb, var(--accent-2) 25%, transparent);
   }
+
+  /* Sidebar toggle for mobile */
+  .sidebar-toggle {
+    display: none;
+    position: fixed;
+    top: 12px;
+    left: 12px;
+    z-index: 60;
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    background: var(--glass-strong);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-size: 18px;
+    cursor: pointer;
+    align-items: center;
+    justify-content: center;
+    box-shadow: var(--shadow);
+  }
+  .sidebar-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.4);
+    z-index: 45;
+  }
+
+  @media (max-width: 880px) {
+    .sidebar {
+      transform: translateX(-100%);
+      transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      box-shadow: 4px 0 24px rgba(0,0,0,0.2);
+    }
+    .sidebar.open {
+      transform: translateX(0);
+    }
+    .sidebar-overlay.open {
+      display: block;
+    }
+    .sidebar-toggle {
+      display: flex;
+    }
+    .main-content {
+      margin-left: 0;
+    }
+    .app {
+      padding-top: 56px; /* space for hamburger */
+    }
+  }
 </style>
 
 </head>
@@ -1402,30 +1553,68 @@
   <div class="spot spot-5"></div>
 </div>
 
-<!-- ===== Tab Bar ===== -->
-<nav class="tab-bar" id="tabBar">
-  <button class="tab-item active" data-tab="timestamp">
-    <span class="tab-icon">🕐</span>
-    <span class="tab-label">Timestamp Watermark</span>
-  </button>
-  <button class="tab-item" data-tab="resize">
-    <span class="tab-icon">📐</span>
-    <span class="tab-label">Image Resize</span>
-  </button>
-  <button class="tab-item" data-tab="compress">
-    <span class="tab-icon">🗜️</span>
-    <span class="tab-label">Image Compress</span>
-  </button>
-  <button class="tab-item" data-tab="convert">
-    <span class="tab-icon">🔄</span>
-    <span class="tab-label">Format Convert</span>
-  </button>
-  <button class="tab-item" data-tab="metadata">
-    <span class="tab-icon">🏷️</span>
-    <span class="tab-label">Metadata Editor</span>
-  </button>
-</nav>
+<!-- Sidebar toggle (mobile) -->
+<button class="sidebar-toggle" id="sidebarToggle" aria-label="Menu">☰</button>
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
 
+<div class="master-layout">
+
+<!-- ===== Sidebar ===== -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-logo">
+    <div class="sidebar-logo-icon">⚡</div>
+    <div>
+      <div class="sidebar-logo-text">BH Tools</div>
+      <div class="sidebar-logo-sub">Automatic Tools</div>
+    </div>
+  </div>
+
+  <div class="sidebar-section">
+    <div class="sidebar-section-title">Tools</div>
+    <button class="nav-item active" data-tab="timestamp">
+      <span class="nav-icon">🕐</span>
+      <span class="nav-label">Timestamp Watermark</span>
+    </button>
+    <button class="nav-item" data-tab="resize">
+      <span class="nav-icon">📐</span>
+      <span class="nav-label">Image Resize</span>
+      <span class="nav-badge">Soon</span>
+    </button>
+    <button class="nav-item" data-tab="compress">
+      <span class="nav-icon">🗜️</span>
+      <span class="nav-label">Image Compress</span>
+      <span class="nav-badge">Soon</span>
+    </button>
+    <button class="nav-item" data-tab="convert">
+      <span class="nav-icon">🔄</span>
+      <span class="nav-label">Format Convert</span>
+      <span class="nav-badge">Soon</span>
+    </button>
+    <button class="nav-item" data-tab="metadata">
+      <span class="nav-icon">🏷️</span>
+      <span class="nav-label">Metadata Editor</span>
+      <span class="nav-badge">Soon</span>
+    </button>
+  </div>
+
+  <div class="sidebar-section">
+    <div class="sidebar-section-title">Settings</div>
+    <div style="display:flex; align-items:center; gap:8px; padding:6px 10px;">
+      <span style="font-size:12px; color:var(--muted);">Theme</span>
+      <div class="toolbar-theme" id="themeToggle" style="margin-left:auto;">
+        <button data-theme="light">Light</button>
+        <button data-theme="dark">Dark</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="sidebar-footer">
+    <div class="sidebar-credit">bạn <b>Vinh</b> làm cho bạn <b>Thảo</b> 💛</div>
+  </div>
+</aside>
+
+<!-- ===== Main Content ===== -->
+<div class="main-content">
 <div class="tab-content-area">
 
 <!-- ===== TAB 1: Timestamp Watermark ===== -->
@@ -1434,11 +1623,6 @@
   <header class="top">
     <div>
       <h1>Photo Timestamp Watermark</h1>
-      <div class="sub">bạn Vinh làm cho bạn Thảo</div>
-    </div>
-    <div class="toolbar-theme" id="themeToggle">
-      <button data-theme="light">Light</button>
-      <button data-theme="dark">Dark</button>
     </div>
   </header>
 
@@ -1633,23 +1817,40 @@ Việt Nam</textarea>
 </div>
 
 </div><!-- /tab-content-area -->
+</div><!-- /main-content -->
+</div><!-- /master-layout -->
 
 <script>
-  // ---------- Master Tab Switching ----------
-  const tabBar = document.getElementById('tabBar');
-  tabBar.addEventListener('click', e => {
-    const tab = e.target.closest('.tab-item');
-    if (!tab || tab.classList.contains('active')) return;
+  // ---------- Sidebar Navigation ----------
+  const sidebar = document.getElementById('sidebar');
+  const sidebarToggle = document.getElementById('sidebarToggle');
+  const sidebarOverlay = document.getElementById('sidebarOverlay');
+
+  sidebar.addEventListener('click', e => {
+    const nav = e.target.closest('.nav-item');
+    if (!nav || nav.classList.contains('active')) return;
     // Deactivate all
-    tabBar.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
+    sidebar.querySelectorAll('.nav-item').forEach(t => t.classList.remove('active'));
     document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
     // Activate clicked
-    tab.classList.add('active');
-    const pane = document.getElementById('pane-' + tab.dataset.tab);
+    nav.classList.add('active');
+    const pane = document.getElementById('pane-' + nav.dataset.tab);
     if (pane) pane.classList.add('active');
     // Close any open menus
     if (typeof csCloseAll === 'function') csCloseAll(null);
+    // Close sidebar on mobile after selection
+    closeSidebar();
   });
+
+  function closeSidebar() {
+    sidebar.classList.remove('open');
+    sidebarOverlay.classList.remove('open');
+  }
+  sidebarToggle.addEventListener('click', () => {
+    sidebar.classList.toggle('open');
+    sidebarOverlay.classList.toggle('open');
+  });
+  sidebarOverlay.addEventListener('click', closeSidebar);
 
   // ---------- Shared open-menu registry + portal helpers ----------
   const csRegistry = []; // { btn, menu, close }
