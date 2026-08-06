@@ -42,12 +42,13 @@
   }
   @media (prefers-color-scheme: dark) {
     :root {
-      /* Dark — deep charcoal with more blue presence, muted sage */
-      --bg: #181B1E;
-      --bg-orb-1: #5A8BAA;   /* powder blue glow (primary) */
-      --bg-orb-2: #6E8A6E;   /* muted sage */
-      --bg-orb-3: #4E7C99;   /* deeper blue */
-      --bg-orb-4: #7A9088;   /* dusty sage-blue */
+      /* Dark — night forest vibe: charcoal base with all analogous
+         green-teal orbs (no blue/green jumps → smoother transitions) */
+      --bg: #171A18;
+      --bg-orb-1: #4E7A66;   /* deep sea-green */
+      --bg-orb-2: #5E8C6F;   /* muted moss */
+      --bg-orb-3: #3E6B58;   /* deeper teal-green */
+      --bg-orb-4: #6E9078;   /* dusty green */
       --glass: rgba(230, 240, 220, 0.04);
       --glass-strong: rgba(230, 240, 220, 0.08);
       --glass-hover: rgba(230, 240, 220, 0.06);
@@ -59,8 +60,8 @@
       --accent: #A5BB92;
       --accent-hover: #BACEA9;
       --accent-fg: #1B1E12;
-      --accent-2: #7BB2CE;
-      --accent-2-hover: #96C6DD;
+      --accent-2: #A5BB92;
+      --accent-2-hover: #BACEA9;
       --shadow: 0 12px 48px rgba(0, 0, 0, 0.45), 0 2px 8px rgba(0, 0, 0, 0.28);
       --input-bg: rgba(230, 240, 220, 0.04);
     }
@@ -90,11 +91,11 @@
     --radius-sm: 14px;
   }
   :root[data-theme="dark"] {
-    --bg: #181B1E;
-    --bg-orb-1: #5A8BAA;
-    --bg-orb-2: #6E8A6E;
-    --bg-orb-3: #4E7C99;
-    --bg-orb-4: #7A9088;
+    --bg: #171A18;
+    --bg-orb-1: #4E7A66;
+    --bg-orb-2: #5E8C6F;
+    --bg-orb-3: #3E6B58;
+    --bg-orb-4: #6E9078;
     --glass: rgba(230, 240, 220, 0.04);
     --glass-strong: rgba(230, 240, 220, 0.08);
     --glass-hover: rgba(230, 240, 220, 0.06);
@@ -106,8 +107,8 @@
     --accent: #A5BB92;
     --accent-hover: #BACEA9;
     --accent-fg: #1B1E12;
-    --accent-2: #7BB2CE;
-    --accent-2-hover: #96C6DD;
+    --accent-2: #A5BB92;
+    --accent-2-hover: #BACEA9;
     --shadow: 0 12px 48px rgba(0, 0, 0, 0.45), 0 2px 8px rgba(0, 0, 0, 0.28);
     --input-bg: rgba(230, 240, 220, 0.04);
   }
@@ -161,7 +162,20 @@
   html, body { height: 100%; }
   body {
     margin: 0;
-    background: var(--bg);
+    /* Layered radial gradients give SILKY-SMOOTH color transitions
+       — no visible blob edges, no banding. Each layer fades softly
+       to transparent, so overlaps blend organically */
+    background:
+      radial-gradient(ellipse 90vw 70vh at 15% 20%,
+        color-mix(in srgb, var(--bg-orb-1) 30%, transparent), transparent 60%),
+      radial-gradient(ellipse 80vw 60vh at 85% 80%,
+        color-mix(in srgb, var(--bg-orb-3) 28%, transparent), transparent 60%),
+      radial-gradient(ellipse 70vw 50vh at 55% 50%,
+        color-mix(in srgb, var(--bg-orb-2) 22%, transparent), transparent 55%),
+      radial-gradient(ellipse 60vw 40vh at 20% 90%,
+        color-mix(in srgb, var(--bg-orb-4) 20%, transparent), transparent 55%),
+      var(--bg);
+    background-attachment: fixed;
     color: var(--text);
     font-family: "Nunito", -apple-system, BlinkMacSystemFont, "San Francisco Display Regular", "SF Pro Display", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
     font-size: 14px;
@@ -259,45 +273,45 @@
   @media (prefers-color-scheme: dark) {
     html:not([data-theme="light"]) .spot { mix-blend-mode: screen; }
   }
-  /* Light theme: green orbs visible through translucent glass panels
-     — creates the calming "park view" feel through the frosted card */
-  :root[data-theme="light"] .spot-1 { opacity: 0.70 !important; }
-  :root[data-theme="light"] .spot-2 { opacity: 0.55 !important; }
-  :root[data-theme="light"] .spot-3 { opacity: 0.50 !important; }
-  :root[data-theme="light"] .spot-4 { opacity: 0.45 !important; }
-  /* Green orbs scattered across viewport — like people on grass in the ref image.
-     Positioning is asymmetric on purpose for organic 'park view' feel */
+  /* Light theme: subtle drift on top of the smooth radial-gradient wash.
+     Base gradients now do the color heavy-lifting */
+  :root[data-theme="light"] .spot-1 { opacity: 0.28 !important; }
+  :root[data-theme="light"] .spot-2 { opacity: 0.22 !important; }
+  :root[data-theme="light"] .spot-3 { opacity: 0.18 !important; }
+  :root[data-theme="light"] .spot-4 { opacity: 0.15 !important; }
+  /* Subtle drift accents ON TOP of the base radial-gradient wash.
+     Low opacity — they're for gentle organic motion, not color blocks */
   .spot-1 {
     top: -10%; left: -8%;
-    width: 38vw; height: 38vw;
+    width: 46vw; height: 46vw;
     background: var(--bg-orb-1);
-    opacity: 0.35;
-    filter: blur(100px);
-    animation: drift1 26s ease-in-out infinite alternate;
+    opacity: 0.18;
+    filter: blur(140px);
+    animation: drift1 30s ease-in-out infinite alternate;
   }
   .spot-2 {
     bottom: 8%; right: -12%;
-    width: 34vw; height: 34vw;
+    width: 40vw; height: 40vw;
     background: var(--bg-orb-3);
-    opacity: 0.30;
-    filter: blur(90px);
-    animation: drift2 32s ease-in-out infinite alternate;
+    opacity: 0.15;
+    filter: blur(130px);
+    animation: drift2 36s ease-in-out infinite alternate;
   }
   .spot-3 {
     top: 35%; left: 40%;
-    width: 30vw; height: 30vw;
+    width: 36vw; height: 36vw;
     background: var(--bg-orb-2);
-    opacity: 0.25;
-    filter: blur(120px);
-    animation: drift3 40s ease-in-out infinite alternate;
+    opacity: 0.12;
+    filter: blur(150px);
+    animation: drift3 44s ease-in-out infinite alternate;
   }
   .spot-4 {
     top: 12%; right: 25%;
-    width: 22vw; height: 22vw;
+    width: 28vw; height: 28vw;
     background: var(--bg-orb-4);
-    opacity: 0.22;
-    filter: blur(80px);
-    animation: drift4 22s ease-in-out infinite alternate;
+    opacity: 0.10;
+    filter: blur(110px);
+    animation: drift4 26s ease-in-out infinite alternate;
   }
   .spot-5 { display: none; }
   @keyframes drift1 {
