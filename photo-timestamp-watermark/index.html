@@ -1824,18 +1824,18 @@
   /* ===== Mascot cat — pixel sprite from cats.png ===== */
   .mascot {
     position: fixed;
-    bottom: 24px;
-    right: 24px;
+    bottom: 100px;   /* clearance above sticky actions-bar */
+    right: 28px;
     width: 128px;
     height: 128px;
-    background-image: url("cats.png?v=1");
+    background-image: url("cats.png?v=2");
     background-repeat: no-repeat;
     /* Full sheet scaled 4x: 294*4 = 1176 wide, 1956*4 = 7824 tall */
     background-size: 1176px 7824px;
     background-position: 0 0;
     image-rendering: pixelated;
     image-rendering: crisp-edges;
-    z-index: 40;
+    z-index: 55;                       /* above sidebar (50) + actions-bar */
     cursor: pointer;
     user-select: none;
     -webkit-user-select: none;
