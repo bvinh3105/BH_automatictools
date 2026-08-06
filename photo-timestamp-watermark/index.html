@@ -12,22 +12,21 @@
 <title>Thảo Tools</title>
 <style>
   :root {
-    /* Light theme — clean SaaS look, cool lavender-gray bg,
-       near-white panels with soft shadow (no visible border),
-       lots of whitespace, refined typography */
-    --bg: #EEF0F5;
-    --bg-orb-1: #D8E0EC;   /* soft periwinkle — barely visible */
-    --bg-orb-2: #E4DEEA;   /* whisper of lavender */
-    --bg-orb-3: #DAE6E1;   /* soft mint tint */
-    --bg-orb-4: #E8E2D8;   /* whisper of warm peach */
-    --glass: rgba(255, 255, 255, 0.88);
-    --glass-strong: rgba(255, 255, 255, 0.96);
-    --glass-hover: rgba(255, 255, 255, 0.94);
+    /* Light theme — softer muted lavender-gray, big rounded corners,
+       cards blend gently into bg (not pure-white glare), refined type */
+    --bg: #E6E9F0;
+    --bg-orb-1: #D2DAE8;   /* soft periwinkle */
+    --bg-orb-2: #DED8E6;   /* whisper of lavender */
+    --bg-orb-3: #D4E0DB;   /* soft mint tint */
+    --bg-orb-4: #E2DCD2;   /* whisper of warm peach */
+    --glass: rgba(252, 253, 255, 0.80);
+    --glass-strong: rgba(252, 253, 255, 0.92);
+    --glass-hover: rgba(252, 253, 255, 0.86);
     --border: rgba(20, 30, 60, 0.06);
     --border-strong: rgba(20, 30, 60, 0.10);
     --divider: rgba(20, 30, 60, 0.05);
-    --text: #1E2530;
-    --muted: #8891A0;
+    --text: #22293A;
+    --muted: #7E8798;
     --accent: #7BA089;
     --accent-hover: #5F8971;
     --accent-fg: #FFFFFF;
@@ -35,10 +34,10 @@
     --accent-2-hover: #3A66C8;
     --danger: #E06868;
     --success: #52A776;
-    --shadow: 0 4px 20px rgba(30, 40, 90, 0.06), 0 1px 3px rgba(30, 40, 90, 0.04);
-    --input-bg: rgba(245, 247, 250, 0.7);
-    --radius: 18px;
-    --radius-sm: 10px;
+    --shadow: 0 4px 22px rgba(30, 40, 90, 0.06), 0 1px 3px rgba(30, 40, 90, 0.03);
+    --input-bg: rgba(240, 242, 247, 0.65);
+    --radius: 22px;
+    --radius-sm: 14px;
   }
   @media (prefers-color-scheme: dark) {
     :root {
@@ -66,26 +65,28 @@
     }
   }
   :root[data-theme="light"] {
-    --bg: #EEF0F5;
-    --bg-orb-1: #D8E0EC;
-    --bg-orb-2: #E4DEEA;
-    --bg-orb-3: #DAE6E1;
-    --bg-orb-4: #E8E2D8;
-    --glass: rgba(255, 255, 255, 0.88);
-    --glass-strong: rgba(255, 255, 255, 0.96);
-    --glass-hover: rgba(255, 255, 255, 0.94);
+    --bg: #E6E9F0;
+    --bg-orb-1: #D2DAE8;
+    --bg-orb-2: #DED8E6;
+    --bg-orb-3: #D4E0DB;
+    --bg-orb-4: #E2DCD2;
+    --glass: rgba(252, 253, 255, 0.80);
+    --glass-strong: rgba(252, 253, 255, 0.92);
+    --glass-hover: rgba(252, 253, 255, 0.86);
     --border: rgba(20, 30, 60, 0.06);
     --border-strong: rgba(20, 30, 60, 0.10);
     --divider: rgba(20, 30, 60, 0.05);
-    --text: #1E2530;
-    --muted: #8891A0;
+    --text: #22293A;
+    --muted: #7E8798;
     --accent: #7BA089;
     --accent-hover: #5F8971;
     --accent-fg: #FFFFFF;
     --accent-2: #4C7AE0;
     --accent-2-hover: #3A66C8;
-    --shadow: 0 4px 20px rgba(30, 40, 90, 0.06), 0 1px 3px rgba(30, 40, 90, 0.04);
-    --input-bg: rgba(245, 247, 250, 0.7);
+    --shadow: 0 4px 22px rgba(30, 40, 90, 0.06), 0 1px 3px rgba(30, 40, 90, 0.03);
+    --input-bg: rgba(240, 242, 247, 0.65);
+    --radius: 22px;
+    --radius-sm: 14px;
   }
   :root[data-theme="dark"] {
     --bg: #181B1E;
@@ -413,7 +414,7 @@
     background: var(--input-bg);
     color: var(--text);
     border: 1px solid var(--border);
-    border-radius: 12px;
+    border-radius: 14px;
     padding: 0 14px;
     height: 42px;
     line-height: 1.4;
@@ -423,7 +424,7 @@
     transition: border-color 0.15s, background 0.15s, box-shadow 0.15s;
     box-sizing: border-box;
   }
-  textarea { height: auto; padding: 12px 14px; border-radius: 12px; }
+  textarea { height: auto; padding: 12px 14px; border-radius: 14px; }
 
   /* Hide native number spinners — chúng luôn lạc quẻ với theme custom */
   input[type="number"]::-webkit-inner-spin-button,
@@ -853,7 +854,7 @@
     padding: 12px;
     font-size: 12.5px;
     font-weight: 500;
-    border-radius: 12px;
+    border-radius: 14px;
     transition: all 0.2s;
   }
   .pos-grid button:hover { background: color-mix(in srgb, var(--text) 8%, transparent); color: var(--text); }
@@ -878,7 +879,7 @@
     background: var(--input-bg);
     color: var(--text);
     border: 1px solid var(--border);
-    border-radius: 12px;
+    border-radius: 14px;
     font: inherit;
     font-size: 13.5px;
     font-weight: 500;
@@ -1388,9 +1389,9 @@
     margin-bottom: 20px;
   }
   .sidebar-logo-icon {
-    width: 36px;
-    height: 36px;
-    border-radius: 12px;
+    width: 38px;
+    height: 38px;
+    border-radius: 14px;
     background: linear-gradient(135deg, var(--accent) 0%, var(--accent-2) 100%);
     display: flex;
     align-items: center;
@@ -1435,7 +1436,7 @@
     padding: 10px 12px;
     background: transparent;
     border: none;
-    border-radius: 10px;
+    border-radius: 12px;
     color: var(--muted);
     font: inherit;
     font-size: 13.5px;
@@ -1566,9 +1567,9 @@
     top: 12px;
     left: 12px;
     z-index: 60;
-    width: 40px;
-    height: 40px;
-    border-radius: 10px;
+    width: 42px;
+    height: 42px;
+    border-radius: 14px;
     background: var(--glass-strong);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
@@ -1599,10 +1600,10 @@
     gap: 6px;
   }
   .mobile-quick-settings button {
-    height: 40px;
-    min-width: 40px;
-    padding: 0 12px;
-    border-radius: 10px;
+    height: 42px;
+    min-width: 42px;
+    padding: 0 14px;
+    border-radius: 14px;
     background: var(--glass-strong);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
