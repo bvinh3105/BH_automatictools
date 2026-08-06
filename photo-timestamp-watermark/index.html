@@ -4086,10 +4086,12 @@ Việt Nam</textarea>
     const bubble = document.getElementById('mascotBubble');
     if (!mascot) return;
 
-    // Sprite geometry
-    const CAT_INDEX = 1;             // 0-9 — orange & white tabby
-    const Y_BASE = CAT_INDEX * 192;  // where this cat's section starts in the sheet
-    const SCALE = 4;                 // matches CSS: width/height 128 = 32 * SCALE
+    // Sprite geometry — measured from cats.png:
+    //   sheet has 6-px top border, then 10 cat sections of 192px content
+    //   each separated by a 3-px blue bar → cat_i starts at y = 6 + i*195
+    const CAT_INDEX = 1;                       // 0-9 — orange & white tabby
+    const Y_BASE = 6 + CAT_INDEX * 195;        // exact top of this cat's content
+    const SCALE = 4;                           // 32*SCALE = 128 CSS px per frame
 
     // Frame table — each animation is a list of {x, y} pairs in the *cat's*
     // local coord system (y=0 is the top of THIS cat's section)
