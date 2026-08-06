@@ -1588,6 +1588,42 @@
     z-index: 45;
   }
 
+  /* Mobile-only floating quick settings (top-right corner) —
+     theme + language togglers accessible without opening sidebar */
+  .mobile-quick-settings {
+    display: none;
+    position: fixed;
+    top: 12px;
+    right: 12px;
+    z-index: 60;
+    gap: 6px;
+  }
+  .mobile-quick-settings button {
+    height: 40px;
+    min-width: 40px;
+    padding: 0 12px;
+    border-radius: 10px;
+    background: var(--glass-strong);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-size: 14px;
+    font-weight: 700;
+    line-height: 1;
+    cursor: pointer;
+    box-shadow: var(--shadow);
+    touch-action: manipulation;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+  }
+  .mobile-quick-settings button:active {
+    transform: scale(0.94);
+  }
+  .mobile-quick-settings .mq-theme { font-size: 17px; }
+
   @media (max-width: 880px) {
     .sidebar {
       transform: translateX(-100%);
@@ -1602,12 +1638,37 @@
     }
     .sidebar-toggle {
       display: flex;
+      touch-action: manipulation;
+    }
+    .mobile-quick-settings {
+      display: flex;
     }
     .main-content {
       margin-left: 0;
     }
     .app {
-      padding-top: 56px; /* space for hamburger */
+      padding-top: 64px; /* space for top-bar controls */
+    }
+    /* Narrower content padding on mobile */
+    .app {
+      padding-left: 14px;
+      padding-right: 14px;
+    }
+    /* Tighter panel padding */
+    .panel {
+      padding: 20px 18px;
+    }
+    /* Full-width sidebar-ish on very small screens */
+    .sidebar {
+      width: 280px;
+      min-width: 280px;
+    }
+    /* Actions bar keep at safe distance from screen edges */
+    .actions-bar {
+      bottom: 12px;
+      margin-left: 4px;
+      margin-right: 4px;
+      padding: 8px 14px;
     }
   }
 </style>
@@ -1625,6 +1686,12 @@
 <!-- Sidebar toggle (mobile) -->
 <button class="sidebar-toggle" id="sidebarToggle" aria-label="Menu">☰</button>
 <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+<!-- Mobile-only floating settings (top-right): theme + language -->
+<div class="mobile-quick-settings" id="mobileQuickSettings" aria-label="Cài đặt nhanh">
+  <button class="mq-theme" id="mqThemeBtn" aria-label="Chuyển giao diện" type="button">🌙</button>
+  <button class="mq-lang" id="mqLangBtn" aria-label="Đổi ngôn ngữ" type="button">VI</button>
+</div>
 
 <div class="master-layout">
 
@@ -2049,6 +2116,9 @@ Việt Nam</textarea>
     document.querySelectorAll('#langToggle button').forEach(b => {
       b.classList.toggle('active', b.dataset.lang === lang);
     });
+    // Update mobile lang button label — shows OPPOSITE lang (what tap will switch to)
+    const mqLang = document.getElementById('mqLangBtn');
+    if (mqLang) mqLang.textContent = lang === 'vi' ? 'EN' : 'VI';
     document.documentElement.lang = lang;
   }
 
@@ -2056,6 +2126,21 @@ Việt Nam</textarea>
   langToggle.addEventListener('click', e => {
     if (e.target.dataset.lang) applyLang(e.target.dataset.lang);
   });
+
+  // Mobile quick settings — theme + language (top-right on mobile)
+  const mqThemeBtn = document.getElementById('mqThemeBtn');
+  const mqLangBtn = document.getElementById('mqLangBtn');
+  if (mqThemeBtn) {
+    mqThemeBtn.addEventListener('click', e => {
+      const cur = document.documentElement.getAttribute('data-theme');
+      applyTheme(cur === 'dark' ? 'light' : 'dark', e);
+    });
+  }
+  if (mqLangBtn) {
+    mqLangBtn.addEventListener('click', () => {
+      applyLang(currentLang === 'vi' ? 'en' : 'vi');
+    });
+  }
 
   // Apply saved language on load
   applyLang(currentLang);
@@ -2572,6 +2657,9 @@ Việt Nam</textarea>
     themeToggle.querySelectorAll('button').forEach(b => {
       b.classList.toggle('active', b.dataset.theme === t);
     });
+    // Update mobile theme button icon (moon for dark, sun for light)
+    const mqBtn = document.getElementById('mqThemeBtn');
+    if (mqBtn) mqBtn.textContent = t === 'dark' ? '☀️' : '🌙';
     try { localStorage.setItem('thao-tools-theme', t); } catch(_) {}
   }
 
