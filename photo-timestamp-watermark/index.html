@@ -1279,7 +1279,7 @@
     align-items: center;
     justify-content: center;
     z-index: 100;
-    padding: 24px 24px 108px;  /* extra bottom padding for floating bar */
+    padding: 24px 24px 168px;  /* extra bottom padding for adjust + bottom bar */
     animation: fadein 0.2s ease-out;
   }
   .lightbox.open { display: flex; }
@@ -1294,11 +1294,113 @@
   }
   .lightbox img {
     max-width: 100%;
-    max-height: calc(100vh - 156px);
+    max-height: calc(100vh - 220px);   /* shrink to make room for slider + bar */
     object-fit: contain;
     border-radius: 12px;
     background: transparent;
     box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+  }
+
+  /* Floating font-size adjust panel — sits above the bottom nav bar */
+  .lightbox .lb-adjust {
+    position: fixed;
+    left: 50%;
+    bottom: 76px;
+    transform: translateX(-50%);
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 9px 10px 9px 18px;
+    background: rgba(255, 255, 255, 0.10);
+    backdrop-filter: blur(30px) saturate(180%);
+    -webkit-backdrop-filter: blur(30px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    border-radius: 999px;
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35),
+                inset 0 1px 0 rgba(255, 255, 255, 0.15);
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 12.5px;
+    max-width: calc(100vw - 40px);
+    z-index: 2;
+  }
+  .lightbox .lb-adjust-label {
+    color: rgba(255, 255, 255, 0.72);
+    font-weight: 600;
+    letter-spacing: -0.005em;
+    white-space: nowrap;
+  }
+  .lightbox .lb-adjust-value {
+    color: #fff;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    min-width: 44px;
+    text-align: center;
+    font-size: 12.5px;
+  }
+  .lightbox .lb-slider {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 200px;
+    height: 22px;
+    background: transparent;
+    padding: 0;
+    border: none;
+    cursor: pointer;
+  }
+  .lightbox .lb-slider::-webkit-slider-runnable-track {
+    height: 4px;
+    background: rgba(255, 255, 255, 0.18);
+    border-radius: 999px;
+  }
+  .lightbox .lb-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: #fff;
+    margin-top: -6px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.35);
+    cursor: pointer;
+    transition: transform 0.1s;
+  }
+  .lightbox .lb-slider::-webkit-slider-thumb:hover { transform: scale(1.15); }
+  .lightbox .lb-slider::-moz-range-track {
+    height: 4px;
+    background: rgba(255, 255, 255, 0.18);
+    border-radius: 999px;
+  }
+  .lightbox .lb-slider::-moz-range-thumb {
+    width: 16px; height: 16px;
+    border-radius: 50%;
+    background: #fff;
+    border: none;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.35);
+    cursor: pointer;
+  }
+  .lightbox .lb-apply-all {
+    background: rgba(255, 255, 255, 0.92);
+    color: #1A1F1A;
+    border: none;
+    border-radius: 999px;
+    padding: 7px 14px;
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 1;
+    letter-spacing: -0.005em;
+    cursor: pointer;
+    transition: background 0.15s, transform 0.1s, opacity 0.2s;
+    font: inherit;
+    font-weight: 700;
+    margin-left: 2px;
+  }
+  .lightbox .lb-apply-all:hover:not(:disabled) { background: #fff; }
+  .lightbox .lb-apply-all:active:not(:disabled) { transform: scale(0.96); }
+  .lightbox .lb-apply-all:disabled { opacity: 0.5; cursor: not-allowed; }
+  .lightbox .lb-apply-all.busy {
+    background: rgba(255, 255, 255, 0.4);
+    color: rgba(255, 255, 255, 0.7);
+    pointer-events: none;
   }
   .lightbox .lbstatus {
     color: rgba(255,255,255,0.85);
@@ -1448,8 +1550,17 @@
     .lightbox { left: 0; }
   }
   @media (max-width: 640px) {
-    .lightbox { padding: 20px 12px 90px; }
-    .lightbox img { max-height: calc(100vh - 140px); border-radius: 10px; }
+    .lightbox { padding: 20px 12px 154px; }
+    .lightbox img { max-height: calc(100vh - 200px); border-radius: 10px; }
+    .lightbox .lb-adjust {
+      bottom: 70px;
+      gap: 8px;
+      padding: 7px 8px 7px 14px;
+      font-size: 11.5px;
+    }
+    .lightbox .lb-adjust-label { font-size: 11.5px; }
+    .lightbox .lb-slider { width: 110px; }
+    .lightbox .lb-apply-all { padding: 6px 10px; font-size: 11px; }
     .lightbox .lbbar {
       padding: 6px 8px 6px 14px;
       gap: 8px;
@@ -1994,6 +2105,15 @@ Việt Nam</textarea>
       <button class="lbclose" id="lbClose" title="Đóng (Esc)">×</button>
       <img id="lbImg" alt="" />
       <div id="lbStatus" class="lbstatus" style="display:none"></div>
+
+      <!-- Font-size adjust panel: live preview + apply-to-all -->
+      <div class="lb-adjust" id="lbAdjust">
+        <span class="lb-adjust-label" data-i18n="lbFontLabel">Cỡ chữ</span>
+        <input type="range" id="lbFontSize" min="1.5" max="5" step="0.1" value="2.6" class="lb-slider" />
+        <span class="lb-adjust-value" id="lbFontSizeVal">2.6%</span>
+        <button class="lb-apply-all" id="lbApplyAll" data-i18n="lbApplyAll">Áp dụng tất cả</button>
+      </div>
+
       <div class="lbbar">
         <div class="lbname" id="lbName"></div>
         <div class="lbtoggle" id="lbToggle" style="display:none">
@@ -2153,6 +2273,8 @@ Việt Nam</textarea>
       lbPrev: '‹ Trước',
       lbNext: 'Sau ›',
       lbDownload: 'Tải ảnh này',
+      lbFontLabel: 'Cỡ chữ',
+      lbApplyAll: 'Áp dụng tất cả',
       // Actions bar
       actPhotos: 'ảnh',
       actProcessed: 'đã xử lý',
@@ -2203,6 +2325,8 @@ Việt Nam</textarea>
       lbPrev: '‹ Prev',
       lbNext: 'Next ›',
       lbDownload: 'Download this',
+      lbFontLabel: 'Font size',
+      lbApplyAll: 'Apply to all',
       actPhotos: 'photos',
       actProcessed: 'processed',
       btnReset: 'Reset results',
@@ -3436,9 +3560,13 @@ Việt Nam</textarea>
   const lbDownload = document.getElementById('lbDownload');
   const lbPrev = document.getElementById('lbPrev');
   const lbNext = document.getElementById('lbNext');
+  const lbFontSize = document.getElementById('lbFontSize');
+  const lbFontSizeVal = document.getElementById('lbFontSizeVal');
+  const lbApplyAll = document.getElementById('lbApplyAll');
   let lbIndex = -1;
   let lbView = 'stamped'; // 'stamped' | 'original'
   let lbPreviewUrl = null; // blob URL created just for on-the-fly preview
+  let lbFontOverride = null; // number or null — temp font-size override for live preview
 
   function releaseLbPreview() {
     if (lbPreviewUrl) { URL.revokeObjectURL(lbPreviewUrl); lbPreviewUrl = null; }
@@ -3447,6 +3575,11 @@ Việt Nam</textarea>
   async function openLightbox(index) {
     if (index < 0 || index >= state.files.length) return;
     lbIndex = index;
+    // Sync slider to current main font size on every open
+    const cur = parseFloat(document.getElementById('fontSize').value) || 2.6;
+    lbFontSize.value = cur;
+    lbFontSizeVal.textContent = cur.toFixed(1) + '%';
+    lbFontOverride = null;
     lightbox.classList.add('open');
     document.body.style.overflow = 'hidden';
     await renderLightbox();
@@ -3456,6 +3589,7 @@ Việt Nam</textarea>
     document.body.style.overflow = '';
     releaseLbPreview();
     lbImg.src = '';
+    lbFontOverride = null;
   }
 
   async function renderLightbox() {
@@ -3474,37 +3608,44 @@ Việt Nam</textarea>
 
     releaseLbPreview();
 
-    if (lbView === 'original' || f.status !== 'done') {
-      // If not processed yet, generate a one-off stamped preview so user can preview
-      if (f.status !== 'done' && lbView === 'stamped') {
-        lbStatus.style.display = '';
-        lbImg.style.display = 'none';
-        lbStatus.textContent = 'Đang tạo preview…';
-        try {
-          const blob = await stampOneWithCurrentSettings(lbIndex);
-          if (lbIndex !== -1 && state.files[lbIndex] === f) {
-            lbPreviewUrl = URL.createObjectURL(blob);
-            lbImg.src = lbPreviewUrl;
-            lbImg.style.display = '';
-            lbStatus.style.display = 'none';
-          }
-        } catch (err) {
-          console.error(err);
-          lbStatus.textContent = 'Không tạo được preview: ' + err.message;
-        }
-        return;
-      }
-      // original
+    // If user is exploring a font-size override, ALWAYS render a fresh stamp
+    // regardless of processed status (unless viewing 'original')
+    const hasOverride = lbFontOverride !== null;
+
+    if (lbView === 'original') {
       lbImg.src = f.url;
       lbImg.style.display = '';
       lbStatus.style.display = 'none';
-    } else {
-      // stamped (already processed)
-      lbPreviewUrl = URL.createObjectURL(f.processedBlob);
-      lbImg.src = lbPreviewUrl;
-      lbImg.style.display = '';
-      lbStatus.style.display = 'none';
+      return;
     }
+
+    if (hasOverride || f.status !== 'done') {
+      // Generate a one-off preview with current (possibly overridden) settings
+      lbStatus.style.display = '';
+      lbImg.style.display = 'none';
+      lbStatus.textContent = hasOverride
+        ? 'Đang tạo preview với cỡ chữ mới…'
+        : 'Đang tạo preview…';
+      try {
+        const blob = await stampOneWithCurrentSettings(lbIndex);
+        if (lbIndex !== -1 && state.files[lbIndex] === f) {
+          lbPreviewUrl = URL.createObjectURL(blob);
+          lbImg.src = lbPreviewUrl;
+          lbImg.style.display = '';
+          lbStatus.style.display = 'none';
+        }
+      } catch (err) {
+        console.error(err);
+        lbStatus.textContent = 'Không tạo được preview: ' + err.message;
+      }
+      return;
+    }
+
+    // stamped (already processed, no override active)
+    lbPreviewUrl = URL.createObjectURL(f.processedBlob);
+    lbImg.src = lbPreviewUrl;
+    lbImg.style.display = '';
+    lbStatus.style.display = 'none';
   }
 
   async function stampOneWithCurrentSettings(index) {
@@ -3516,11 +3657,116 @@ Việt Nam</textarea>
     const addressLines = document.getElementById('lines').value.split('\n').filter(l => l.trim());
     const opts = {
       position: state.position,
-      fontPercent: parseFloat(document.getElementById('fontSize').value),
+      // Use override if set (lightbox slider), otherwise main input
+      fontPercent: lbFontOverride !== null
+        ? lbFontOverride
+        : parseFloat(document.getElementById('fontSize').value),
       shadow: document.getElementById('shadow').checked,
     };
     return stampOne(f, dateStr, secToTime(times[index]), addressLines, opts);
   }
+
+  // Slider: live preview of current photo with the new font size.
+  // Debounced so we don't re-stamp on every 0.1% tick.
+  let lbSliderTimer = null;
+  let lbRenderPending = false;
+  lbFontSize.addEventListener('input', () => {
+    const v = parseFloat(lbFontSize.value);
+    lbFontSizeVal.textContent = v.toFixed(1) + '%';
+    lbFontOverride = v;
+    clearTimeout(lbSliderTimer);
+    lbSliderTimer = setTimeout(async () => {
+      if (lbRenderPending) return;
+      lbRenderPending = true;
+      try { await renderLightbox(); }
+      finally { lbRenderPending = false; }
+    }, 180);
+  });
+
+  // Apply the override to all photos: sync main setting + re-stamp done ones
+  lbApplyAll.addEventListener('click', async () => {
+    if (lbFontOverride === null) {
+      // Nothing changed — silently sync anyway
+      return;
+    }
+    const newSize = lbFontOverride;
+    const mainInput = document.getElementById('fontSize');
+    mainInput.value = newSize;
+    // Trigger UI updates (label + preview line) via existing listeners
+    mainInput.dispatchEvent(new Event('input', { bubbles: true }));
+
+    // Any already-processed photo needs to be re-stamped with the new size
+    const doneIndexes = [];
+    state.files.forEach((f, i) => {
+      if (f.status === 'done') {
+        f.processedBlob = null;
+        f.status = 'idle';
+        doneIndexes.push(i);
+      }
+    });
+    document.getElementById('btnDownload').style.display = 'none';
+    document.getElementById('progressBar').style.width = '0%';
+    document.getElementById('statDone').textContent = '0';
+
+    // Clear override — from now on the main setting is the source of truth
+    lbFontOverride = null;
+
+    if (!doneIndexes.length) {
+      renderFiles();
+      // Re-render lightbox so it picks up the (now non-override) new size
+      await renderLightbox();
+      return;
+    }
+
+    // Re-stamp all previously-done photos in the background so user doesn't
+    // have to click "Xử lý tất cả" again
+    lbApplyAll.classList.add('busy');
+    const originalText = lbApplyAll.textContent;
+    lbApplyAll.textContent = 'Đang áp dụng…';
+    renderFiles();
+
+    const dateStr = formatDate(document.getElementById('date').value, document.getElementById('dateFormat').value);
+    const baseSec = timeToSec(document.getElementById('baseTime').value || '00:00:00');
+    const [imin, imax] = getIntervals();
+    const times = buildTimestamps(baseSec, imin, imax, state.files.length);
+    const addressLines = document.getElementById('lines').value.split('\n').filter(l => l.trim());
+    const opts = {
+      position: state.position,
+      fontPercent: newSize,
+      shadow: document.getElementById('shadow').checked,
+    };
+    const bar = document.getElementById('progressBar');
+    let done = 0;
+    for (const i of doneIndexes) {
+      const f = state.files[i];
+      if (!f) continue;
+      f.status = 'processing';
+      try {
+        const blob = await stampOne(f, dateStr, secToTime(times[i]), addressLines, opts);
+        f.processedBlob = blob;
+        f.status = 'done';
+      } catch (err) {
+        console.error(err);
+        f.status = 'error';
+      }
+      done++;
+      bar.style.width = (done / doneIndexes.length * 100).toFixed(1) + '%';
+      document.getElementById('statDone').textContent = state.files.filter(x => x.status === 'done').length;
+      // Refresh lightbox mid-batch when the currently-viewed one finishes
+      if (i === lbIndex && lightbox.classList.contains('open')) {
+        await renderLightbox();
+      }
+    }
+    renderFiles();
+    // Show download button if all done
+    if (state.files.every(f => f.status === 'done' || f.status === 'error')) {
+      document.getElementById('btnDownload').style.display = '';
+    }
+    lbApplyAll.classList.remove('busy');
+    lbApplyAll.textContent = originalText;
+    // Final re-render of lightbox with the new stamped version
+    if (lightbox.classList.contains('open')) await renderLightbox();
+  });
 
   document.getElementById('lbClose').addEventListener('click', closeLightbox);
   lightbox.addEventListener('click', e => { if (e.target === lightbox) closeLightbox(); });
