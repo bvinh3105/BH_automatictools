@@ -1292,13 +1292,21 @@
     align-items: center;
     justify-content: center;
   }
-  .lightbox img {
+  .lightbox img,
+  .lightbox canvas {
     max-width: 100%;
     max-height: calc(100vh - 220px);   /* shrink to make room for slider + bar */
     object-fit: contain;
     border-radius: 12px;
     background: transparent;
     box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+  }
+  .lightbox canvas {
+    /* Canvas respects intrinsic size via width/height attributes,
+       but we want it to scale down to viewport like the img does */
+    width: auto;
+    height: auto;
+    display: block;
   }
 
   /* Floating font-size adjust panel — sits above the bottom nav bar */
@@ -2104,6 +2112,7 @@ Việt Nam</textarea>
     <div class="content">
       <button class="lbclose" id="lbClose" title="Đóng (Esc)">×</button>
       <img id="lbImg" alt="" />
+      <canvas id="lbCanvas" style="display:none"></canvas>
       <div id="lbStatus" class="lbstatus" style="display:none"></div>
 
       <!-- Font-size adjust panel: live preview + apply-to-all -->
@@ -3553,6 +3562,8 @@ Việt Nam</textarea>
   // ---------- Lightbox preview ----------
   const lightbox = document.getElementById('lightbox');
   const lbImg = document.getElementById('lbImg');
+  const lbCanvas = document.getElementById('lbCanvas');
+  const lbCtx = lbCanvas.getContext('2d');
   const lbName = document.getElementById('lbName');
   const lbCount = document.getElementById('lbCount');
   const lbStatus = document.getElementById('lbStatus');
@@ -3568,8 +3579,98 @@ Việt Nam</textarea>
   let lbPreviewUrl = null; // blob URL created just for on-the-fly preview
   let lbFontOverride = null; // number or null — temp font-size override for live preview
 
+  // Cached decoded source image for realtime canvas preview — avoids
+  // reloading the file on every slider tick
+  let lbSourceImg = null;
+  let lbSourceFileId = null;
+
   function releaseLbPreview() {
     if (lbPreviewUrl) { URL.revokeObjectURL(lbPreviewUrl); lbPreviewUrl = null; }
+  }
+
+  // Load & decode the source image for the current photo into a cached
+  // HTMLImageElement. Returns immediately if already cached for this file.
+  function loadLbSourceImage(f) {
+    return new Promise((resolve, reject) => {
+      if (!f) return reject(new Error('no file'));
+      if (lbSourceFileId === f.id && lbSourceImg && lbSourceImg.complete && lbSourceImg.naturalWidth) {
+        return resolve(lbSourceImg);
+      }
+      const img = new Image();
+      // decoded-in-parallel where supported
+      if ('decoding' in img) img.decoding = 'async';
+      img.onload = () => {
+        lbSourceImg = img;
+        lbSourceFileId = f.id;
+        resolve(img);
+      };
+      img.onerror = () => reject(new Error('image load failed'));
+      img.src = f.url;
+    });
+  }
+
+  // Draw current photo + text overlay directly to <canvas>.
+  // Fast enough to run on every slider tick (no blob encoding, no reload).
+  function drawLbCanvas(fontPercent) {
+    const f = state.files[lbIndex];
+    if (!f || !lbSourceImg || lbSourceFileId !== f.id) return;
+    const W = lbSourceImg.naturalWidth;
+    const H = lbSourceImg.naturalHeight;
+    if (lbCanvas.width !== W) lbCanvas.width = W;
+    if (lbCanvas.height !== H) lbCanvas.height = H;
+
+    lbCtx.drawImage(lbSourceImg, 0, 0);
+
+    // Same stamping logic as stampOne — read live inputs
+    const dateStr = formatDate(document.getElementById('date').value, document.getElementById('dateFormat').value);
+    const baseSec = timeToSec(document.getElementById('baseTime').value || '00:00:00');
+    const [imin, imax] = getIntervals();
+    const times = buildTimestamps(baseSec, imin, imax, state.files.length);
+    const addressLines = document.getElementById('lines').value.split('\n').filter(l => l.trim());
+    const timeStr = secToTime(times[lbIndex]);
+
+    const fontPx = Math.max(20, Math.round(W * fontPercent / 100));
+    const fontSpec = `300 ${fontPx}px "San Francisco Display Light", "SF Pro Display Light", "SF Pro Display", -apple-system, "Roboto", "Segoe UI Light", "Segoe UI", "Helvetica Neue", Arial, sans-serif`;
+    lbCtx.font = fontSpec;
+    lbCtx.textBaseline = 'top';
+
+    const lines = [`${dateStr} at ${timeStr}`, ...addressLines];
+    const marginX = Math.round(W * 0.028);
+    const marginY = Math.round(H * 0.022);
+    const lineH = Math.round(fontPx * 1.15);
+    const totalH = lineH * lines.length;
+
+    let originX, originY, align;
+    switch (state.position) {
+      case 'tl': originX = marginX;      originY = marginY;               align = 'left';  break;
+      case 'tr': originX = W - marginX;  originY = marginY;               align = 'right'; break;
+      case 'bl': originX = marginX;      originY = H - marginY - totalH;  align = 'left';  break;
+      case 'br': originX = W - marginX;  originY = H - marginY - totalH;  align = 'right'; break;
+    }
+    lbCtx.textAlign = align;
+
+    const shadow = document.getElementById('shadow').checked;
+    let y = originY;
+    for (const line of lines) {
+      if (shadow) {
+        lbCtx.fillStyle = 'rgba(0,0,0,0.35)';
+        lbCtx.fillText(line, originX + 1, y + 1);
+      }
+      lbCtx.fillStyle = '#ffffff';
+      lbCtx.fillText(line, originX, y);
+      y += lineH;
+    }
+  }
+
+  // Show canvas (live preview mode), hide img
+  function showLbCanvas() {
+    lbCanvas.style.display = '';
+    lbImg.style.display = 'none';
+    lbStatus.style.display = 'none';
+  }
+  function showLbImg() {
+    lbCanvas.style.display = 'none';
+    lbImg.style.display = '';
   }
 
   async function openLightbox(index) {
@@ -3583,6 +3684,16 @@ Việt Nam</textarea>
     lightbox.classList.add('open');
     document.body.style.overflow = 'hidden';
     await renderLightbox();
+    // Preload source image + font in background so first slider drag is instant
+    const f = state.files[lbIndex];
+    if (f) {
+      loadLbSourceImage(f).catch(() => {});
+      if (document.fonts && document.fonts.load) {
+        const fontPx = Math.max(20, Math.round((f.width || 1500) * cur / 100));
+        const spec = `300 ${fontPx}px "San Francisco Display Light", "SF Pro Display Light", "SF Pro Display", -apple-system, sans-serif`;
+        document.fonts.load(spec).catch(() => {});
+      }
+    }
   }
   function closeLightbox() {
     lightbox.classList.remove('open');
@@ -3590,6 +3701,10 @@ Việt Nam</textarea>
     releaseLbPreview();
     lbImg.src = '';
     lbFontOverride = null;
+    // Drop source cache so we don't hold on to a decoded bitmap after close
+    lbSourceImg = null;
+    lbSourceFileId = null;
+    showLbImg();
   }
 
   async function renderLightbox() {
@@ -3608,32 +3723,30 @@ Việt Nam</textarea>
 
     releaseLbPreview();
 
-    // If user is exploring a font-size override, ALWAYS render a fresh stamp
-    // regardless of processed status (unless viewing 'original')
+    // When a font-size override is active OR the photo hasn't been
+    // processed yet, drive the display from <canvas> (fast, no blob).
+    // Otherwise show the processed <img>.
     const hasOverride = lbFontOverride !== null;
 
     if (lbView === 'original') {
+      showLbImg();
       lbImg.src = f.url;
-      lbImg.style.display = '';
       lbStatus.style.display = 'none';
       return;
     }
 
     if (hasOverride || f.status !== 'done') {
-      // Generate a one-off preview with current (possibly overridden) settings
       lbStatus.style.display = '';
       lbImg.style.display = 'none';
-      lbStatus.textContent = hasOverride
-        ? 'Đang tạo preview với cỡ chữ mới…'
-        : 'Đang tạo preview…';
+      lbCanvas.style.display = 'none';
+      lbStatus.textContent = 'Đang tạo preview…';
       try {
-        const blob = await stampOneWithCurrentSettings(lbIndex);
-        if (lbIndex !== -1 && state.files[lbIndex] === f) {
-          lbPreviewUrl = URL.createObjectURL(blob);
-          lbImg.src = lbPreviewUrl;
-          lbImg.style.display = '';
-          lbStatus.style.display = 'none';
-        }
+        await loadLbSourceImage(f);
+        // Guard against navigation while awaiting
+        if (state.files[lbIndex] !== f) return;
+        const fp = hasOverride ? lbFontOverride : parseFloat(document.getElementById('fontSize').value);
+        drawLbCanvas(fp);
+        showLbCanvas();
       } catch (err) {
         console.error(err);
         lbStatus.textContent = 'Không tạo được preview: ' + err.message;
@@ -3641,10 +3754,10 @@ Việt Nam</textarea>
       return;
     }
 
-    // stamped (already processed, no override active)
+    // stamped (already processed, no override active) → show real blob
     lbPreviewUrl = URL.createObjectURL(f.processedBlob);
+    showLbImg();
     lbImg.src = lbPreviewUrl;
-    lbImg.style.display = '';
     lbStatus.style.display = 'none';
   }
 
@@ -3666,21 +3779,38 @@ Việt Nam</textarea>
     return stampOne(f, dateStr, secToTime(times[index]), addressLines, opts);
   }
 
-  // Slider: live preview of current photo with the new font size.
-  // Debounced so we don't re-stamp on every 0.1% tick.
-  let lbSliderTimer = null;
-  let lbRenderPending = false;
+  // Slider: REALTIME preview via canvas draws (rAF-throttled to ~60fps).
+  // No blob encoding, no image reload — the source image is cached and we
+  // only redraw the pixels. Feels instant even on large photos.
+  let lbSliderRAF = 0;
+  let lbSliderPendingVal = null;
+  function scheduleLbCanvasDraw() {
+    if (lbSliderRAF) return;
+    lbSliderRAF = requestAnimationFrame(async () => {
+      lbSliderRAF = 0;
+      const v = lbSliderPendingVal;
+      lbSliderPendingVal = null;
+      if (v == null) return;
+      const f = state.files[lbIndex];
+      if (!f) return;
+      // Ensure source image is loaded (only actually loads once per photo)
+      if (!lbSourceImg || lbSourceFileId !== f.id) {
+        try { await loadLbSourceImage(f); } catch { return; }
+        if (state.files[lbIndex] !== f) return;
+      }
+      // Only switch into canvas mode when we're not showing the original
+      if (lbView !== 'original') {
+        drawLbCanvas(v);
+        showLbCanvas();
+      }
+    });
+  }
   lbFontSize.addEventListener('input', () => {
     const v = parseFloat(lbFontSize.value);
     lbFontSizeVal.textContent = v.toFixed(1) + '%';
     lbFontOverride = v;
-    clearTimeout(lbSliderTimer);
-    lbSliderTimer = setTimeout(async () => {
-      if (lbRenderPending) return;
-      lbRenderPending = true;
-      try { await renderLightbox(); }
-      finally { lbRenderPending = false; }
-    }, 180);
+    lbSliderPendingVal = v;
+    scheduleLbCanvasDraw();
   });
 
   // Apply the override to all photos: sync main setting + re-stamp done ones
