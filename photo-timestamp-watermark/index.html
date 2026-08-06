@@ -9,7 +9,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap">
-<title>Photo Timestamp Watermark</title>
+<title>BH Automatic Tools</title>
 <style>
   :root {
     /* Light theme — soft sage muted + more present powder blue */
@@ -1272,6 +1272,124 @@
     background: rgba(255,255,255,0.9);
     color: #000;
   }
+
+  /* ===== Master Tab Bar ===== */
+  .tab-bar {
+    display: flex;
+    align-items: stretch;
+    gap: 2px;
+    padding: 0 24px;
+    position: relative;
+    z-index: 10;
+    max-width: 1240px;
+    margin: 0 auto;
+    padding-top: 10px;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .tab-bar::-webkit-scrollbar { display: none; }
+  .tab-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 18px 10px 14px;
+    background: transparent;
+    border: 1px solid transparent;
+    border-bottom: none;
+    border-radius: 12px 12px 0 0;
+    color: var(--muted);
+    font: inherit;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background 0.2s, color 0.2s, border-color 0.2s;
+    position: relative;
+    min-width: 0;
+  }
+  .tab-item:hover:not(.active) {
+    background: var(--glass);
+    color: var(--text);
+  }
+  .tab-item.active {
+    background: var(--glass-strong);
+    backdrop-filter: blur(24px) saturate(180%);
+    -webkit-backdrop-filter: blur(24px) saturate(180%);
+    border-color: var(--border);
+    color: var(--text);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.15);
+  }
+  /* Hide bottom border line under active tab to merge with content */
+  .tab-item.active::after {
+    content: '';
+    position: absolute;
+    bottom: -1px;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: var(--glass-strong);
+  }
+  .tab-icon {
+    font-size: 16px;
+    line-height: 1;
+    flex-shrink: 0;
+  }
+  .tab-label {
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .tab-content-area {
+    position: relative;
+    z-index: 1;
+  }
+  .tab-pane {
+    display: none;
+  }
+  .tab-pane.active {
+    display: block;
+  }
+  /* Empty tab placeholder */
+  .tab-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 50vh;
+    text-align: center;
+    padding: 60px 24px;
+  }
+  .tab-empty-icon {
+    font-size: 56px;
+    margin-bottom: 16px;
+    opacity: 0.5;
+    filter: grayscale(0.3);
+  }
+  .tab-empty h3 {
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--text);
+    margin: 0 0 8px;
+  }
+  .tab-empty p {
+    color: var(--muted);
+    font-size: 14px;
+    max-width: 380px;
+    line-height: 1.6;
+    margin: 0;
+  }
+  .tab-empty .coming-badge {
+    display: inline-block;
+    margin-top: 16px;
+    padding: 5px 14px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    background: color-mix(in srgb, var(--accent-2) 15%, transparent);
+    color: var(--accent-2);
+    border: 1px solid color-mix(in srgb, var(--accent-2) 25%, transparent);
+  }
 </style>
 
 </head>
@@ -1283,6 +1401,35 @@
   <div class="spot spot-4"></div>
   <div class="spot spot-5"></div>
 </div>
+
+<!-- ===== Tab Bar ===== -->
+<nav class="tab-bar" id="tabBar">
+  <button class="tab-item active" data-tab="timestamp">
+    <span class="tab-icon">🕐</span>
+    <span class="tab-label">Timestamp Watermark</span>
+  </button>
+  <button class="tab-item" data-tab="resize">
+    <span class="tab-icon">📐</span>
+    <span class="tab-label">Image Resize</span>
+  </button>
+  <button class="tab-item" data-tab="compress">
+    <span class="tab-icon">🗜️</span>
+    <span class="tab-label">Image Compress</span>
+  </button>
+  <button class="tab-item" data-tab="convert">
+    <span class="tab-icon">🔄</span>
+    <span class="tab-label">Format Convert</span>
+  </button>
+  <button class="tab-item" data-tab="metadata">
+    <span class="tab-icon">🏷️</span>
+    <span class="tab-label">Metadata Editor</span>
+  </button>
+</nav>
+
+<div class="tab-content-area">
+
+<!-- ===== TAB 1: Timestamp Watermark ===== -->
+<div class="tab-pane active" id="pane-timestamp">
 <div class="app">
   <header class="top">
     <div>
@@ -1435,8 +1582,75 @@ Việt Nam</textarea>
     </div>
   </div>
 </div>
+</div><!-- /pane-timestamp -->
+
+<!-- ===== TAB 2: Image Resize (coming soon) ===== -->
+<div class="tab-pane" id="pane-resize">
+  <div class="app">
+    <div class="tab-empty">
+      <div class="tab-empty-icon">📐</div>
+      <h3>Image Resize</h3>
+      <p>Resize ảnh hàng loạt theo kích thước tuỳ chỉnh, giữ tỉ lệ hoặc crop thông minh. Hỗ trợ preset cho các nền tảng phổ biến.</p>
+      <span class="coming-badge">Coming Soon</span>
+    </div>
+  </div>
+</div>
+
+<!-- ===== TAB 3: Image Compress (coming soon) ===== -->
+<div class="tab-pane" id="pane-compress">
+  <div class="app">
+    <div class="tab-empty">
+      <div class="tab-empty-icon">🗜️</div>
+      <h3>Image Compress</h3>
+      <p>Nén ảnh giảm dung lượng mà không mất chất lượng đáng kể. So sánh trước/sau trực quan, xử lý hoàn toàn trên trình duyệt.</p>
+      <span class="coming-badge">Coming Soon</span>
+    </div>
+  </div>
+</div>
+
+<!-- ===== TAB 4: Format Convert (coming soon) ===== -->
+<div class="tab-pane" id="pane-convert">
+  <div class="app">
+    <div class="tab-empty">
+      <div class="tab-empty-icon">🔄</div>
+      <h3>Format Convert</h3>
+      <p>Chuyển đổi định dạng ảnh hàng loạt: JPG ↔ PNG ↔ WebP ↔ AVIF. Tuỳ chỉnh chất lượng, tải ZIP kết quả.</p>
+      <span class="coming-badge">Coming Soon</span>
+    </div>
+  </div>
+</div>
+
+<!-- ===== TAB 5: Metadata Editor (coming soon) ===== -->
+<div class="tab-pane" id="pane-metadata">
+  <div class="app">
+    <div class="tab-empty">
+      <div class="tab-empty-icon">🏷️</div>
+      <h3>Metadata Editor</h3>
+      <p>Xem và chỉnh sửa EXIF metadata của ảnh: ngày chụp, GPS, camera model, copyright. Xoá metadata hàng loạt để bảo vệ privacy.</p>
+      <span class="coming-badge">Coming Soon</span>
+    </div>
+  </div>
+</div>
+
+</div><!-- /tab-content-area -->
 
 <script>
+  // ---------- Master Tab Switching ----------
+  const tabBar = document.getElementById('tabBar');
+  tabBar.addEventListener('click', e => {
+    const tab = e.target.closest('.tab-item');
+    if (!tab || tab.classList.contains('active')) return;
+    // Deactivate all
+    tabBar.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+    // Activate clicked
+    tab.classList.add('active');
+    const pane = document.getElementById('pane-' + tab.dataset.tab);
+    if (pane) pane.classList.add('active');
+    // Close any open menus
+    if (typeof csCloseAll === 'function') csCloseAll(null);
+  });
+
   // ---------- Shared open-menu registry + portal helpers ----------
   const csRegistry = []; // { btn, menu, close }
   function csCloseAll(except) {
