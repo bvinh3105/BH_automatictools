@@ -1305,109 +1305,251 @@
   }
   .undo-toast button:hover { background: var(--accent-hover); }
 
-  /* Lightbox */
-  /* ===== Lightbox — clean, floating glass UI =====
-     Constrained to the main-content area (sidebar stays visible on desktop
-     so users don't lose access to nav / theme / language while viewing photos) */
+  /* ===== Lightbox — premium split-panel editor =====
+     Full-viewport overlay with optional config panel on desktop. */
   .lightbox {
     position: fixed;
-    top: 0;
-    right: 0;
-    bottom: 0;
-    left: 260px;   /* sidebar width — sidebar remains visible next to lightbox */
-    background: rgba(15, 18, 15, 0.72);
-    backdrop-filter: blur(24px) saturate(140%);
-    -webkit-backdrop-filter: blur(24px) saturate(140%);
+    inset: 0;
+    background: rgba(10, 12, 10, 0.82);
+    backdrop-filter: blur(32px) saturate(140%);
+    -webkit-backdrop-filter: blur(32px) saturate(140%);
     display: none;
-    align-items: center;
-    justify-content: center;
+    flex-direction: column;
     z-index: 100;
-    padding: 24px 24px 168px;  /* extra bottom padding for adjust + bottom bar */
-    animation: fadein 0.2s ease-out;
+    animation: lb-in 0.25s cubic-bezier(.4,0,.2,1);
   }
   .lightbox.open { display: flex; }
-  @keyframes fadein { from { opacity: 0; } to { opacity: 1; } }
-  .lightbox .content {
-    position: relative;
-    max-width: 100%;
+  @keyframes lb-in {
+    from { opacity: 0; backdrop-filter: blur(0); }
+    to   { opacity: 1; backdrop-filter: blur(32px); }
+  }
+
+  /* Close button — top-right */
+  .lightbox > .lbclose {
+    position: absolute;
+    top: 16px; right: 16px;
+    width: 38px; height: 38px;
+    background: rgba(255,255,255,0.08);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    color: rgba(255,255,255,0.85);
+    border-radius: 50%;
+    border: 1px solid rgba(255,255,255,0.12);
+    font-size: 20px; line-height: 1;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+    transition: background 0.15s, transform 0.1s;
+    z-index: 4;
+  }
+  .lightbox > .lbclose:hover { background: rgba(255,255,255,0.18); color: #fff; }
+  .lightbox > .lbclose:active { transform: scale(0.93); }
+
+  /* ---- Split layout ---- */
+  .lb-split {
+    flex: 1; min-height: 0;
+    display: flex;
+    padding: 16px 16px 0;
+    gap: 16px;
+  }
+
+  /* ---- Config panel (left side, desktop) ---- */
+  .lb-config {
+    width: 260px;
+    min-width: 260px;
     max-height: 100%;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 20px 18px 16px;
+    background: rgba(255,255,255,0.06);
+    backdrop-filter: blur(40px) saturate(180%);
+    -webkit-backdrop-filter: blur(40px) saturate(180%);
+    border: 1px solid rgba(255,255,255,0.10);
+    border-radius: 16px;
+    color: rgba(255,255,255,0.92);
+    font-size: 12.5px;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255,255,255,0.15) transparent;
+  }
+  .lb-config::-webkit-scrollbar { width: 4px; }
+  .lb-config::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 4px; }
+
+  .lbc-head {
+    font-size: 13.5px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    color: rgba(255,255,255,0.95);
+    margin-bottom: 10px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+  }
+  .lbc-group {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    margin-bottom: 10px;
+  }
+  .lbc-group > label {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: rgba(255,255,255,0.50);
+  }
+  .lbc-group input[type="date"],
+  .lbc-group input[type="time"],
+  .lbc-group select,
+  .lbc-group textarea {
+    background: rgba(255,255,255,0.07);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 8px;
+    color: #fff;
+    padding: 7px 10px;
+    font: inherit;
+    font-size: 12.5px;
+    outline: none;
+    transition: border-color 0.15s, background 0.15s;
+    color-scheme: dark;
+  }
+  .lbc-group input:focus,
+  .lbc-group select:focus,
+  .lbc-group textarea:focus {
+    border-color: rgba(255,255,255,0.30);
+    background: rgba(255,255,255,0.10);
+  }
+  .lbc-group textarea {
+    resize: vertical;
+    min-height: 40px;
+    line-height: 1.45;
+  }
+  .lbc-group select { cursor: pointer; }
+  .lbc-group select option { background: #1a1f1a; color: #fff; }
+
+  /* Position grid — 2×2 pill buttons */
+  .lbc-pos {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4px;
+  }
+  .lbc-pos button {
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.10);
+    border-radius: 8px;
+    color: rgba(255,255,255,0.60);
+    padding: 6px 0;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.15s;
+    font: inherit;
+    line-height: 1;
+  }
+  .lbc-pos button:hover { background: rgba(255,255,255,0.10); color: rgba(255,255,255,0.85); }
+  .lbc-pos button.active {
+    background: rgba(255,255,255,0.88);
+    color: #1a1f1a;
+    border-color: rgba(255,255,255,0.9);
+    font-weight: 700;
+  }
+
+  /* Font slider row */
+  .lbc-row-label {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+  }
+  .lbc-val {
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    color: rgba(255,255,255,0.85);
+    font-size: 12px;
+  }
+  /* Checkbox */
+  .lbc-check {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    font-size: 12.5px;
+    color: rgba(255,255,255,0.82);
+  }
+  .lbc-check input[type="checkbox"] {
+    accent-color: rgba(255,255,255,0.85);
+    width: 15px; height: 15px;
+    cursor: pointer;
+  }
+
+  /* Apply all button */
+  .lbc-apply {
+    margin-top: auto;
+    padding: 9px 0;
+    background: rgba(255,255,255,0.88);
+    color: #1a1f1a;
+    border: none;
+    border-radius: 10px;
+    font: inherit;
+    font-size: 12.5px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.15s, transform 0.1s;
+    letter-spacing: -0.005em;
+  }
+  .lbc-apply:hover { background: #fff; }
+  .lbc-apply:active { transform: scale(0.97); }
+  .lbc-apply.busy {
+    background: rgba(255,255,255,0.3);
+    color: rgba(255,255,255,0.6);
+    pointer-events: none;
+  }
+
+  /* ---- Preview area (right side) ---- */
+  .lb-split > .content {
+    flex: 1;
+    min-width: 0;
     display: flex;
     align-items: center;
     justify-content: center;
+    position: relative;
   }
   .lightbox img,
   .lightbox canvas {
     max-width: 100%;
-    max-height: calc(100vh - 220px);   /* shrink to make room for slider + bar */
+    max-height: calc(100vh - 140px);
     object-fit: contain;
-    border-radius: 12px;
+    border-radius: 10px;
     background: transparent;
-    box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+    box-shadow: 0 16px 48px rgba(0,0,0,0.35);
   }
   .lightbox canvas {
-    /* Canvas respects intrinsic size via width/height attributes,
-       but we want it to scale down to viewport like the img does */
-    width: auto;
-    height: auto;
+    width: auto; height: auto;
     display: block;
   }
-
-  /* Floating font-size adjust panel — sits above the bottom nav bar */
-  .lightbox .lb-adjust {
-    position: fixed;
-    left: 50%;
-    bottom: 76px;
-    transform: translateX(-50%);
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    padding: 9px 10px 9px 18px;
-    background: rgba(255, 255, 255, 0.10);
-    backdrop-filter: blur(30px) saturate(180%);
-    -webkit-backdrop-filter: blur(30px) saturate(180%);
-    border: 1px solid rgba(255, 255, 255, 0.14);
-    border-radius: 999px;
-    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35),
-                inset 0 1px 0 rgba(255, 255, 255, 0.15);
-    color: rgba(255, 255, 255, 0.9);
-    font-size: 12.5px;
-    max-width: calc(100vw - 40px);
-    z-index: 2;
-  }
-  .lightbox .lb-adjust-label {
-    color: rgba(255, 255, 255, 0.72);
-    font-weight: 600;
-    letter-spacing: -0.005em;
-    white-space: nowrap;
-  }
-  .lightbox .lb-adjust-value {
-    color: #fff;
-    font-weight: 700;
-    font-variant-numeric: tabular-nums;
-    min-width: 44px;
+  .lightbox .lbstatus {
+    color: rgba(255,255,255,0.75);
     text-align: center;
-    font-size: 12.5px;
+    padding: 60px 20px;
+    font-size: 14px;
   }
+
+  /* ---- Slider shared style ---- */
   .lightbox .lb-slider {
     -webkit-appearance: none;
     appearance: none;
-    width: 200px;
+    width: 100%;
     height: 22px;
     background: transparent;
-    padding: 0;
-    border: none;
+    padding: 0; border: none;
     cursor: pointer;
   }
   .lightbox .lb-slider::-webkit-slider-runnable-track {
     height: 4px;
-    background: rgba(255, 255, 255, 0.18);
+    background: rgba(255,255,255,0.18);
     border-radius: 999px;
   }
   .lightbox .lb-slider::-webkit-slider-thumb {
-    -webkit-appearance: none;
-    appearance: none;
-    width: 16px;
-    height: 16px;
+    -webkit-appearance: none; appearance: none;
+    width: 16px; height: 16px;
     border-radius: 50%;
     background: #fff;
     margin-top: -6px;
@@ -1418,216 +1560,153 @@
   .lightbox .lb-slider::-webkit-slider-thumb:hover { transform: scale(1.15); }
   .lightbox .lb-slider::-moz-range-track {
     height: 4px;
-    background: rgba(255, 255, 255, 0.18);
+    background: rgba(255,255,255,0.18);
     border-radius: 999px;
   }
   .lightbox .lb-slider::-moz-range-thumb {
     width: 16px; height: 16px;
-    border-radius: 50%;
-    background: #fff;
-    border: none;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.35);
-    cursor: pointer;
-  }
-  .lightbox .lb-apply-all {
-    background: rgba(255, 255, 255, 0.92);
-    color: #1A1F1A;
-    border: none;
-    border-radius: 999px;
-    padding: 7px 14px;
-    font-size: 12px;
-    font-weight: 700;
-    line-height: 1;
-    letter-spacing: -0.005em;
-    cursor: pointer;
-    transition: background 0.15s, transform 0.1s, opacity 0.2s;
-    font: inherit;
-    font-weight: 700;
-    margin-left: 2px;
-  }
-  .lightbox .lb-apply-all:hover:not(:disabled) { background: #fff; }
-  .lightbox .lb-apply-all:active:not(:disabled) { transform: scale(0.96); }
-  .lightbox .lb-apply-all:disabled { opacity: 0.5; cursor: not-allowed; }
-  .lightbox .lb-apply-all.busy {
-    background: rgba(255, 255, 255, 0.4);
-    color: rgba(255, 255, 255, 0.7);
-    pointer-events: none;
-  }
-  .lightbox .lbstatus {
-    color: rgba(255,255,255,0.85);
-    text-align: center;
-    padding: 60px 20px;
-    font-size: 14px;
+    border-radius: 50%; background: #fff; border: none;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.35); cursor: pointer;
   }
 
-  /* Floating bottom bar — same recipe as .actions-bar */
-  .lightbox .lbbar {
-    position: fixed;
-    left: 50%;
-    bottom: 20px;
-    transform: translateX(-50%);
+  /* ---- Mobile-only font adjust (hidden on desktop) ---- */
+  .lb-adjust-mobile {
+    display: none; /* shown only on mobile via media query */
+  }
+  .lightbox .lb-adjust {
     display: flex;
     align-items: center;
-    gap: 12px;
-    padding: 8px 10px 8px 20px;
-    background: rgba(255, 255, 255, 0.10);
-    backdrop-filter: blur(30px) saturate(180%);
-    -webkit-backdrop-filter: blur(30px) saturate(180%);
-    border: 1px solid rgba(255, 255, 255, 0.14);
-    border-radius: 999px;
-    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35),
-                inset 0 1px 0 rgba(255, 255, 255, 0.15);
-    color: rgba(255, 255, 255, 0.9);
+    gap: 10px;
+    padding: 8px 14px;
+    margin: 0 16px;
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.10);
+    border-radius: 12px;
+    color: rgba(255,255,255,0.9);
+    font-size: 12px;
+  }
+  .lightbox .lb-adjust .lb-slider { width: 140px; }
+  .lightbox .lb-adjust-label {
+    color: rgba(255,255,255,0.60);
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  .lightbox .lb-adjust-value {
+    color: #fff; font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    min-width: 40px; text-align: center;
+    font-size: 12px;
+  }
+
+  /* ---- Floating bottom bar ---- */
+  .lightbox > .lbbar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 10px 8px 18px;
+    margin: 12px 16px 16px;
+    background: rgba(255,255,255,0.08);
+    backdrop-filter: blur(24px) saturate(180%);
+    -webkit-backdrop-filter: blur(24px) saturate(180%);
+    border: 1px solid rgba(255,255,255,0.10);
+    border-radius: 14px;
+    color: rgba(255,255,255,0.9);
     font-size: 13px;
-    max-width: calc(100vw - 40px);
   }
   .lightbox .lbname {
-    min-width: 0;
-    max-width: 260px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    color: rgba(255, 255, 255, 0.72);
-    font-size: 12.5px;
-    font-weight: 500;
-    padding-right: 6px;
-    border-right: 1px solid rgba(255,255,255,0.14);
+    min-width: 0; max-width: 220px;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    color: rgba(255,255,255,0.60);
+    font-size: 12px; font-weight: 500;
+    padding-right: 8px;
+    border-right: 1px solid rgba(255,255,255,0.10);
   }
   .lightbox .lbnav {
-    display: flex;
-    gap: 4px;
-    align-items: center;
+    display: flex; gap: 4px; align-items: center;
   }
   .lightbox .lbbtn {
     background: transparent;
-    color: rgba(255, 255, 255, 0.85);
-    border: none;
-    border-radius: 999px;
-    padding: 8px 14px;
-    font-size: 12.5px;
-    font-weight: 600;
-    cursor: pointer;
-    font: inherit;
-    line-height: 1;
-    letter-spacing: -0.005em;
-    transition: background 0.15s, color 0.15s, opacity 0.15s;
+    color: rgba(255,255,255,0.80);
+    border: none; border-radius: 8px;
+    padding: 7px 12px;
+    font-size: 12px; font-weight: 600;
+    cursor: pointer; font: inherit;
+    line-height: 1; letter-spacing: -0.005em;
+    transition: background 0.15s, color 0.15s;
   }
   .lightbox .lbbtn:hover:not(:disabled) {
-    background: rgba(255, 255, 255, 0.14);
-    color: #fff;
+    background: rgba(255,255,255,0.12); color: #fff;
   }
-  .lightbox .lbbtn:disabled {
-    opacity: 0.3;
-    cursor: not-allowed;
-  }
+  .lightbox .lbbtn:disabled { opacity: 0.3; cursor: not-allowed; }
   .lightbox .lbbtn.primary {
-    background: rgba(255, 255, 255, 0.92);
-    color: #1A1F1A;
-    padding: 8px 16px;
-    margin-left: 4px;
+    background: rgba(255,255,255,0.88);
+    color: #1a1f1a;
+    padding: 7px 14px;
+    border-radius: 8px;
+    margin-left: 2px;
   }
-  .lightbox .lbbtn.primary:hover:not(:disabled) {
-    background: #fff;
-  }
+  .lightbox .lbbtn.primary:hover:not(:disabled) { background: #fff; }
   #lbCount {
-    min-width: 42px;
-    text-align: center;
+    min-width: 42px; text-align: center;
     font-variant-numeric: tabular-nums;
-    font-size: 12px;
-    color: rgba(255,255,255,0.6);
+    font-size: 11.5px;
+    color: rgba(255,255,255,0.50);
     font-weight: 500;
   }
 
-  /* Close button — floating top-right */
-  .lightbox .lbclose {
-    position: fixed;
-    top: 20px; right: 20px;
-    width: 40px; height: 40px;
-    background: rgba(255, 255, 255, 0.10);
-    backdrop-filter: blur(20px) saturate(180%);
-    -webkit-backdrop-filter: blur(20px) saturate(180%);
-    color: rgba(255, 255, 255, 0.9);
-    border-radius: 50%;
-    border: 1px solid rgba(255, 255, 255, 0.14);
-    font-size: 20px;
-    line-height: 1;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    box-shadow: 0 4px 16px rgba(0,0,0,0.25);
-    transition: background 0.15s, transform 0.1s;
-    z-index: 2;
-  }
-  .lightbox .lbclose:hover {
-    background: rgba(255, 255, 255, 0.2);
-    color: #fff;
-  }
-  .lightbox .lbclose:active { transform: scale(0.94); }
-
-  /* Stamped/Original toggle — segmented control style */
+  /* Stamped/Original toggle */
   .lightbox .lbtoggle {
     display: inline-flex;
-    background: rgba(255, 255, 255, 0.08);
-    border: 1px solid rgba(255, 255, 255, 0.10);
-    border-radius: 999px;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 8px;
     padding: 3px;
-    font-size: 11.5px;
-    font-weight: 600;
+    font-size: 11px; font-weight: 600;
   }
   .lightbox .lbtoggle button {
     background: transparent;
-    color: rgba(255, 255, 255, 0.65);
-    border: none;
-    padding: 5px 12px;
-    border-radius: 999px;
-    cursor: pointer;
-    font: inherit;
-    line-height: 1;
-    letter-spacing: -0.005em;
+    color: rgba(255,255,255,0.55);
+    border: none; padding: 5px 10px;
+    border-radius: 6px; cursor: pointer;
+    font: inherit; line-height: 1;
     transition: background 0.15s, color 0.15s;
   }
-  .lightbox .lbtoggle button:hover:not(.active) {
-    color: rgba(255,255,255,0.9);
-  }
+  .lightbox .lbtoggle button:hover:not(.active) { color: rgba(255,255,255,0.85); }
   .lightbox .lbtoggle button.active {
-    background: rgba(255, 255, 255, 0.92);
-    color: #1A1F1A;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+    background: rgba(255,255,255,0.88);
+    color: #1a1f1a;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.18);
   }
 
-  /* Desktop: when config-visible, leave config panel accessible next to lightbox */
+  /* ---- Desktop: show config panel ---- */
   @media (min-width: 881px) {
-    .lightbox.config-visible { left: 684px; /* 260px sidebar + 400px config + 24px gap */ }
+    .lb-adjust-mobile { display: none !important; }
   }
-  /* Mobile: sidebar is off-canvas (drawer). Lightbox becomes full-screen. */
+
+  /* ---- Mobile: full-screen, no config panel ---- */
   @media (max-width: 880px) {
-    .lightbox { left: 0; }
+    .lb-config { display: none; }
+    .lb-split { padding: 12px 12px 0; }
+    .lightbox img,
+    .lightbox canvas { max-height: calc(100vh - 170px); }
+    .lb-adjust-mobile { display: flex !important; }
   }
   @media (max-width: 640px) {
-    .lightbox { padding: 20px 12px 154px; }
-    .lightbox img { max-height: calc(100vh - 200px); border-radius: 10px; }
-    .lightbox .lb-adjust {
-      bottom: 70px;
-      gap: 8px;
-      padding: 7px 8px 7px 14px;
-      font-size: 11.5px;
+    .lb-split { padding: 10px 8px 0; }
+    .lightbox img,
+    .lightbox canvas { max-height: calc(100vh - 160px); border-radius: 8px; }
+    .lightbox > .lbbar {
+      margin: 8px 8px 10px;
+      padding: 6px 8px 6px 12px;
+      gap: 6px; font-size: 12px;
+      border-radius: 10px;
     }
-    .lightbox .lb-adjust-label { font-size: 11.5px; }
-    .lightbox .lb-slider { width: 110px; }
-    .lightbox .lb-apply-all { padding: 6px 10px; font-size: 11px; }
-    .lightbox .lbbar {
-      padding: 6px 8px 6px 14px;
-      gap: 8px;
-      font-size: 12px;
-    }
-    .lightbox .lbname {
-      max-width: 120px;
-      font-size: 11.5px;
-    }
-    .lightbox .lbbtn { padding: 6px 10px; font-size: 11.5px; }
-    .lightbox .lbbtn.primary { padding: 6px 12px; }
-    .lightbox .lbclose { top: 14px; right: 14px; width: 36px; height: 36px; }
+    .lightbox .lbname { max-width: 100px; font-size: 11px; }
+    .lightbox .lbbtn { padding: 6px 8px; font-size: 11px; }
+    .lightbox .lbbtn.primary { padding: 6px 10px; }
+    .lightbox > .lbclose { top: 10px; right: 10px; width: 34px; height: 34px; font-size: 18px; }
+    .lightbox .lb-adjust { margin: 0 8px; padding: 6px 10px; gap: 6px; }
+    .lightbox .lb-adjust .lb-slider { width: 100px; }
   }
 
   /* ===== Sidebar + Main Layout ===== */
@@ -2214,32 +2293,83 @@ Việt Nam</textarea>
   </div>
 
   <div class="lightbox" id="lightbox" role="dialog" aria-modal="true">
-    <div class="content">
-      <button class="lbclose" id="lbClose" title="Đóng (Esc)">×</button>
-      <img id="lbImg" alt="" />
-      <canvas id="lbCanvas" style="display:none"></canvas>
-      <div id="lbStatus" class="lbstatus" style="display:none"></div>
+    <button class="lbclose" id="lbClose" title="Đóng (Esc)">×</button>
 
-      <!-- Font-size adjust panel: live preview + apply-to-all -->
-      <div class="lb-adjust" id="lbAdjust">
-        <span class="lb-adjust-label" data-i18n="lbFontLabel">Cỡ chữ</span>
-        <input type="range" id="lbFontSize" min="1.5" max="5" step="0.1" value="2.6" class="lb-slider" />
-        <span class="lb-adjust-value" id="lbFontSizeVal">2.6%</span>
-        <button class="lb-apply-all" id="lbApplyAll" data-i18n="lbApplyAll">Áp dụng tất cả</button>
+    <div class="lb-split">
+      <!-- Config panel (desktop only) -->
+      <aside class="lb-config" id="lbConfig">
+        <div class="lbc-head">⚙ <span data-i18n="lbcTitle">Watermark</span></div>
+
+        <div class="lbc-group">
+          <label data-i18n="date">Ngày</label>
+          <input type="date" id="lbcDate" />
+        </div>
+        <div class="lbc-group">
+          <label data-i18n="dateFormat">Định dạng ngày</label>
+          <select id="lbcFormat">
+            <option value="D MMMM YYYY">8 July 2026</option>
+            <option value="D MMM YYYY">8 Jul 2026</option>
+            <option value="MMMM D, YYYY">July 8, 2026</option>
+            <option value="D thg M, YYYY">8 thg 7, 2026</option>
+            <option value="DD/MM/YYYY">08/07/2026</option>
+          </select>
+        </div>
+        <div class="lbc-group">
+          <label data-i18n="startTime">Giờ bắt đầu</label>
+          <input type="time" id="lbcTime" step="1" />
+        </div>
+        <div class="lbc-group">
+          <label data-i18n="addressLines">Địa chỉ</label>
+          <textarea id="lbcLines" rows="2" spellcheck="false"></textarea>
+        </div>
+        <div class="lbc-group">
+          <label data-i18n="position">Vị trí</label>
+          <div class="lbc-pos" id="lbcPos">
+            <button data-pos="tl">↖</button>
+            <button data-pos="tr" class="active">↗</button>
+            <button data-pos="bl">↙</button>
+            <button data-pos="br">↘</button>
+          </div>
+        </div>
+        <div class="lbc-group">
+          <div class="lbc-row-label"><label data-i18n="lbFontLabel">Cỡ chữ</label><span class="lbc-val" id="lbFontSizeVal">2.6%</span></div>
+          <input type="range" id="lbFontSize" min="1.5" max="5" step="0.1" value="2.6" class="lb-slider" />
+        </div>
+        <div class="lbc-group">
+          <label class="lbc-check">
+            <input type="checkbox" id="lbcShadow" checked />
+            <span data-i18n="shadow">Đổ bóng mờ</span>
+          </label>
+        </div>
+        <button class="lbc-apply" id="lbApplyAll" data-i18n="lbApplyAll">Áp dụng tất cả</button>
+      </aside>
+
+      <!-- Preview area -->
+      <div class="content">
+        <img id="lbImg" alt="" />
+        <canvas id="lbCanvas" style="display:none"></canvas>
+        <div id="lbStatus" class="lbstatus" style="display:none"></div>
       </div>
+    </div>
 
-      <div class="lbbar">
-        <div class="lbname" id="lbName"></div>
-        <div class="lbtoggle" id="lbToggle" style="display:none">
-          <button data-view="stamped" class="active" data-i18n="lbStamped">Đã gắn</button>
-          <button data-view="original" data-i18n="lbOriginal">Gốc</button>
-        </div>
-        <div class="lbnav">
-          <button class="lbbtn" id="lbPrev" data-i18n="lbPrev">‹ Trước</button>
-          <span id="lbCount" style="min-width:60px; text-align:center; font-variant-numeric: tabular-nums;"></span>
-          <button class="lbbtn" id="lbNext" data-i18n="lbNext">Sau ›</button>
-          <button class="lbbtn primary" id="lbDownload" style="display:none" data-i18n="lbDownload">Tải ảnh này</button>
-        </div>
+    <!-- Mobile-only font adjust (hidden on desktop where config panel exists) -->
+    <div class="lb-adjust lb-adjust-mobile" id="lbAdjust">
+      <span class="lb-adjust-label" data-i18n="lbFontLabel">Cỡ chữ</span>
+      <input type="range" id="lbFontSizeMobile" min="1.5" max="5" step="0.1" value="2.6" class="lb-slider" />
+      <span class="lb-adjust-value" id="lbFontSizeValMobile">2.6%</span>
+    </div>
+
+    <div class="lbbar">
+      <div class="lbname" id="lbName"></div>
+      <div class="lbtoggle" id="lbToggle" style="display:none">
+        <button data-view="stamped" class="active" data-i18n="lbStamped">Đã gắn</button>
+        <button data-view="original" data-i18n="lbOriginal">Gốc</button>
+      </div>
+      <div class="lbnav">
+        <button class="lbbtn" id="lbPrev" data-i18n="lbPrev">‹ Trước</button>
+        <span id="lbCount" style="min-width:60px; text-align:center; font-variant-numeric: tabular-nums;"></span>
+        <button class="lbbtn" id="lbNext" data-i18n="lbNext">Sau ›</button>
+        <button class="lbbtn primary" id="lbDownload" style="display:none" data-i18n="lbDownload">Tải ảnh này</button>
       </div>
     </div>
   </div>
@@ -3179,9 +3309,12 @@ Việt Nam</textarea>
   document.getElementById('posGrid').addEventListener('click', updatePreview);
   updatePreview();
 
-  // Live sync: when config changes while lightbox is open, update canvas preview
+  // Live sync: when MAIN config changes while lightbox is open,
+  // push values to lightbox config panel + update canvas preview
   function onConfigChangeWhileLightboxOpen() {
     if (!lightbox.classList.contains('open') || lbView === 'original') return;
+    // Sync main → lightbox config panel so they stay in sync
+    syncLbConfigFromMain();
     const fp = lbFontOverride !== null ? lbFontOverride : parseFloat(document.getElementById('fontSize').value);
     lbSliderPendingVal = fp;
     scheduleLbCanvasDraw();
@@ -3789,7 +3922,16 @@ Việt Nam</textarea>
   const lbNext = document.getElementById('lbNext');
   const lbFontSize = document.getElementById('lbFontSize');
   const lbFontSizeVal = document.getElementById('lbFontSizeVal');
+  const lbFontSizeMobile = document.getElementById('lbFontSizeMobile');
+  const lbFontSizeValMobile = document.getElementById('lbFontSizeValMobile');
   const lbApplyAll = document.getElementById('lbApplyAll');
+  // Lightbox config panel elements
+  const lbcDate = document.getElementById('lbcDate');
+  const lbcFormat = document.getElementById('lbcFormat');
+  const lbcTime = document.getElementById('lbcTime');
+  const lbcLines = document.getElementById('lbcLines');
+  const lbcPos = document.getElementById('lbcPos');
+  const lbcShadow = document.getElementById('lbcShadow');
   let lbIndex = -1;
   let lbView = 'stamped'; // 'stamped' | 'original'
   let lbPreviewUrl = null; // blob URL created just for on-the-fly preview
@@ -3889,22 +4031,54 @@ Việt Nam</textarea>
     lbImg.style.display = '';
   }
 
-  async function openLightbox(index) {
-    if (index < 0 || index >= state.files.length) return;
-    lbIndex = index;
-    // Sync slider to current main font size on every open
+  // Sync lightbox config panel fields FROM the main config panel
+  function syncLbConfigFromMain() {
+    lbcDate.value = document.getElementById('date').value;
+    lbcFormat.value = document.getElementById('dateFormat').value;
+    lbcTime.value = document.getElementById('baseTime').value;
+    lbcLines.value = document.getElementById('lines').value;
+    lbcShadow.checked = document.getElementById('shadow').checked;
+    // Position buttons
+    lbcPos.querySelectorAll('button').forEach(b =>
+      b.classList.toggle('active', b.dataset.pos === state.position));
+    // Font size slider
     const cur = parseFloat(document.getElementById('fontSize').value) || 2.6;
     lbFontSize.value = cur;
     lbFontSizeVal.textContent = cur.toFixed(1) + '%';
+    if (lbFontSizeMobile) {
+      lbFontSizeMobile.value = cur;
+      lbFontSizeValMobile.textContent = cur.toFixed(1) + '%';
+    }
+  }
+
+  // Push lightbox config panel values TO the main config panel (bidirectional)
+  function syncMainFromLbConfig() {
+    document.getElementById('date').value = lbcDate.value;
+    document.getElementById('dateFormat').value = lbcFormat.value;
+    document.getElementById('baseTime').value = lbcTime.value;
+    document.getElementById('lines').value = lbcLines.value;
+    document.getElementById('shadow').checked = lbcShadow.checked;
+    // Position — read from active button
+    const activePos = lbcPos.querySelector('button.active');
+    if (activePos) {
+      state.position = activePos.dataset.pos;
+      document.querySelectorAll('#posGrid button').forEach(b =>
+        b.classList.toggle('active', b.dataset.pos === state.position));
+    }
+  }
+
+  async function openLightbox(index) {
+    if (index < 0 || index >= state.files.length) return;
+    lbIndex = index;
+    syncLbConfigFromMain();
     lbFontOverride = null;
     lightbox.classList.add('open');
-    // On desktop, leave config panel visible for live editing
-    if (window.innerWidth > 880) lightbox.classList.add('config-visible');
     document.body.style.overflow = 'hidden';
     await renderLightbox();
     // Preload source image + font in background so first slider drag is instant
     const f = state.files[lbIndex];
     if (f) {
+      const cur = parseFloat(lbFontSize.value) || 2.6;
       loadLbSourceImage(f).catch(() => {});
       if (document.fonts && document.fonts.load) {
         const fontPx = Math.max(20, Math.round((f.width || 1500) * cur / 100));
@@ -3914,12 +4088,11 @@ Việt Nam</textarea>
     }
   }
   function closeLightbox() {
-    lightbox.classList.remove('open', 'config-visible');
+    lightbox.classList.remove('open');
     document.body.style.overflow = '';
     releaseLbPreview();
     lbImg.src = '';
     lbFontOverride = null;
-    // Drop source cache so we don't hold on to a decoded bitmap after close
     lbSourceImg = null;
     lbSourceFileId = null;
     showLbImg();
@@ -4023,27 +4196,57 @@ Việt Nam</textarea>
       }
     });
   }
-  lbFontSize.addEventListener('input', () => {
-    const v = parseFloat(lbFontSize.value);
+  // Shared handler: when either font slider changes, sync both + live preview
+  function onLbFontSliderInput(sourceSlider) {
+    const v = parseFloat(sourceSlider.value);
     lbFontSizeVal.textContent = v.toFixed(1) + '%';
+    if (lbFontSizeMobile) lbFontSizeValMobile.textContent = v.toFixed(1) + '%';
+    // Keep both sliders in sync
+    if (sourceSlider !== lbFontSize) lbFontSize.value = v;
+    if (lbFontSizeMobile && sourceSlider !== lbFontSizeMobile) lbFontSizeMobile.value = v;
     lbFontOverride = v;
     lbSliderPendingVal = v;
     scheduleLbCanvasDraw();
+  }
+  lbFontSize.addEventListener('input', () => onLbFontSliderInput(lbFontSize));
+  if (lbFontSizeMobile) lbFontSizeMobile.addEventListener('input', () => onLbFontSliderInput(lbFontSizeMobile));
+
+  // Lightbox config panel: live preview on every input change
+  function onLbcChange() {
+    if (!lightbox.classList.contains('open') || lbView === 'original') return;
+    // Sync lightbox config → main config so drawLbCanvas reads correct values
+    syncMainFromLbConfig();
+    const fp = lbFontOverride !== null ? lbFontOverride : parseFloat(lbFontSize.value);
+    lbSliderPendingVal = fp;
+    scheduleLbCanvasDraw();
+  }
+  [lbcDate, lbcFormat, lbcTime, lbcLines, lbcShadow].forEach(el => {
+    el.addEventListener('input', onLbcChange);
+    el.addEventListener('change', onLbcChange);
+  });
+  // Position buttons inside lightbox config
+  lbcPos.addEventListener('click', e => {
+    const b = e.target.closest('button[data-pos]');
+    if (!b) return;
+    lbcPos.querySelectorAll('button').forEach(x => x.classList.toggle('active', x === b));
+    state.position = b.dataset.pos;
+    // Sync main panel position grid
+    document.querySelectorAll('#posGrid button').forEach(x =>
+      x.classList.toggle('active', x.dataset.pos === state.position));
+    onLbcChange();
   });
 
   // Apply the override to all photos: sync main setting + re-stamp done ones
   lbApplyAll.addEventListener('click', async () => {
-    if (lbFontOverride === null) {
-      // Nothing changed — silently sync anyway
-      return;
-    }
-    const newSize = lbFontOverride;
+    // Always sync config panel to main panel first
+    syncMainFromLbConfig();
+
+    const newSize = lbFontOverride !== null ? lbFontOverride : parseFloat(lbFontSize.value);
     const mainInput = document.getElementById('fontSize');
     mainInput.value = newSize;
-    // Trigger UI updates (label + preview line) via existing listeners
     mainInput.dispatchEvent(new Event('input', { bubbles: true }));
 
-    // Any already-processed photo needs to be re-stamped with the new size
+    // Any already-processed photo needs to be re-stamped with new settings
     const doneIndexes = [];
     state.files.forEach((f, i) => {
       if (f.status === 'done') {
@@ -4056,18 +4259,14 @@ Việt Nam</textarea>
     document.getElementById('progressBar').style.width = '0%';
     document.getElementById('statDone').textContent = '0';
 
-    // Clear override — from now on the main setting is the source of truth
     lbFontOverride = null;
 
     if (!doneIndexes.length) {
       renderFiles();
-      // Re-render lightbox so it picks up the (now non-override) new size
       await renderLightbox();
       return;
     }
 
-    // Re-stamp all previously-done photos in the background so user doesn't
-    // have to click "Xử lý tất cả" again
     lbApplyAll.classList.add('busy');
     const originalText = lbApplyAll.textContent;
     lbApplyAll.textContent = 'Đang áp dụng…';
@@ -4100,19 +4299,16 @@ Việt Nam</textarea>
       done++;
       bar.style.width = (done / doneIndexes.length * 100).toFixed(1) + '%';
       document.getElementById('statDone').textContent = state.files.filter(x => x.status === 'done').length;
-      // Refresh lightbox mid-batch when the currently-viewed one finishes
       if (i === lbIndex && lightbox.classList.contains('open')) {
         await renderLightbox();
       }
     }
     renderFiles();
-    // Show download button if all done
     if (state.files.every(f => f.status === 'done' || f.status === 'error')) {
       showDownloadBtns(true);
     }
     lbApplyAll.classList.remove('busy');
     lbApplyAll.textContent = originalText;
-    // Final re-render of lightbox with the new stamped version
     if (lightbox.classList.contains('open')) await renderLightbox();
   });
 
