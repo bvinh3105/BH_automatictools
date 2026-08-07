@@ -725,6 +725,49 @@
   .file-card .rm:active { transform: scale(0.9);
   }
   .file-card:hover .rm { display: flex; }
+  /* Per-card download button — only visible on done cards */
+  .file-card .dl {
+    position: absolute;
+    top: 10px; left: 42px;
+    width: 26px; height: 26px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.14);
+    backdrop-filter: blur(14px) saturate(160%);
+    -webkit-backdrop-filter: blur(14px) saturate(160%);
+    border: 1px solid rgba(255,255,255,0.18);
+    color: #fff;
+    padding: 0;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    line-height: 1;
+    cursor: pointer;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.35);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    transition: background 0.15s, transform 0.1s;
+  }
+  .file-card .dl:hover { background: rgba(100,200,100,0.4); }
+  .file-card .dl:active { transform: scale(0.9); }
+  .file-card.done:hover .dl { display: flex; }
+  /* Editable name input on card */
+  .file-card .name-input {
+    position: absolute;
+    left: 10px; right: 10px; bottom: 10px;
+    background: rgba(0,0,0,0.6);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border: 1px solid rgba(255,255,255,0.3);
+    color: #fff;
+    padding: 6px 10px;
+    font-size: 11px;
+    line-height: 1.3;
+    border-radius: 999px;
+    outline: none;
+    font-family: inherit;
+    z-index: 3;
+  }
+  .file-card .name-input:focus { border-color: var(--accent); }
   .file-card.done { outline: 2px solid var(--success); outline-offset: -2px; }
   .file-card.processing::after {
     content: '';
@@ -1553,6 +1596,10 @@
     box-shadow: 0 1px 3px rgba(0,0,0,0.2);
   }
 
+  /* Desktop: when config-visible, leave config panel accessible next to lightbox */
+  @media (min-width: 881px) {
+    .lightbox.config-visible { left: 684px; /* 260px sidebar + 400px config + 24px gap */ }
+  }
   /* Mobile: sidebar is off-canvas (drawer). Lightbox becomes full-screen. */
   @media (max-width: 880px) {
     .lightbox { left: 0; }
@@ -1821,40 +1868,37 @@
     z-index: 45;
   }
 
-  /* ===== Mascot cat — pixel sprite from cats.png ===== */
+  /* ===== Mascot cat — pixel sprite, walks freely along bottom ===== */
   .mascot {
     position: fixed;
-    bottom: 100px;   /* clearance above sticky actions-bar */
-    right: 28px;
-    width: 128px;
-    height: 128px;
-    background-image: url("cats.png?v=2");
+    bottom: 16px;
+    left: 200px;
+    width: 96px;   /* 32 * 3x scale */
+    height: 96px;
     background-repeat: no-repeat;
-    /* Full sheet scaled 4x: 294*4 = 1176 wide, 1956*4 = 7824 tall */
-    background-size: 1176px 7824px;
+    background-size: auto 96px;
     background-position: 0 0;
     image-rendering: pixelated;
     image-rendering: crisp-edges;
-    z-index: 55;                       /* above sidebar (50) + actions-bar */
-    cursor: pointer;
+    z-index: 55;
+    cursor: grab;
     user-select: none;
     -webkit-user-select: none;
-    filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.22));
-    transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    filter: drop-shadow(0 3px 8px rgba(0, 0, 0, 0.22));
+    transition: filter 0.15s;
+    touch-action: none;
   }
-  .mascot:hover {
-    transform: translateY(-2px) scale(1.03);
+  .mascot:active, .mascot.dragging {
+    cursor: grabbing;
+    filter: drop-shadow(0 6px 16px rgba(0, 0, 0, 0.35));
   }
   .mascot.flip {
     transform: scaleX(-1);
   }
-  .mascot.flip:hover {
-    transform: scaleX(-1) translateY(-2px) scale(1.03);
-  }
   /* Speech bubble that pops up when the cat is spoken-to */
   .mascot-bubble {
     position: fixed;
-    z-index: 41;
+    z-index: 56;
     padding: 8px 14px;
     background: var(--glass-strong);
     backdrop-filter: blur(20px) saturate(180%);
@@ -1878,9 +1922,8 @@
     opacity: 1;
     transform: translateY(0) scale(1);
   }
-  /* Hide mascot on very small screens where it steals precious space */
   @media (max-width: 640px) {
-    .mascot { width: 96px; height: 96px; bottom: 96px; right: 12px; background-size: 882px 5868px; }
+    .mascot { width: 72px; height: 72px; background-size: auto 72px; bottom: 12px; }
   }
 
   /* Mobile-only floating quick settings (top-right corner) —
@@ -2211,6 +2254,7 @@ Việt Nam</textarea>
       <button class="btn-ghost" id="btnReset" data-i18n="btnReset">Reset kết quả</button>
       <button class="btn-primary" id="btnProcess" data-i18n="btnProcess">Xử lý tất cả</button>
       <button class="btn-primary" id="btnDownload" style="display:none" data-i18n="btnDownload">Tải ZIP</button>
+      <button class="btn-ghost" id="btnDownloadImages" style="display:none" data-i18n="btnDownloadImages">Tải ảnh rời</button>
     </div>
   </div>
 </div>
@@ -2356,6 +2400,7 @@ Việt Nam</textarea>
       btnReset: 'Reset kết quả',
       btnProcess: 'Xử lý tất cả',
       btnDownload: 'Tải ZIP',
+      btnDownloadImages: 'Tải ảnh rời',
       // Empty tabs
       comingSoon: 'Sắp ra mắt',
       resizeDesc: 'Resize ảnh hàng loạt theo kích thước tuỳ chỉnh, giữ tỉ lệ hoặc crop thông minh. Hỗ trợ preset cho các nền tảng phổ biến.',
@@ -2407,6 +2452,7 @@ Việt Nam</textarea>
       btnReset: 'Reset results',
       btnProcess: 'Process all',
       btnDownload: 'Download ZIP',
+      btnDownloadImages: 'Download images',
       comingSoon: 'Coming Soon',
       resizeDesc: 'Batch resize images with custom dimensions, maintain aspect ratio or smart crop. Preset support for popular platforms.',
       compressDesc: 'Compress images without noticeable quality loss. Visual before/after comparison, fully processed in the browser.',
@@ -3072,10 +3118,15 @@ Việt Nam</textarea>
 
   // ---------- State ----------
   const state = {
-    files: [],   // {id, file, url, ts, processedBlob, status:'idle'|'processing'|'done'|'error'}
+    files: [],   // {id, file, url, ts, processedBlob, status:'idle'|'processing'|'done'|'error', name, customName?}
     position: 'tr',
     processing: false,
   };
+  function showDownloadBtns(show) {
+    const d = show ? '' : 'none';
+    document.getElementById('btnDownload').style.display = d;
+    document.getElementById('btnDownloadImages').style.display = d;
+  }
 
   // Initialize date to today
   const today = new Date();
@@ -3127,6 +3178,19 @@ Việt Nam</textarea>
   // Position selector cũng phải trigger preview
   document.getElementById('posGrid').addEventListener('click', updatePreview);
   updatePreview();
+
+  // Live sync: when config changes while lightbox is open, update canvas preview
+  function onConfigChangeWhileLightboxOpen() {
+    if (!lightbox.classList.contains('open') || lbView === 'original') return;
+    const fp = lbFontOverride !== null ? lbFontOverride : parseFloat(document.getElementById('fontSize').value);
+    lbSliderPendingVal = fp;
+    scheduleLbCanvasDraw();
+  }
+  ['date','dateFormat','baseTime','lines','fontSize','shadow'].forEach(id => {
+    document.getElementById(id).addEventListener('input', onConfigChangeWhileLightboxOpen);
+    document.getElementById(id).addEventListener('change', onConfigChangeWhileLightboxOpen);
+  });
+  document.getElementById('posGrid').addEventListener('click', onConfigChangeWhileLightboxOpen);
 
   // ---------- File input & drop ----------
   const drop = document.getElementById('drop');
@@ -3247,7 +3311,7 @@ Việt Nam</textarea>
       // Clear inputs so re-selecting same files works
       fileInput.value = '';
       folderInput.value = '';
-      document.getElementById('btnDownload').style.display = 'none';
+      showDownloadBtns(false);
     }
   }
   function key(f) { return `${f.name}|${f.size}|${f.lastModified}`; }
@@ -3314,7 +3378,7 @@ Việt Nam</textarea>
     state.files.forEach(f => URL.revokeObjectURL(f.url));
     state.files = [];
     renderFiles();
-    document.getElementById('btnDownload').style.display = 'none';
+    showDownloadBtns(false);
   });
 
   function renderFiles() {
@@ -3340,15 +3404,26 @@ Việt Nam</textarea>
     state.files.forEach((f, i) => {
       const card = document.createElement('div');
       card.className = `file-card ${f.status === 'done' ? 'done' : ''} ${f.status === 'processing' ? 'processing' : ''}`;
+      const displayName = f.customName || f.name;
       card.innerHTML = `
         <img src="${f.url}" alt="" loading="lazy" />
         <button class="rm" title="Bỏ ảnh này" aria-label="Bỏ ảnh này">×</button>
+        <button class="dl" title="Tải ảnh này" aria-label="Tải ảnh này">⬇</button>
         <div class="ts">${secToTime(times[i])}</div>
-        <div class="name">${escapeHtml(f.name)}</div>
+        <div class="name" data-idx="${i}">${escapeHtml(displayName)}</div>
       `;
       card.querySelector('.rm').addEventListener('click', e => {
         e.stopPropagation();
         removeFile(f.id);
+      });
+      card.querySelector('.dl').addEventListener('click', e => {
+        e.stopPropagation();
+        if (f.processedBlob) triggerDownload(f.processedBlob, outputName(f));
+      });
+      // Click on name → inline rename
+      card.querySelector('.name').addEventListener('dblclick', e => {
+        e.stopPropagation();
+        startRename(card, f, i);
       });
       card.addEventListener('click', () => openLightbox(i));
       grid.appendChild(card);
@@ -3425,7 +3500,7 @@ Việt Nam</textarea>
   document.getElementById('btnReset').addEventListener('click', () => {
     state.files.forEach(f => { f.processedBlob = null; f.status = 'idle'; });
     renderFiles();
-    document.getElementById('btnDownload').style.display = 'none';
+    showDownloadBtns(false);
     document.getElementById('progressBar').style.width = '0%';
   });
 
@@ -3433,9 +3508,8 @@ Việt Nam</textarea>
     if (state.processing || !state.files.length) return;
     state.processing = true;
     const btnProcess = document.getElementById('btnProcess');
-    const btnDownload = document.getElementById('btnDownload');
     btnProcess.disabled = true;
-    btnDownload.style.display = 'none';
+    showDownloadBtns(false);
 
     const dateStr = formatDate(document.getElementById('date').value, document.getElementById('dateFormat').value);
     const baseSec = timeToSec(document.getElementById('baseTime').value || '00:00:00');
@@ -3472,7 +3546,7 @@ Việt Nam</textarea>
     state.processing = false;
     btnProcess.disabled = false;
     const anyDone = state.files.some(f => f.status === 'done');
-    btnDownload.style.display = anyDone ? '' : 'none';
+    showDownloadBtns(anyDone);
   }
 
   // ---------- Minimal STORE-only ZIP builder ----------
@@ -3575,7 +3649,7 @@ Việt Nam</textarea>
     // If only 1 file, download directly
     if (done.length === 1) {
       const f = done[0];
-      triggerDownload(f.processedBlob, outputName(f.name));
+      triggerDownload(f.processedBlob, outputName(f));
       return;
     }
     // Otherwise build ZIP
@@ -3587,7 +3661,7 @@ Việt Nam</textarea>
       // Dedupe names in case of collisions
       const usedNames = new Set();
       const entries = done.map(f => {
-        let name = outputName(f.name);
+        let name = outputName(f);
         let i = 1;
         while (usedNames.has(name)) {
           const dot = name.lastIndexOf('.');
@@ -3610,9 +3684,10 @@ Việt Nam</textarea>
     }
   });
 
-  function outputName(originalName) {
-    // Strip folder path, replace with just the file basename
-    const base = originalName.split('/').pop();
+  function outputName(fileObj) {
+    // Use custom name if set, otherwise original name
+    const raw = (typeof fileObj === 'string') ? fileObj : (fileObj.customName || fileObj.name);
+    const base = raw.split('/').pop();
     // Force .jpg extension since we always output JPEG
     const dot = base.lastIndexOf('.');
     return (dot > 0 ? base.slice(0, dot) : base) + '.jpg';
@@ -3624,6 +3699,81 @@ Việt Nam</textarea>
     document.body.appendChild(a); a.click();
     setTimeout(() => { URL.revokeObjectURL(url); a.remove(); }, 100);
   }
+
+  // ---------- Rename files inline ----------
+  function startRename(card, fileObj, idx) {
+    // Don't open duplicate inputs
+    if (card.querySelector('.name-input')) return;
+    const nameEl = card.querySelector('.name');
+    nameEl.style.display = 'none';
+
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.className = 'name-input';
+    // Show name without extension
+    const raw = fileObj.customName || fileObj.name;
+    const dot = raw.lastIndexOf('.');
+    input.value = dot > 0 ? raw.slice(0, dot) : raw;
+    card.appendChild(input);
+    input.focus();
+    input.select();
+
+    function commit() {
+      const val = input.value.trim();
+      if (val) {
+        const ext = dot > 0 ? raw.slice(dot) : '';
+        if (idx === 0) {
+          // First file → auto-number all files
+          state.files.forEach((f, i) => {
+            f.customName = val + '_' + (i + 1) + ext;
+          });
+        } else {
+          fileObj.customName = val + ext;
+        }
+      }
+      input.remove();
+      nameEl.style.display = '';
+      renderFiles();
+    }
+    function cancel() {
+      input.remove();
+      nameEl.style.display = '';
+    }
+    input.addEventListener('keydown', e => {
+      if (e.key === 'Enter') { e.preventDefault(); commit(); }
+      if (e.key === 'Escape') { e.preventDefault(); cancel(); }
+    });
+    input.addEventListener('blur', commit);
+    input.addEventListener('click', e => e.stopPropagation());
+  }
+
+  // ---------- Download all as individual images ----------
+  document.getElementById('btnDownloadImages').addEventListener('click', async () => {
+    const done = state.files.filter(f => f.status === 'done' && f.processedBlob);
+    if (!done.length) return;
+    const btn = document.getElementById('btnDownloadImages');
+    btn.disabled = true;
+    const originalText = btn.textContent;
+    btn.textContent = 'Đang tải…';
+    // Dedupe names
+    const usedNames = new Set();
+    for (let i = 0; i < done.length; i++) {
+      let name = outputName(done[i]);
+      let c = 1;
+      while (usedNames.has(name)) {
+        const d = name.lastIndexOf('.');
+        const base = d >= 0 ? name.slice(0, d) : name;
+        const ext = d >= 0 ? name.slice(d) : '';
+        name = `${base}_${c++}${ext}`;
+      }
+      usedNames.add(name);
+      triggerDownload(done[i].processedBlob, name);
+      // Small delay between downloads so browser doesn't block them
+      if (i < done.length - 1) await new Promise(r => setTimeout(r, 250));
+    }
+    btn.textContent = originalText;
+    btn.disabled = false;
+  });
 
   // ---------- Lightbox preview ----------
   const lightbox = document.getElementById('lightbox');
@@ -3748,6 +3898,8 @@ Việt Nam</textarea>
     lbFontSizeVal.textContent = cur.toFixed(1) + '%';
     lbFontOverride = null;
     lightbox.classList.add('open');
+    // On desktop, leave config panel visible for live editing
+    if (window.innerWidth > 880) lightbox.classList.add('config-visible');
     document.body.style.overflow = 'hidden';
     await renderLightbox();
     // Preload source image + font in background so first slider drag is instant
@@ -3762,7 +3914,7 @@ Việt Nam</textarea>
     }
   }
   function closeLightbox() {
-    lightbox.classList.remove('open');
+    lightbox.classList.remove('open', 'config-visible');
     document.body.style.overflow = '';
     releaseLbPreview();
     lbImg.src = '';
@@ -3900,7 +4052,7 @@ Việt Nam</textarea>
         doneIndexes.push(i);
       }
     });
-    document.getElementById('btnDownload').style.display = 'none';
+    showDownloadBtns(false);
     document.getElementById('progressBar').style.width = '0%';
     document.getElementById('statDone').textContent = '0';
 
@@ -3956,7 +4108,7 @@ Việt Nam</textarea>
     renderFiles();
     // Show download button if all done
     if (state.files.every(f => f.status === 'done' || f.status === 'error')) {
-      document.getElementById('btnDownload').style.display = '';
+      showDownloadBtns(true);
     }
     lbApplyAll.classList.remove('busy');
     lbApplyAll.textContent = originalText;
@@ -3976,7 +4128,7 @@ Việt Nam</textarea>
   });
   lbDownload.addEventListener('click', () => {
     const f = state.files[lbIndex];
-    if (f && f.processedBlob) triggerDownload(f.processedBlob, outputName(f.name));
+    if (f && f.processedBlob) triggerDownload(f.processedBlob, outputName(f));
   });
   document.addEventListener('keydown', e => {
     if (!lightbox.classList.contains('open')) return;
@@ -4079,53 +4231,74 @@ Việt Nam</textarea>
   }
 
   // ============================================================
-  // Mascot — pixel cat that idles / walks / reacts to user
+  // Mascot — pixel cat: free-walking, draggable, 3x scale
+  // Uses individual sprite strip PNGs from images_sheets/sprite_sheet/
   // ============================================================
   (function initMascot() {
     const mascot = document.getElementById('mascot');
     const bubble = document.getElementById('mascotBubble');
     if (!mascot) return;
 
-    // Sprite geometry — measured from cats.png:
-    //   sheet has 6-px top border, then 10 cat sections of 192px content
-    //   each separated by a 3-px blue bar → cat_i starts at y = 6 + i*195
-    const CAT_INDEX = 1;                       // 0-9 — orange & white tabby
-    const Y_BASE = 6 + CAT_INDEX * 195;        // exact top of this cat's content
-    const SCALE = 4;                           // 32*SCALE = 128 CSS px per frame
+    const SCALE = 3;
+    const FRAME_PX = 32 * SCALE; // 96px
 
-    // Frame table — each animation is a list of {x, y} pairs in the *cat's*
-    // local coord system (y=0 is the top of THIS cat's section)
+    // Each PNG is a single-row horizontal strip of 32×32 frames
+    const BASE = 'images_sheets/sprite_sheet/';
     const ANIMS = {
-      idle:    { frames: [[32,   0]], fps: 1 },
-      blink:   { frames: [[32,  32]], fps: 1 },
-      stand:   { frames: [[96,   0]], fps: 1 },
-      run:     { frames: [[160,  0], [192,  0], [224,  0], [256,  0]], fps: 12 },
-      jump:    { frames: [[96,  32], [128, 32], [160, 32]], fps: 8, once: true },
-      fall:    { frames: [[224, 32], [256, 32]], fps: 8 },
-      walk:    { frames: [[32,  64], [64,  64], [96,  64], [128, 64], [160, 64], [192, 64], [224, 64], [256, 64]], fps: 10 },
-      eat:     { frames: [[32,  96], [64,  96], [96,  96]], fps: 6 },
-      inspect: { frames: [[160, 96], [192, 96], [224, 96], [256, 96]], fps: 6 },
-      swim:    { frames: [[32, 128], [64, 128], [96, 128], [128,128], [160,128], [192,128]], fps: 8 },
-      sound:   { frames: [[32, 160], [64, 160], [96, 160], [128,160]], fps: 6, once: true },
-      sleep:   { frames: [[192,160]], fps: 1 },
+      idle:    { src: BASE+'cat_1_idle.png',    frames: 1,  fps: 1 },
+      blink:   { src: BASE+'cat_1_blink.png',   frames: 1,  fps: 1 },
+      stand:   { src: BASE+'cat_1_stand.png',   frames: 1,  fps: 1 },
+      walk:    { src: BASE+'cat_1_walk.png',    frames: 8,  fps: 10 },
+      run:     { src: BASE+'cat_1_run.png',     frames: 4,  fps: 12 },
+      jump:    { src: BASE+'cat_1_jump.png',    frames: 3,  fps: 8,  once: true },
+      fall:    { src: BASE+'cat_1_fall.png',    frames: 2,  fps: 8 },
+      eat:     { src: BASE+'cat_1_eat.png',     frames: 3,  fps: 6 },
+      inspect: { src: BASE+'cat_1_inspect.png', frames: 4,  fps: 6 },
+      swim:    { src: BASE+'cat_1_swim.png',    frames: 6,  fps: 8 },
+      sound:   { src: BASE+'cat_1_sound.png',   frames: 4,  fps: 6,  once: true },
+      sleep:   { src: BASE+'cat_1_sleep.png',   frames: 1,  fps: 1 },
     };
+
+    // Preload all sprite images so there's no flicker on first use
+    Object.values(ANIMS).forEach(a => { const img = new Image(); img.src = a.src; });
 
     let currentAnim = 'idle';
     let frameIdx = 0;
     let animTimer = null;
-    let currentOnce = null;      // { onDone } for one-shot animations
-    let facingLeft = false;      // sprite faces right by default; flip for left-moving
+    let currentOnce = null;
+    let facingLeft = false;
 
-    function bgPosForFrame(x, y) {
-      const abs_x = x;
-      const abs_y = y + Y_BASE;
-      return `-${abs_x * SCALE}px -${abs_y * SCALE}px`;
+    // Position — cat walks freely along the bottom edge
+    let posX = 200 + Math.random() * Math.max(0, window.innerWidth - 500);
+    let targetX = posX;
+    let isWalking = false;
+    let walkRAF = null;
+    const WALK_SPEED = 1.2; // px per rAF frame (~72px/s)
+
+    // Drag state
+    let isDragging = false;
+    let didDrag = false;        // true if pointer moved enough to count as drag
+    let isFalling = false;      // gravity fall after drag release
+    let dragOffsetX = 0;
+    let pointerDownX = 0;
+    let pointerDownY = 0;
+
+    // Mouse tracking — for chase behavior
+    let mouseX = window.innerWidth / 2;
+    let mouseY = window.innerHeight / 2;
+    window.addEventListener('mousemove', e => { mouseX = e.clientX; mouseY = e.clientY; }, { passive: true });
+
+    mascot.style.left = posX + 'px';
+
+    function setAnimSrc(name) {
+      const a = ANIMS[name];
+      if (!a) return;
+      mascot.style.backgroundImage = 'url("' + a.src + '")';
+      mascot.style.backgroundSize = 'auto ' + FRAME_PX + 'px';
     }
 
     function paint() {
-      const anim = ANIMS[currentAnim] || ANIMS.idle;
-      const [fx, fy] = anim.frames[frameIdx % anim.frames.length];
-      mascot.style.backgroundPosition = bgPosForFrame(fx, fy);
+      mascot.style.backgroundPosition = '-' + (frameIdx * FRAME_PX) + 'px 0';
     }
 
     function scheduleTick() {
@@ -4133,9 +4306,8 @@ Việt Nam</textarea>
       const anim = ANIMS[currentAnim] || ANIMS.idle;
       animTimer = setTimeout(() => {
         frameIdx++;
-        if (frameIdx >= anim.frames.length) {
+        if (frameIdx >= anim.frames) {
           if (anim.once) {
-            // Return to previous idle-ish state
             const cb = currentOnce?.onDone;
             currentOnce = null;
             play('idle');
@@ -4152,6 +4324,7 @@ Việt Nam</textarea>
     function play(name, opts) {
       const anim = ANIMS[name];
       if (!anim) return;
+      if (currentAnim !== name) setAnimSrc(name);
       currentAnim = name;
       frameIdx = 0;
       currentOnce = anim.once ? { onDone: opts?.onDone } : null;
@@ -4159,24 +4332,52 @@ Việt Nam</textarea>
       scheduleTick();
     }
 
-    function setFacing(left) {
-      facingLeft = left;
-      mascot.classList.toggle('flip', left);
-    }
-
-    // Speech bubble helper — positions itself just above the cat
+    // Speech bubble
     let bubbleTimer = null;
     function say(text, ms = 2200) {
       bubble.textContent = text;
-      const r = mascot.getBoundingClientRect();
-      bubble.style.left = (r.left - 6) + 'px';
-      bubble.style.top = (r.top - 42) + 'px';
+      posBubble();
       bubble.classList.add('show');
       clearTimeout(bubbleTimer);
       bubbleTimer = setTimeout(() => bubble.classList.remove('show'), ms);
     }
+    function posBubble() {
+      const r = mascot.getBoundingClientRect();
+      bubble.style.left = (facingLeft ? r.right + 6 : r.left - 6) + 'px';
+      bubble.style.top = (r.top - 42) + 'px';
+    }
 
-    // Idle activity — random Blink and occasional Walk-in-place across screen
+    // Walk to a random X position along the bottom
+    function walkTo(x) {
+      const minX = 20, maxX = window.innerWidth - FRAME_PX - 20;
+      targetX = Math.max(minX, Math.min(maxX, x));
+      if (Math.abs(targetX - posX) < 5) return;
+
+      facingLeft = targetX < posX;
+      mascot.classList.toggle('flip', facingLeft);
+      isWalking = true;
+      play('walk');
+
+      if (walkRAF) cancelAnimationFrame(walkRAF);
+      function step() {
+        if (!isWalking || isDragging) return;
+        const dx = targetX - posX;
+        if (Math.abs(dx) < 2) {
+          posX = targetX;
+          mascot.style.left = posX + 'px';
+          isWalking = false;
+          play('idle');
+          scheduleIdleActivity();
+          return;
+        }
+        posX += (dx > 0 ? 1 : -1) * WALK_SPEED;
+        mascot.style.left = posX + 'px';
+        walkRAF = requestAnimationFrame(step);
+      }
+      walkRAF = requestAnimationFrame(step);
+    }
+
+    // Idle activity
     let idleTimer = null;
     let userIdleTimer = null;
     let isSleeping = false;
@@ -4185,83 +4386,189 @@ Việt Nam</textarea>
       clearTimeout(idleTimer);
       const delay = 3500 + Math.random() * 6000;
       idleTimer = setTimeout(() => {
-        if (isSleeping || currentAnim === 'sound' || currentAnim === 'jump') {
+        if (isSleeping || isDragging || currentAnim === 'sound' || currentAnim === 'jump') {
           scheduleIdleActivity();
           return;
         }
         const r = Math.random();
-        if (r < 0.6) {
-          // quick blink
+        if (r < 0.25) {
           play('blink');
-          setTimeout(() => { if (!isSleeping) play('idle'); scheduleIdleActivity(); }, 400);
+          setTimeout(() => { if (!isSleeping && !isDragging) play('idle'); scheduleIdleActivity(); }, 400);
+        } else if (r < 0.35) {
+          play('inspect');
+          setTimeout(() => { if (!isSleeping && !isDragging) play('idle'); scheduleIdleActivity(); }, 2400);
+        } else if (r < 0.55) {
+          // Chase mouse cursor!
+          const target = Math.max(20, Math.min(window.innerWidth - FRAME_PX - 20, mouseX - FRAME_PX / 2));
+          walkTo(target);
         } else {
-          // brief walk-in-place
-          play('walk');
-          setTimeout(() => { if (!isSleeping) play('idle'); scheduleIdleActivity(); }, 1600);
+          // walk to a random spot
+          const minX = 60, maxX = window.innerWidth - FRAME_PX - 60;
+          walkTo(minX + Math.random() * (maxX - minX));
         }
       }, delay);
     }
 
-    // Track user activity to trigger sleep
+    // Sleep after 45s user idle
     function resetUserIdle() {
       clearTimeout(userIdleTimer);
       if (isSleeping) {
         isSleeping = false;
+        isWalking = false;
         play('idle');
         say('meo~ ✨', 1500);
       }
       userIdleTimer = setTimeout(() => {
         isSleeping = true;
+        isWalking = false;
+        if (walkRAF) cancelAnimationFrame(walkRAF);
         play('sleep');
-      }, 45_000); // 45s of no interaction → sleep
+      }, 45_000);
     }
     ['mousemove', 'keydown', 'click', 'wheel', 'touchstart'].forEach(ev => {
       window.addEventListener(ev, resetUserIdle, { passive: true });
     });
 
-    // Reactions
+    // Drag — pointer events for unified mouse + touch
+    const DRAG_THRESHOLD = 6;
+    mascot.addEventListener('pointerdown', e => {
+      e.preventDefault();
+      pointerDownX = e.clientX;
+      pointerDownY = e.clientY;
+      const r = mascot.getBoundingClientRect();
+      dragOffsetX = e.clientX - r.left;
+      isDragging = true;
+      didDrag = false;
+      isFalling = false; // cancel any in-progress fall
+      isWalking = false;
+      if (walkRAF) cancelAnimationFrame(walkRAF);
+      clearTimeout(idleTimer);
+      mascot.setPointerCapture(e.pointerId);
+    });
+
+    window.addEventListener('pointermove', e => {
+      if (!isDragging) return;
+      const dx = e.clientX - pointerDownX;
+      const dy = e.clientY - pointerDownY;
+      if (!didDrag && Math.abs(dx) + Math.abs(dy) < DRAG_THRESHOLD) return;
+
+      if (!didDrag) {
+        didDrag = true;
+        mascot.classList.add('dragging');
+        play('fall');
+      }
+      const newX = e.clientX - dragOffsetX;
+      posX = newX;
+      mascot.style.left = newX + 'px';
+      // Allow vertical drag too
+      mascot.style.bottom = 'auto';
+      mascot.style.top = (e.clientY - (FRAME_PX / 2)) + 'px';
+      posBubble();
+    });
+
+    // Gravity fall — animate from current Y to the bottom naturally
+    function startFall() {
+      isFalling = true;
+      play('fall');
+      const groundY = window.innerHeight - FRAME_PX - 16;
+      let currentY = parseFloat(mascot.style.top) || (window.innerHeight - FRAME_PX - 16);
+      let velocity = 0;
+      const GRAVITY = 0.65;
+      const BOUNCE_FACTOR = 0.35;
+      let bounces = 0;
+
+      function fallStep() {
+        if (!isFalling) return;
+        velocity += GRAVITY;
+        currentY += velocity;
+
+        if (currentY >= groundY) {
+          currentY = groundY;
+          if (bounces < 2 && Math.abs(velocity) > 2) {
+            velocity = -velocity * BOUNCE_FACTOR;
+            bounces++;
+          } else {
+            // Landed
+            isFalling = false;
+            mascot.style.top = '';
+            mascot.style.bottom = '16px';
+            play('idle');
+            scheduleIdleActivity();
+            say('meoo!', 1000);
+            return;
+          }
+        }
+        mascot.style.top = currentY + 'px';
+        requestAnimationFrame(fallStep);
+      }
+      requestAnimationFrame(fallStep);
+    }
+
+    window.addEventListener('pointerup', () => {
+      if (!isDragging) return;
+      isDragging = false;
+      mascot.classList.remove('dragging');
+
+      if (didDrag) {
+        // Clamp X, then fall with gravity + bounce
+        const minX = 20, maxX = window.innerWidth - FRAME_PX - 20;
+        posX = Math.max(minX, Math.min(maxX, posX));
+        mascot.style.left = posX + 'px';
+        startFall();
+      } else {
+        // Short tap/click
+        if (isSleeping) {
+          isSleeping = false;
+          play('idle');
+          say('ơ, gọi ai đấy...');
+        } else {
+          play('jump', { onDone: () => {} });
+          const msgs = ['nhảy nhảy!', 'yayyy', 'meoo!', 'hí :3'];
+          say(msgs[Math.floor(Math.random() * msgs.length)]);
+        }
+        scheduleIdleActivity();
+      }
+      resetUserIdle();
+    });
+
+    // Hover sound (mouse only, not during drag)
     mascot.addEventListener('mouseenter', () => {
-      if (isSleeping) return;
+      if (isSleeping || isDragging) return;
       play('sound', { onDone: () => {} });
       const messages = ['meo meo~', 'meo :3', 'ựm...', 'hí hí', 'chào Thảo', 'còn chỗ nào đau không'];
       say(messages[Math.floor(Math.random() * messages.length)]);
     });
-    mascot.addEventListener('click', () => {
-      if (isSleeping) {
-        isSleeping = false;
-        play('idle');
-        say('ơ, gọi ai đấy...');
-        resetUserIdle();
-        return;
-      }
-      play('jump', { onDone: () => {} });
-      const clickMsgs = ['nhảy nhảy!', 'yayyy', 'meoo!', 'hí :3'];
-      say(clickMsgs[Math.floor(Math.random() * clickMsgs.length)]);
-    });
+
     mascot.addEventListener('keydown', e => {
-      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); mascot.click(); }
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        if (isSleeping) { isSleeping = false; play('idle'); say('ơ, gọi ai đấy...'); }
+        else { play('jump', { onDone: () => {} }); say('meoo!'); }
+        resetUserIdle();
+      }
     });
 
-    // Hook into app events — process/download
+    // Hook into app events
     const btnProcess = document.getElementById('btnProcess');
     if (btnProcess) {
       btnProcess.addEventListener('click', () => {
         if (state.processing) return;
-        // Watch state.processing flag becoming true, then switch to Run animation
         setTimeout(() => {
           if (state.processing) {
+            isWalking = false;
+            if (walkRAF) cancelAnimationFrame(walkRAF);
             play('run');
             say('đang gắn watermark cho Thảo...', 3000);
-            // Poll for completion
             const check = setInterval(() => {
               if (!state.processing) {
                 clearInterval(check);
                 if (state.files.every(f => f.status === 'done')) {
-                  play('eat', { onDone: () => {} });
-                  setTimeout(() => play('idle'), 3000);
+                  play('eat');
+                  setTimeout(() => { play('idle'); scheduleIdleActivity(); }, 3000);
                   say('xong rồi nhé 🎉', 2600);
                 } else {
                   play('idle');
+                  scheduleIdleActivity();
                 }
               }
             }, 250);
@@ -4270,27 +4577,32 @@ Việt Nam</textarea>
       });
     }
 
-    const btnDownload = document.getElementById('btnDownload');
-    if (btnDownload) {
-      btnDownload.addEventListener('click', () => {
+    const dlBtn = document.getElementById('btnDownload');
+    if (dlBtn) {
+      dlBtn.addEventListener('click', () => {
         play('jump', { onDone: () => {} });
-        say('đóng gói ZIP đi thôi!', 2200);
+        say('tải ảnh đi thôi!', 2200);
+      });
+    }
+    const dlImgBtn = document.getElementById('btnDownloadImages');
+    if (dlImgBtn) {
+      dlImgBtn.addEventListener('click', () => {
+        play('jump', { onDone: () => {} });
+        say('tải ảnh đi thôi!', 2200);
       });
     }
 
-    // Start
+    // Init
+    setAnimSrc('idle');
     paint();
     play('idle');
     scheduleIdleActivity();
     resetUserIdle();
 
-    // Reposition bubble when window resizes so it doesn't drift
     window.addEventListener('resize', () => {
-      if (bubble.classList.contains('show')) {
-        const r = mascot.getBoundingClientRect();
-        bubble.style.left = (r.left - 6) + 'px';
-        bubble.style.top = (r.top - 42) + 'px';
-      }
+      const maxX = window.innerWidth - FRAME_PX - 20;
+      if (posX > maxX) { posX = maxX; mascot.style.left = posX + 'px'; }
+      if (bubble.classList.contains('show')) posBubble();
     });
   })();
 </script>
