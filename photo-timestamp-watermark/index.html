@@ -4489,10 +4489,25 @@ Việt Nam</textarea>
     let pointerDownX = 0;
     let pointerDownY = 0;
 
-    // Mouse tracking — for chase behavior
+   // Mouse tracking — Liên tục theo dõi và đuổi theo chuột
     let mouseX = window.innerWidth / 2;
     let mouseY = window.innerHeight / 2;
-    window.addEventListener('mousemove', e => { mouseX = e.clientX; mouseY = e.clientY; }, { passive: true });
+    window.addEventListener('mousemove', e => {
+      mouseX = e.clientX;
+      mouseY = e.clientY;
+      
+      // Không đuổi theo nếu đang bị nhấc lên, đang ngủ, rơi, hoặc đang phát âm thanh/nhảy
+      if (!isDragging && !isSleeping && !isFalling && currentAnim !== 'sound' && currentAnim !== 'jump') {
+        const target = Math.max(20, Math.min(window.innerWidth - FRAME_PX - 20, mouseX - FRAME_PX / 2));
+        targetX = target; // Cập nhật mục tiêu X liên tục theo trỏ chuột
+        
+        // Nếu mèo đang đứng yên và khoảng cách đủ xa thì bắt đầu đuổi theo
+        if (!isWalking && Math.abs(targetX - posX) > 5) {
+          clearTimeout(idleTimer); // Dừng các hành động ngẫu nhiên lúc rảnh rỗi
+          walkTo(targetX);
+        }
+      }
+    }, { passive: true });
 
     mascot.style.left = posX + 'px';
 
@@ -4553,21 +4568,29 @@ Việt Nam</textarea>
       bubble.style.top = (r.top - 42) + 'px';
     }
 
-    // Walk to a random X position along the bottom
+    // Đi bộ tới vị trí X
     function walkTo(x) {
       const minX = 20, maxX = window.innerWidth - FRAME_PX - 20;
       targetX = Math.max(minX, Math.min(maxX, x));
       if (Math.abs(targetX - posX) < 5) return;
 
-      facingLeft = targetX < posX;
-      mascot.classList.toggle('flip', facingLeft);
-      isWalking = true;
-      play('walk');
+      // Chỉ gọi play('walk') nếu trước đó mèo chưa đi, tránh việc animation bị reset liên tục gây giật
+      if (!isWalking) {
+        isWalking = true;
+        play('walk'); 
+      }
 
       if (walkRAF) cancelAnimationFrame(walkRAF);
+      
       function step() {
         if (!isWalking || isDragging) return;
         const dx = targetX - posX;
+        
+        // Liên tục kiểm tra hướng mỗi frame để mèo biết quay đầu
+        facingLeft = dx < 0;
+        mascot.classList.toggle('flip', facingLeft);
+
+        // Đã đến vị trí đích
         if (Math.abs(dx) < 2) {
           posX = targetX;
           mascot.style.left = posX + 'px';
@@ -4576,6 +4599,7 @@ Việt Nam</textarea>
           scheduleIdleActivity();
           return;
         }
+        
         posX += (dx > 0 ? 1 : -1) * WALK_SPEED;
         mascot.style.left = posX + 'px';
         walkRAF = requestAnimationFrame(step);
@@ -4741,7 +4765,7 @@ Việt Nam</textarea>
     mascot.addEventListener('mouseenter', () => {
       if (isSleeping || isDragging) return;
       play('sound', { onDone: () => {} });
-      const messages = ['meo meo~', 'meo :3', 'ựm...', 'hí hí', 'chào Thảo', 'còn chỗ nào đau không'];
+      const messages = ['meo meo~', 'meo :3', 'ựm...', 'hí hí', 'chào Thảo', 'còn chỗ nào đau không' , 'Tũn ơi'];
       say(messages[Math.floor(Math.random() * messages.length)]);
     });
 
@@ -4787,7 +4811,7 @@ Việt Nam</textarea>
     if (dlBtn) {
       dlBtn.addEventListener('click', () => {
         play('jump', { onDone: () => {} });
-        say('tải ảnh đi thôii!', 2200);
+        say('tải ảnh đi thôi!', 2200);
       });
     }
     const dlImgBtn = document.getElementById('btnDownloadImages');
