@@ -1733,10 +1733,15 @@
     backdrop-filter: blur(30px) saturate(180%);
     -webkit-backdrop-filter: blur(30px) saturate(180%);
     border-right: 1px solid var(--border);
+    transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
     overflow-y: auto;
     scrollbar-width: none;
   }
   .sidebar::-webkit-scrollbar { display: none; }
+  /* When lightbox is open on desktop, slide sidebar off-screen */
+  .sidebar.lb-hidden {
+    transform: translateX(-100%);
+  }
 
   .sidebar-logo {
     display: flex;
@@ -4074,6 +4079,10 @@ Việt Nam</textarea>
     lbFontOverride = null;
     lightbox.classList.add('open');
     document.body.style.overflow = 'hidden';
+    // On desktop, slide sidebar away to make room
+    if (window.innerWidth > 880) {
+      document.querySelector('.sidebar').classList.add('lb-hidden');
+    }
     await renderLightbox();
     // Preload source image + font in background so first slider drag is instant
     const f = state.files[lbIndex];
@@ -4090,6 +4099,7 @@ Việt Nam</textarea>
   function closeLightbox() {
     lightbox.classList.remove('open');
     document.body.style.overflow = '';
+    document.querySelector('.sidebar').classList.remove('lb-hidden');
     releaseLbPreview();
     lbImg.src = '';
     lbFontOverride = null;
