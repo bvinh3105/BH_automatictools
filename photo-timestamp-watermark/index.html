@@ -4436,9 +4436,8 @@ Việt Nam</textarea>
     return entries;
   }
 
-  // ============================================================
+ // ============================================================
   // Mascot — pixel cat: free-walking, draggable, 3x scale
-  // Uses individual sprite strip PNGs from images_sheets/sprite_sheet/
   // ============================================================
   (function initMascot() {
     const mascot = document.getElementById('mascot');
@@ -4448,7 +4447,6 @@ Việt Nam</textarea>
     const SCALE = 3;
     const FRAME_PX = 32 * SCALE; // 96px
 
-    // Each PNG is a single-row horizontal strip of 32×32 frames
     const BASE = 'images_sheets/sprite_sheet/';
     const ANIMS = {
       idle:    { src: BASE+'cat_1_idle.png',    frames: 1,  fps: 1 },
@@ -4465,7 +4463,6 @@ Việt Nam</textarea>
       sleep:   { src: BASE+'cat_1_sleep.png',   frames: 1,  fps: 1 },
     };
 
-    // Preload all sprite images so there's no flicker on first use
     Object.values(ANIMS).forEach(a => { const img = new Image(); img.src = a.src; });
 
     let currentAnim = 'idle';
@@ -4474,38 +4471,44 @@ Việt Nam</textarea>
     let currentOnce = null;
     let facingLeft = false;
 
-    // Position — cat walks freely along the bottom edge
+    // Trạng thái vị trí và di chuyển
     let posX = 200 + Math.random() * Math.max(0, window.innerWidth - 500);
     let targetX = posX;
-    let isWalking = false;
-    let walkRAF = null;
-    const WALK_SPEED = 1.2; // px per rAF frame (~72px/s)
+    let isMoving = false;
+    let isChasing = false;
+    let moveRAF = null;
+    const WALK_SPEED = 1.2;
+    const RUN_SPEED = 4.0; // Chạy nhanh hơn khi rượt chuột
 
-    // Drag state
+    // Trạng thái kéo thả
     let isDragging = false;
-    let didDrag = false;        // true if pointer moved enough to count as drag
-    let isFalling = false;      // gravity fall after drag release
+    let didDrag = false;
+    let isFalling = false;
     let dragOffsetX = 0;
     let pointerDownX = 0;
     let pointerDownY = 0;
 
-   // Mouse tracking — Liên tục theo dõi và đuổi theo chuột
+    // Theo dõi chuột
     let mouseX = window.innerWidth / 2;
     let mouseY = window.innerHeight / 2;
-    window.addEventListener('mousemove', e => {
-      mouseX = e.clientX;
-      mouseY = e.clientY;
+    let noticeCooldown = false;
+
+    window.addEventListener('mousemove', e => { 
+      mouseX = e.clientX; 
+      mouseY = e.clientY; 
       
-      // Không đuổi theo nếu đang bị nhấc lên, đang ngủ, rơi, hoặc đang phát âm thanh/nhảy
-      if (!isDragging && !isSleeping && !isFalling && currentAnim !== 'sound' && currentAnim !== 'jump') {
-        const target = Math.max(20, Math.min(window.innerWidth - FRAME_PX - 20, mouseX - FRAME_PX / 2));
-        targetX = target; // Cập nhật mục tiêu X liên tục theo trỏ chuột
-        
-        // Nếu mèo đang đứng yên và khoảng cách đủ xa thì bắt đầu đuổi theo
-        if (!isWalking && Math.abs(targetX - posX) > 5) {
-          clearTimeout(idleTimer); // Dừng các hành động ngẫu nhiên lúc rảnh rỗi
-          walkTo(targetX);
-        }
+      // Không xét rượt chuột nếu mèo đang bận (ngủ, rơi, bị kéo, đang đi/rượt, đang kêu)
+      if (isDragging || isSleeping || isFalling || isMoving || currentAnim === 'sound' || currentAnim === 'jump') return;
+      if (noticeCooldown) return;
+
+      // Hạn chế check liên tục, 0.8 giây kiểm tra "để ý" chuột một lần
+      noticeCooldown = true;
+      setTimeout(() => { noticeCooldown = false; }, 800);
+
+      // Tỷ lệ 2/5 (40%) mèo sẽ quyết định rượt theo chuột
+      if (Math.random() < 0.40) {
+         clearTimeout(idleTimer);
+         chaseMouse();
       }
     }, { passive: true });
 
@@ -4553,7 +4556,6 @@ Việt Nam</textarea>
       scheduleTick();
     }
 
-    // Speech bubble
     let bubbleTimer = null;
     function say(text, ms = 2200) {
       bubble.textContent = text;
@@ -4562,52 +4564,99 @@ Việt Nam</textarea>
       clearTimeout(bubbleTimer);
       bubbleTimer = setTimeout(() => bubble.classList.remove('show'), ms);
     }
+    
     function posBubble() {
       const r = mascot.getBoundingClientRect();
       bubble.style.left = (facingLeft ? r.right + 6 : r.left - 6) + 'px';
       bubble.style.top = (r.top - 42) + 'px';
     }
 
-    // Đi bộ tới vị trí X
+    // Dừng mọi hành động di chuyển (ngăn lỗi trượt khi đang idle)
+    function stopMovement() {
+      isMoving = false;
+      isChasing = false;
+      if (moveRAF) cancelAnimationFrame(moveRAF);
+      play('idle');
+      scheduleIdleActivity();
+    }
+
+    // Hành động đi bộ lững thững ngẫu nhiên
     function walkTo(x) {
       const minX = 20, maxX = window.innerWidth - FRAME_PX - 20;
       targetX = Math.max(minX, Math.min(maxX, x));
       if (Math.abs(targetX - posX) < 5) return;
 
-      // Chỉ gọi play('walk') nếu trước đó mèo chưa đi, tránh việc animation bị reset liên tục gây giật
-      if (!isWalking) {
-        isWalking = true;
-        play('walk'); 
-      }
+      isMoving = true;
+      play('walk');
 
-      if (walkRAF) cancelAnimationFrame(walkRAF);
-      
+      if (moveRAF) cancelAnimationFrame(moveRAF);
+
       function step() {
-        if (!isWalking || isDragging) return;
+        // Nếu bị hành động khác can thiệp thì dừng ngay
+        if (!isMoving || isChasing || isDragging) return; 
         const dx = targetX - posX;
         
-        // Liên tục kiểm tra hướng mỗi frame để mèo biết quay đầu
         facingLeft = dx < 0;
         mascot.classList.toggle('flip', facingLeft);
 
-        // Đã đến vị trí đích
-        if (Math.abs(dx) < 2) {
+        if (Math.abs(dx) < WALK_SPEED) {
           posX = targetX;
           mascot.style.left = posX + 'px';
-          isWalking = false;
-          play('idle');
-          scheduleIdleActivity();
+          stopMovement();
           return;
         }
         
         posX += (dx > 0 ? 1 : -1) * WALK_SPEED;
         mascot.style.left = posX + 'px';
-        walkRAF = requestAnimationFrame(step);
+        moveRAF = requestAnimationFrame(step);
       }
-      walkRAF = requestAnimationFrame(step);
+      moveRAF = requestAnimationFrame(step);
     }
 
-    // Idle activity
+    // Hành động rượt chuột
+    function chaseMouse() {
+      isMoving = true;
+      isChasing = true;
+      play('run');
+      
+      // Random thời gian rượt: min 1 giây, max 3 giây
+      const chaseDuration = 1000 + Math.random() * 2000;
+      const endTime = Date.now() + chaseDuration;
+
+      if (moveRAF) cancelAnimationFrame(moveRAF);
+
+      function step() {
+        if (!isChasing || isDragging) return;
+
+        if (Date.now() > endTime) {
+           // Hết thời gian mà chưa bắt được, từ bỏ
+           stopMovement();
+           return;
+        }
+
+        const target = Math.max(20, Math.min(window.innerWidth - FRAME_PX - 20, mouseX - FRAME_PX / 2));
+        const dx = target - posX;
+
+        if (Math.abs(dx) < RUN_SPEED) {
+           // Bắt kịp chuột
+           posX = target;
+           mascot.style.left = posX + 'px';
+           stopMovement();
+           play('jump', { onDone: () => {} });
+           say('bắt được rồi! 🐾', 1500);
+           return;
+        }
+
+        facingLeft = dx < 0;
+        mascot.classList.toggle('flip', facingLeft);
+
+        posX += (dx > 0 ? 1 : -1) * RUN_SPEED;
+        mascot.style.left = posX + 'px';
+        moveRAF = requestAnimationFrame(step);
+      }
+      moveRAF = requestAnimationFrame(step);
+    }
+
     let idleTimer = null;
     let userIdleTimer = null;
     let isSleeping = false;
@@ -4616,10 +4665,12 @@ Việt Nam</textarea>
       clearTimeout(idleTimer);
       const delay = 3500 + Math.random() * 6000;
       idleTimer = setTimeout(() => {
-        if (isSleeping || isDragging || currentAnim === 'sound' || currentAnim === 'jump') {
+        // Chặn gọi hành động rảnh rỗi nếu mèo đang bận di chuyển
+        if (isSleeping || isDragging || currentAnim === 'sound' || currentAnim === 'jump' || isMoving) {
           scheduleIdleActivity();
           return;
         }
+        
         const r = Math.random();
         if (r < 0.25) {
           play('blink');
@@ -4628,38 +4679,36 @@ Việt Nam</textarea>
           play('inspect');
           setTimeout(() => { if (!isSleeping && !isDragging) play('idle'); scheduleIdleActivity(); }, 2400);
         } else if (r < 0.55) {
-          // Chase mouse cursor!
-          const target = Math.max(20, Math.min(window.innerWidth - FRAME_PX - 20, mouseX - FRAME_PX / 2));
-          walkTo(target);
+          chaseMouse();
         } else {
-          // walk to a random spot
           const minX = 60, maxX = window.innerWidth - FRAME_PX - 60;
           walkTo(minX + Math.random() * (maxX - minX));
         }
       }, delay);
     }
 
-    // Sleep after 45s user idle
     function resetUserIdle() {
       clearTimeout(userIdleTimer);
       if (isSleeping) {
         isSleeping = false;
-        isWalking = false;
+        isMoving = false;
+        isChasing = false;
         play('idle');
         say('meo~ ✨', 1500);
       }
       userIdleTimer = setTimeout(() => {
         isSleeping = true;
-        isWalking = false;
-        if (walkRAF) cancelAnimationFrame(walkRAF);
+        isMoving = false;
+        isChasing = false;
+        if (moveRAF) cancelAnimationFrame(moveRAF);
         play('sleep');
       }, 45_000);
     }
+    
     ['mousemove', 'keydown', 'click', 'wheel', 'touchstart'].forEach(ev => {
       window.addEventListener(ev, resetUserIdle, { passive: true });
     });
 
-    // Drag — pointer events for unified mouse + touch
     const DRAG_THRESHOLD = 6;
     mascot.addEventListener('pointerdown', e => {
       e.preventDefault();
@@ -4667,11 +4716,13 @@ Việt Nam</textarea>
       pointerDownY = e.clientY;
       const r = mascot.getBoundingClientRect();
       dragOffsetX = e.clientX - r.left;
+      
       isDragging = true;
       didDrag = false;
-      isFalling = false; // cancel any in-progress fall
-      isWalking = false;
-      if (walkRAF) cancelAnimationFrame(walkRAF);
+      isFalling = false;
+      isMoving = false;
+      isChasing = false;
+      if (moveRAF) cancelAnimationFrame(moveRAF);
       clearTimeout(idleTimer);
       mascot.setPointerCapture(e.pointerId);
     });
@@ -4690,13 +4741,11 @@ Việt Nam</textarea>
       const newX = e.clientX - dragOffsetX;
       posX = newX;
       mascot.style.left = newX + 'px';
-      // Allow vertical drag too
       mascot.style.bottom = 'auto';
       mascot.style.top = (e.clientY - (FRAME_PX / 2)) + 'px';
       posBubble();
     });
 
-    // Gravity fall — animate from current Y to the bottom naturally
     function startFall() {
       isFalling = true;
       play('fall');
@@ -4718,7 +4767,6 @@ Việt Nam</textarea>
             velocity = -velocity * BOUNCE_FACTOR;
             bounces++;
           } else {
-            // Landed
             isFalling = false;
             mascot.style.top = '';
             mascot.style.bottom = '16px';
@@ -4740,13 +4788,11 @@ Việt Nam</textarea>
       mascot.classList.remove('dragging');
 
       if (didDrag) {
-        // Clamp X, then fall with gravity + bounce
         const minX = 20, maxX = window.innerWidth - FRAME_PX - 20;
         posX = Math.max(minX, Math.min(maxX, posX));
         mascot.style.left = posX + 'px';
         startFall();
       } else {
-        // Short tap/click
         if (isSleeping) {
           isSleeping = false;
           play('idle');
@@ -4761,11 +4807,10 @@ Việt Nam</textarea>
       resetUserIdle();
     });
 
-    // Hover sound (mouse only, not during drag)
     mascot.addEventListener('mouseenter', () => {
       if (isSleeping || isDragging) return;
       play('sound', { onDone: () => {} });
-      const messages = ['meo meo~', 'meo :3', 'ựm...', 'hí hí', 'chào Thảo', 'còn chỗ nào đau không' , 'Tũn ơi'];
+      const messages = ['meo meo~', 'meo :3', 'ựm...', 'hí hí', 'chào Thảo', 'còn chỗ nào đau không'];
       say(messages[Math.floor(Math.random() * messages.length)]);
     });
 
@@ -4778,15 +4823,15 @@ Việt Nam</textarea>
       }
     });
 
-    // Hook into app events
     const btnProcess = document.getElementById('btnProcess');
     if (btnProcess) {
       btnProcess.addEventListener('click', () => {
         if (state.processing) return;
         setTimeout(() => {
           if (state.processing) {
-            isWalking = false;
-            if (walkRAF) cancelAnimationFrame(walkRAF);
+            isMoving = false;
+            isChasing = false;
+            if (moveRAF) cancelAnimationFrame(moveRAF);
             play('run');
             say('đang gắn watermark cho Thảo...', 3000);
             const check = setInterval(() => {
@@ -4814,6 +4859,7 @@ Việt Nam</textarea>
         say('tải ảnh đi thôi!', 2200);
       });
     }
+    
     const dlImgBtn = document.getElementById('btnDownloadImages');
     if (dlImgBtn) {
       dlImgBtn.addEventListener('click', () => {
@@ -4822,7 +4868,6 @@ Việt Nam</textarea>
       });
     }
 
-    // Init
     setAnimSrc('idle');
     paint();
     play('idle');
