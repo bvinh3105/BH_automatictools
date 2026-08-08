@@ -1923,6 +1923,172 @@
     border: 1px solid color-mix(in srgb, var(--accent-2) 25%, transparent);
   }
 
+  /* ===== OCR / Text Reader ===== */
+  .ocr-layout {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    padding: 28px 24px;
+    max-width: 900px;
+    margin: 0 auto;
+  }
+  .ocr-drop {
+    border: 2px dashed var(--border);
+    border-radius: 16px;
+    padding: 40px 24px;
+    text-align: center;
+    transition: border-color 0.2s, background 0.2s;
+    cursor: pointer;
+  }
+  .ocr-drop.dragover {
+    border-color: var(--accent);
+    background: color-mix(in srgb, var(--accent) 8%, transparent);
+  }
+  .ocr-drop-icon { font-size: 40px; margin-bottom: 8px; }
+  .ocr-drop h3 {
+    font-size: 17px; font-weight: 700;
+    color: var(--text); margin: 0 0 6px;
+  }
+  .ocr-drop p {
+    font-size: 13px; color: var(--muted); margin: 0;
+  }
+  .ocr-pick-btn {
+    display: inline-flex !important;
+    padding: 8px 18px !important;
+    cursor: pointer;
+  }
+  .ocr-cards {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  /* Each OCR card: image left, text right */
+  .ocr-card {
+    display: flex;
+    gap: 16px;
+    background: var(--glass);
+    backdrop-filter: blur(20px) saturate(160%);
+    -webkit-backdrop-filter: blur(20px) saturate(160%);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 14px;
+    position: relative;
+    animation: fadein 0.25s ease-out;
+  }
+  .ocr-card-img {
+    width: 180px; min-width: 180px;
+    border-radius: 10px;
+    overflow: hidden;
+    background: rgba(0,0,0,0.06);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .ocr-card-img img {
+    width: 100%; height: auto;
+    display: block;
+    border-radius: 10px;
+    object-fit: contain;
+    max-height: 260px;
+  }
+  .ocr-card-body {
+    flex: 1; min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .ocr-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+  }
+  .ocr-card-name {
+    font-size: 12px; font-weight: 600;
+    color: var(--muted);
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    min-width: 0;
+  }
+  .ocr-card-actions {
+    display: flex; gap: 4px; flex-shrink: 0;
+  }
+  .ocr-card-actions button {
+    background: var(--glass);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    padding: 5px 10px;
+    font-size: 11.5px; font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s;
+    font: inherit;
+    line-height: 1;
+  }
+  .ocr-card-actions button:hover {
+    background: color-mix(in srgb, var(--accent) 12%, transparent);
+  }
+  .ocr-card-actions .ocr-remove {
+    color: var(--muted);
+    border: none;
+    background: transparent;
+    font-size: 16px;
+    padding: 4px 6px;
+  }
+  .ocr-card-actions .ocr-remove:hover { color: #e55; }
+  .ocr-card-text {
+    flex: 1;
+    background: color-mix(in srgb, var(--text) 4%, transparent);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 14px;
+    font-size: 13px;
+    line-height: 1.6;
+    color: var(--text);
+    white-space: pre-wrap;
+    word-break: break-word;
+    overflow-y: auto;
+    max-height: 220px;
+    min-height: 60px;
+    font-family: inherit;
+  }
+  .ocr-card-text.ocr-loading {
+    display: flex; align-items: center; justify-content: center;
+    color: var(--muted); font-style: italic;
+    gap: 8px;
+  }
+  .ocr-card-text.ocr-error {
+    color: #e55;
+    border-color: rgba(238,85,85,0.25);
+    background: rgba(238,85,85,0.06);
+  }
+  .ocr-spinner {
+    width: 16px; height: 16px;
+    border: 2px solid var(--border);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: ocr-spin 0.7s linear infinite;
+  }
+  @keyframes ocr-spin { to { transform: rotate(360deg); } }
+  .ocr-progress {
+    height: 3px;
+    border-radius: 3px;
+    background: var(--border);
+    overflow: hidden;
+    margin-top: 4px;
+  }
+  .ocr-progress-bar {
+    height: 100%;
+    background: var(--accent);
+    border-radius: 3px;
+    transition: width 0.3s;
+    width: 0%;
+  }
+  @media (max-width: 640px) {
+    .ocr-layout { padding: 16px 12px; }
+    .ocr-card { flex-direction: column; }
+    .ocr-card-img { width: 100%; min-width: 0; max-height: 200px; }
+    .ocr-card-img img { max-height: 200px; }
+    .ocr-drop { padding: 28px 16px; }
+  }
+
   /* Sidebar toggle for mobile */
   .sidebar-toggle {
     display: none;
@@ -2095,6 +2261,7 @@
   }
 </style>
 
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 </head>
 <body>
 <div class="bg-canvas" aria-hidden="true">
@@ -2134,9 +2301,8 @@
       <span class="nav-label">Timestamp Watermark</span>
     </button>
     <button class="nav-item" data-tab="resize">
-      <span class="nav-icon">📐</span>
-      <span class="nav-label">Image Resize</span>
-      <span class="nav-badge">Soon</span>
+      <span class="nav-icon">📝</span>
+      <span class="nav-label">Text Reader</span>
     </button>
     <button class="nav-item" data-tab="compress">
       <span class="nav-icon">🗜️</span>
@@ -2395,14 +2561,23 @@ Việt Nam</textarea>
 </div>
 </div><!-- /pane-timestamp -->
 
-<!-- ===== TAB 2: Image Resize (coming soon) ===== -->
+<!-- ===== TAB 2: Text Reader (OCR) ===== -->
 <div class="tab-pane" id="pane-resize">
   <div class="app">
-    <div class="tab-empty">
-      <div class="tab-empty-icon">📐</div>
-      <h3>Image Resize</h3>
-      <p data-i18n="resizeDesc">Resize ảnh hàng loạt theo kích thước tuỳ chỉnh, giữ tỉ lệ hoặc crop thông minh. Hỗ trợ preset cho các nền tảng phổ biến.</p>
-      <span class="coming-badge" data-i18n="comingSoon">Coming Soon</span>
+    <div class="ocr-layout">
+      <!-- Drop / paste zone -->
+      <div class="ocr-drop" id="ocrDrop">
+        <div class="ocr-drop-inner">
+          <div class="ocr-drop-icon">📝</div>
+          <h3>Đọc chữ từ ảnh</h3>
+          <p>Kéo thả, dán (Ctrl+V) hoặc chọn ảnh — tối đa 5 ảnh</p>
+          <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:8px;">
+            <label class="btn-ghost ocr-pick-btn"><input type="file" id="ocrFileInput" accept="image/*" multiple hidden>Chọn ảnh</label>
+          </div>
+        </div>
+      </div>
+      <!-- Cards -->
+      <div class="ocr-cards" id="ocrCards"></div>
     </div>
   </div>
 </div>
@@ -4879,6 +5054,162 @@ Việt Nam</textarea>
       if (posX > maxX) { posX = maxX; mascot.style.left = posX + 'px'; }
       if (bubble.classList.contains('show')) posBubble();
     });
+  })();
+
+  // ============================================================
+  // ===== TAB 2: TEXT READER (OCR) =============================
+  // ============================================================
+  (function initOCR() {
+    const MAX_IMAGES = 5;
+    const ocrDrop = document.getElementById('ocrDrop');
+    const ocrCards = document.getElementById('ocrCards');
+    const ocrFileInput = document.getElementById('ocrFileInput');
+    let ocrCount = 0;
+
+    // --- Drop zone ---
+    ocrDrop.addEventListener('click', e => {
+      if (e.target.closest('.ocr-pick-btn') || e.target === ocrFileInput) return;
+      ocrFileInput.click();
+    });
+    ocrDrop.addEventListener('dragover', e => { e.preventDefault(); ocrDrop.classList.add('dragover'); });
+    ocrDrop.addEventListener('dragleave', () => ocrDrop.classList.remove('dragover'));
+    ocrDrop.addEventListener('drop', e => {
+      e.preventDefault();
+      ocrDrop.classList.remove('dragover');
+      handleOcrFiles([...e.dataTransfer.files].filter(f => f.type.startsWith('image/')));
+    });
+    ocrFileInput.addEventListener('change', () => {
+      handleOcrFiles([...ocrFileInput.files]);
+      ocrFileInput.value = '';
+    });
+
+    // --- Paste anywhere (only when OCR tab is active) ---
+    document.addEventListener('paste', e => {
+      if (document.getElementById('pane-resize').style.display === 'none') return;
+      const items = [...(e.clipboardData?.items || [])];
+      const imgFiles = items
+        .filter(i => i.type.startsWith('image/'))
+        .map(i => i.getAsFile())
+        .filter(Boolean);
+      if (imgFiles.length) {
+        e.preventDefault();
+        handleOcrFiles(imgFiles);
+      }
+    });
+
+    function handleOcrFiles(files) {
+      if (!files.length) return;
+      const remaining = MAX_IMAGES - ocrCount;
+      if (remaining <= 0) {
+        alert('Tối đa ' + MAX_IMAGES + ' ảnh!');
+        return;
+      }
+      const batch = files.slice(0, remaining);
+      batch.forEach(f => addOcrCard(f));
+    }
+
+    function addOcrCard(file) {
+      ocrCount++;
+      const url = URL.createObjectURL(file);
+      const id = 'ocr-' + Date.now() + '-' + Math.random().toString(36).slice(2, 6);
+
+      const card = document.createElement('div');
+      card.className = 'ocr-card';
+      card.id = id;
+      card.innerHTML = `
+        <div class="ocr-card-img"><img src="${url}" alt="${file.name}"></div>
+        <div class="ocr-card-body">
+          <div class="ocr-card-header">
+            <span class="ocr-card-name">${file.name}</span>
+            <div class="ocr-card-actions">
+              <button class="ocr-copy" title="Copy text" style="display:none">📋 Copy</button>
+              <button class="ocr-retry" title="Thử lại" style="display:none">🔄</button>
+              <button class="ocr-remove" title="Xoá">×</button>
+            </div>
+          </div>
+          <div class="ocr-card-text ocr-loading">
+            <div class="ocr-spinner"></div>
+            <span>Đang đọc chữ…</span>
+          </div>
+          <div class="ocr-progress"><div class="ocr-progress-bar"></div></div>
+        </div>
+      `;
+      ocrCards.appendChild(card);
+
+      // Hide drop zone if max reached
+      if (ocrCount >= MAX_IMAGES) ocrDrop.style.display = 'none';
+
+      // Remove button
+      card.querySelector('.ocr-remove').addEventListener('click', () => {
+        URL.revokeObjectURL(url);
+        card.remove();
+        ocrCount--;
+        if (ocrCount < MAX_IMAGES) ocrDrop.style.display = '';
+      });
+
+      // Copy button
+      card.querySelector('.ocr-copy').addEventListener('click', () => {
+        const textEl = card.querySelector('.ocr-card-text');
+        const text = textEl.textContent;
+        navigator.clipboard.writeText(text).then(() => {
+          const btn = card.querySelector('.ocr-copy');
+          const orig = btn.textContent;
+          btn.textContent = '✓ Copied';
+          setTimeout(() => btn.textContent = orig, 1500);
+        });
+      });
+
+      // Retry button
+      card.querySelector('.ocr-retry').addEventListener('click', () => {
+        card.querySelector('.ocr-retry').style.display = 'none';
+        card.querySelector('.ocr-copy').style.display = 'none';
+        const textEl = card.querySelector('.ocr-card-text');
+        textEl.className = 'ocr-card-text ocr-loading';
+        textEl.innerHTML = '<div class="ocr-spinner"></div><span>Đang đọc lại…</span>';
+        card.querySelector('.ocr-progress').style.display = '';
+        runOCR(card, url);
+      });
+
+      runOCR(card, url);
+    }
+
+    async function runOCR(card, imageUrl) {
+      const textEl = card.querySelector('.ocr-card-text');
+      const progressBar = card.querySelector('.ocr-progress-bar');
+      const copyBtn = card.querySelector('.ocr-copy');
+      const retryBtn = card.querySelector('.ocr-retry');
+
+      try {
+        const result = await Tesseract.recognize(imageUrl, 'vie+eng', {
+          logger: m => {
+            if (m.status === 'recognizing text' && typeof m.progress === 'number') {
+              progressBar.style.width = (m.progress * 100).toFixed(0) + '%';
+            }
+          }
+        });
+
+        const text = (result.data.text || '').trim();
+        card.querySelector('.ocr-progress').style.display = 'none';
+
+        if (!text) {
+          textEl.className = 'ocr-card-text ocr-error';
+          textEl.textContent = 'Không phát hiện được chữ trong ảnh này.';
+          retryBtn.style.display = '';
+          return;
+        }
+
+        textEl.className = 'ocr-card-text';
+        textEl.textContent = text;
+        copyBtn.style.display = '';
+        retryBtn.style.display = '';
+      } catch (err) {
+        console.error('OCR error:', err);
+        card.querySelector('.ocr-progress').style.display = 'none';
+        textEl.className = 'ocr-card-text ocr-error';
+        textEl.textContent = 'Lỗi: ' + (err.message || 'Không đọc được ảnh');
+        retryBtn.style.display = '';
+      }
+    }
   })();
 </script>
 </body>
