@@ -5582,12 +5582,16 @@ Việt Nam</textarea>
       if (ocrPvIndex < 0) ocrPvIndex = 0;
       ocrPv.classList.add('open');
       document.body.style.overflow = 'hidden';
+      if (window.innerWidth > 880) {
+        document.querySelector('.sidebar').classList.add('lb-hidden');
+      }
       renderOcrPreview();
     }
 
     function closeOcrPreview() {
       ocrPv.classList.remove('open');
       document.body.style.overflow = '';
+      document.querySelector('.sidebar').classList.remove('lb-hidden');
       ocrPvImg.src = '';
     }
 
