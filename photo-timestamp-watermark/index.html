@@ -2089,6 +2089,122 @@
     .ocr-drop { padding: 28px 16px; }
   }
 
+  /* ===== OCR Preview Lightbox ===== */
+  .ocr-preview {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 120;
+    background: rgba(10,12,10,0.85);
+    backdrop-filter: blur(28px) saturate(140%);
+    -webkit-backdrop-filter: blur(28px) saturate(140%);
+    flex-direction: column;
+    animation: lb-in 0.25s cubic-bezier(.4,0,.2,1);
+  }
+  .ocr-preview.open { display: flex; }
+  .ocr-pv-close {
+    position: absolute;
+    top: 16px; right: 16px;
+    width: 38px; height: 38px;
+    background: rgba(255,255,255,0.08);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    color: rgba(255,255,255,0.85);
+    border-radius: 50%;
+    border: 1px solid rgba(255,255,255,0.12);
+    font-size: 20px; line-height: 1;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    z-index: 4;
+    transition: background 0.15s;
+  }
+  .ocr-pv-close:hover { background: rgba(255,255,255,0.18); }
+  .ocr-pv-split {
+    flex: 1; min-height: 0;
+    display: flex;
+    padding: 16px;
+    gap: 16px;
+  }
+  .ocr-pv-img-wrap {
+    flex: 1; min-width: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: auto;
+  }
+  .ocr-pv-img-wrap img {
+    max-width: 100%;
+    max-height: calc(100vh - 120px);
+    object-fit: contain;
+    border-radius: 10px;
+    box-shadow: 0 12px 40px rgba(0,0,0,0.35);
+  }
+  .ocr-pv-text-wrap {
+    width: 340px; min-width: 280px;
+    display: flex;
+    flex-direction: column;
+    background: rgba(255,255,255,0.06);
+    backdrop-filter: blur(30px);
+    -webkit-backdrop-filter: blur(30px);
+    border: 1px solid rgba(255,255,255,0.10);
+    border-radius: 14px;
+    overflow: hidden;
+  }
+  .ocr-pv-text-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+    font-size: 13px; font-weight: 700;
+    color: rgba(255,255,255,0.90);
+  }
+  .ocr-pv-copy {
+    background: rgba(255,255,255,0.10);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 8px;
+    color: rgba(255,255,255,0.85);
+    padding: 5px 12px;
+    font-size: 11.5px; font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s;
+    font: inherit; line-height: 1;
+  }
+  .ocr-pv-copy:hover { background: rgba(255,255,255,0.18); }
+  .ocr-pv-text {
+    flex: 1; overflow-y: auto;
+    padding: 16px;
+    font-size: 13.5px;
+    line-height: 1.7;
+    color: rgba(255,255,255,0.88);
+    white-space: pre-wrap;
+    word-break: break-word;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255,255,255,0.12) transparent;
+  }
+  .ocr-pv-text::-webkit-scrollbar { width: 4px; }
+  .ocr-pv-text::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); border-radius: 4px; }
+  .ocr-pv-nav {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    padding: 10px 16px 16px;
+    color: rgba(255,255,255,0.6);
+    font-size: 12px;
+    font-variant-numeric: tabular-nums;
+  }
+  .ocr-pv-nav .lbbtn {
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.10);
+    border-radius: 8px;
+  }
+  @media (max-width: 700px) {
+    .ocr-pv-split { flex-direction: column; padding: 12px; gap: 12px; }
+    .ocr-pv-text-wrap { width: 100%; min-width: 0; max-height: 40vh; }
+    .ocr-pv-img-wrap img { max-height: 45vh; }
+  }
+
   /* Sidebar toggle for mobile */
   .sidebar-toggle {
     display: none;
@@ -2578,6 +2694,27 @@ Việt Nam</textarea>
       </div>
       <!-- Cards -->
       <div class="ocr-cards" id="ocrCards"></div>
+    </div>
+    <!-- OCR Preview Lightbox -->
+    <div class="ocr-preview" id="ocrPreview">
+      <button class="ocr-pv-close" id="ocrPvClose">×</button>
+      <div class="ocr-pv-split">
+        <div class="ocr-pv-img-wrap">
+          <img id="ocrPvImg" alt="">
+        </div>
+        <div class="ocr-pv-text-wrap">
+          <div class="ocr-pv-text-head">
+            <span>Văn bản nhận diện</span>
+            <button class="ocr-pv-copy" id="ocrPvCopy">📋 Copy</button>
+          </div>
+          <div class="ocr-pv-text" id="ocrPvText"></div>
+        </div>
+      </div>
+      <div class="ocr-pv-nav">
+        <button class="lbbtn" id="ocrPvPrev">‹ Trước</button>
+        <span id="ocrPvCount">1 / 1</span>
+        <button class="lbbtn" id="ocrPvNext">Sau ›</button>
+      </div>
     </div>
   </div>
 </div>
@@ -5066,6 +5203,17 @@ Việt Nam</textarea>
     const ocrFileInput = document.getElementById('ocrFileInput');
     let ocrCount = 0;
 
+    // --- Preview lightbox refs ---
+    const ocrPv = document.getElementById('ocrPreview');
+    const ocrPvImg = document.getElementById('ocrPvImg');
+    const ocrPvText = document.getElementById('ocrPvText');
+    const ocrPvCount = document.getElementById('ocrPvCount');
+    const ocrPvCopy = document.getElementById('ocrPvCopy');
+    const ocrPvPrev = document.getElementById('ocrPvPrev');
+    const ocrPvNext = document.getElementById('ocrPvNext');
+    const ocrPvClose = document.getElementById('ocrPvClose');
+    let ocrPvIndex = -1;
+
     // --- Drop zone ---
     ocrDrop.addEventListener('click', e => {
       if (e.target.closest('.ocr-pick-btn') || e.target === ocrFileInput) return;
@@ -5139,16 +5287,30 @@ Việt Nam</textarea>
       // Hide drop zone if max reached
       if (ocrCount >= MAX_IMAGES) ocrDrop.style.display = 'none';
 
+      // Click image → open preview
+      card.querySelector('.ocr-card-img').addEventListener('click', () => {
+        openOcrPreview(card);
+      });
+      // Style cursor on image
+      card.querySelector('.ocr-card-img').style.cursor = 'pointer';
+
       // Remove button
       card.querySelector('.ocr-remove').addEventListener('click', () => {
         URL.revokeObjectURL(url);
         card.remove();
         ocrCount--;
         if (ocrCount < MAX_IMAGES) ocrDrop.style.display = '';
+        // If preview was showing this card, close it
+        if (ocrPv.classList.contains('open')) {
+          const cards = [...ocrCards.querySelectorAll('.ocr-card')];
+          if (!cards.length) closeOcrPreview();
+          else renderOcrPreview();
+        }
       });
 
       // Copy button
-      card.querySelector('.ocr-copy').addEventListener('click', () => {
+      card.querySelector('.ocr-copy').addEventListener('click', e => {
+        e.stopPropagation();
         const textEl = card.querySelector('.ocr-card-text');
         const text = textEl.textContent;
         navigator.clipboard.writeText(text).then(() => {
@@ -5160,7 +5322,8 @@ Việt Nam</textarea>
       });
 
       // Retry button
-      card.querySelector('.ocr-retry').addEventListener('click', () => {
+      card.querySelector('.ocr-retry').addEventListener('click', e => {
+        e.stopPropagation();
         card.querySelector('.ocr-retry').style.display = 'none';
         card.querySelector('.ocr-copy').style.display = 'none';
         const textEl = card.querySelector('.ocr-card-text');
@@ -5195,6 +5358,8 @@ Việt Nam</textarea>
           textEl.className = 'ocr-card-text ocr-error';
           textEl.textContent = 'Không phát hiện được chữ trong ảnh này.';
           retryBtn.style.display = '';
+          // Update preview if this card is currently shown
+          if (ocrPv.classList.contains('open')) renderOcrPreview();
           return;
         }
 
@@ -5202,14 +5367,88 @@ Việt Nam</textarea>
         textEl.textContent = text;
         copyBtn.style.display = '';
         retryBtn.style.display = '';
+        // Update preview if this card is currently shown
+        if (ocrPv.classList.contains('open')) renderOcrPreview();
       } catch (err) {
         console.error('OCR error:', err);
         card.querySelector('.ocr-progress').style.display = 'none';
         textEl.className = 'ocr-card-text ocr-error';
         textEl.textContent = 'Lỗi: ' + (err.message || 'Không đọc được ảnh');
         retryBtn.style.display = '';
+        if (ocrPv.classList.contains('open')) renderOcrPreview();
       }
     }
+
+    // --- OCR Preview Lightbox ---
+    function openOcrPreview(card) {
+      const cards = [...ocrCards.querySelectorAll('.ocr-card')];
+      ocrPvIndex = cards.indexOf(card);
+      if (ocrPvIndex < 0) ocrPvIndex = 0;
+      ocrPv.classList.add('open');
+      document.body.style.overflow = 'hidden';
+      renderOcrPreview();
+    }
+
+    function closeOcrPreview() {
+      ocrPv.classList.remove('open');
+      document.body.style.overflow = '';
+      ocrPvImg.src = '';
+    }
+
+    function renderOcrPreview() {
+      const cards = [...ocrCards.querySelectorAll('.ocr-card')];
+      if (!cards.length) { closeOcrPreview(); return; }
+      if (ocrPvIndex >= cards.length) ocrPvIndex = cards.length - 1;
+      if (ocrPvIndex < 0) ocrPvIndex = 0;
+      const card = cards[ocrPvIndex];
+      const img = card.querySelector('.ocr-card-img img');
+      const textEl = card.querySelector('.ocr-card-text');
+
+      ocrPvImg.src = img.src;
+      ocrPvImg.alt = img.alt;
+
+      // Show text or loading state
+      if (textEl.classList.contains('ocr-loading')) {
+        ocrPvText.textContent = 'Đang đọc chữ…';
+        ocrPvText.style.fontStyle = 'italic';
+        ocrPvText.style.color = 'rgba(255,255,255,0.5)';
+      } else if (textEl.classList.contains('ocr-error')) {
+        ocrPvText.textContent = textEl.textContent;
+        ocrPvText.style.fontStyle = 'italic';
+        ocrPvText.style.color = '#e88';
+      } else {
+        ocrPvText.textContent = textEl.textContent;
+        ocrPvText.style.fontStyle = '';
+        ocrPvText.style.color = '';
+      }
+
+      ocrPvCount.textContent = (ocrPvIndex + 1) + ' / ' + cards.length;
+      ocrPvPrev.disabled = ocrPvIndex === 0;
+      ocrPvNext.disabled = ocrPvIndex === cards.length - 1;
+    }
+
+    ocrPvClose.addEventListener('click', closeOcrPreview);
+    ocrPv.addEventListener('click', e => { if (e.target === ocrPv) closeOcrPreview(); });
+    ocrPvPrev.addEventListener('click', () => { if (ocrPvIndex > 0) { ocrPvIndex--; renderOcrPreview(); }});
+    ocrPvNext.addEventListener('click', () => {
+      const cards = [...ocrCards.querySelectorAll('.ocr-card')];
+      if (ocrPvIndex < cards.length - 1) { ocrPvIndex++; renderOcrPreview(); }
+    });
+    ocrPvCopy.addEventListener('click', () => {
+      const text = ocrPvText.textContent;
+      navigator.clipboard.writeText(text).then(() => {
+        const orig = ocrPvCopy.textContent;
+        ocrPvCopy.textContent = '✓ Copied';
+        setTimeout(() => ocrPvCopy.textContent = orig, 1500);
+      });
+    });
+    // Keyboard: Esc close, arrow nav
+    document.addEventListener('keydown', e => {
+      if (!ocrPv.classList.contains('open')) return;
+      if (e.key === 'Escape') closeOcrPreview();
+      if (e.key === 'ArrowLeft') { ocrPvPrev.click(); e.preventDefault(); }
+      if (e.key === 'ArrowRight') { ocrPvNext.click(); e.preventDefault(); }
+    });
   })();
 </script>
 </body>
