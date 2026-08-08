@@ -5539,14 +5539,23 @@ Việt Nam</textarea>
 
       try {
         let text;
+        let usedEngine = 'tesseract';
         if (geminiKey) {
-          // Use Gemini Vision — no progress bar needed (fast API call)
-          progressBar.style.width = '60%';
-          textEl.querySelector('span').textContent = 'Đang đọc bằng Gemini AI…';
-          text = await runGeminiOCR(imageUrl);
-          progressBar.style.width = '100%';
+          try {
+            progressBar.style.width = '60%';
+            textEl.querySelector('span').textContent = 'Đang đọc bằng Gemini AI…';
+            text = await runGeminiOCR(imageUrl);
+            progressBar.style.width = '100%';
+            usedEngine = 'gemini';
+          } catch (geminiErr) {
+            console.warn('Gemini failed, falling back to Tesseract:', geminiErr.message);
+            // Reset loading UI for Tesseract
+            progressBar.style.width = '0%';
+            textEl.querySelector('span').textContent = 'Gemini lỗi — đang thử Tesseract…';
+            text = await runTesseractOCR(imageUrl, progressBar);
+            usedEngine = 'tesseract-fallback';
+          }
         } else {
-          // Fallback to Tesseract
           text = await runTesseractOCR(imageUrl, progressBar);
         }
 
@@ -5561,7 +5570,11 @@ Việt Nam</textarea>
         }
 
         textEl.className = 'ocr-card-text';
-        textEl.textContent = text;
+        if (usedEngine === 'tesseract-fallback') {
+          textEl.innerHTML = '<div style="color:#f90;font-size:11px;margin-bottom:6px;font-weight:600">⚠ Gemini lỗi — kết quả từ Tesseract (có thể kém chính xác)</div>' + text.replace(/</g,'&lt;');
+        } else {
+          textEl.textContent = text;
+        }
         copyBtn.style.display = '';
         retryBtn.style.display = '';
         if (ocrPv.classList.contains('open')) renderOcrPreview();
