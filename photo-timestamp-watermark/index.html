@@ -2089,6 +2089,88 @@
     .ocr-drop { padding: 28px 16px; }
   }
 
+  /* ===== OCR API Key Bar ===== */
+  .ocr-api-bar {
+    background: var(--glass);
+    backdrop-filter: blur(20px) saturate(160%);
+    -webkit-backdrop-filter: blur(20px) saturate(160%);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 14px 18px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .ocr-api-info {
+    display: flex; align-items: flex-start; gap: 10px;
+    min-width: 0; flex: 1;
+  }
+  .ocr-api-icon { font-size: 20px; flex-shrink: 0; margin-top: 1px; }
+  .ocr-api-title {
+    font-size: 13px; font-weight: 700; color: var(--text);
+    display: flex; align-items: center; gap: 8px;
+  }
+  .ocr-api-badge {
+    font-size: 10px; font-weight: 600;
+    padding: 2px 8px; border-radius: 999px;
+    background: color-mix(in srgb, #e55 15%, transparent);
+    color: #e55;
+    text-transform: uppercase; letter-spacing: 0.04em;
+  }
+  .ocr-api-badge.active {
+    background: color-mix(in srgb, #4c8 15%, transparent);
+    color: #4c8;
+  }
+  .ocr-api-desc {
+    font-size: 11.5px; color: var(--muted); margin-top: 3px; line-height: 1.4;
+  }
+  .ocr-api-desc a {
+    color: var(--accent); text-decoration: none; font-weight: 600;
+  }
+  .ocr-api-desc a:hover { text-decoration: underline; }
+  .ocr-api-toggle {
+    background: var(--glass);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    padding: 7px 14px;
+    font-size: 12px; font-weight: 600;
+    cursor: pointer; font: inherit; line-height: 1;
+    transition: background 0.15s;
+    flex-shrink: 0;
+  }
+  .ocr-api-toggle:hover { background: color-mix(in srgb, var(--accent) 10%, transparent); }
+  .ocr-api-input-row {
+    width: 100%;
+    display: flex; gap: 8px;
+    margin-top: 4px;
+  }
+  .ocr-api-input {
+    flex: 1;
+    background: color-mix(in srgb, var(--text) 5%, transparent);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    padding: 8px 12px;
+    font: inherit; font-size: 12.5px;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  .ocr-api-input:focus { border-color: var(--accent); }
+  .ocr-api-save {
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 8px 16px;
+    font: inherit; font-size: 12px; font-weight: 700;
+    cursor: pointer;
+    transition: opacity 0.15s;
+  }
+  .ocr-api-save:hover { opacity: 0.85; }
+
   /* ===== OCR Preview Lightbox ===== */
   .ocr-preview {
     display: none;
@@ -2681,6 +2763,21 @@ Việt Nam</textarea>
 <div class="tab-pane" id="pane-resize">
   <div class="app">
     <div class="ocr-layout">
+      <!-- API key setting -->
+      <div class="ocr-api-bar" id="ocrApiBar">
+        <div class="ocr-api-info">
+          <span class="ocr-api-icon">🔑</span>
+          <div>
+            <div class="ocr-api-title">Gemini API Key <span class="ocr-api-badge" id="ocrApiBadge">chưa cấu hình</span></div>
+            <div class="ocr-api-desc">Dùng Gemini Vision AI để đọc chữ chính xác hơn (miễn phí). <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">Lấy API key →</a></div>
+          </div>
+        </div>
+        <div class="ocr-api-input-row" id="ocrApiInputRow" style="display:none">
+          <input type="password" id="ocrApiKey" placeholder="Paste Gemini API key..." class="ocr-api-input">
+          <button class="ocr-api-save" id="ocrApiSave">Lưu</button>
+        </div>
+        <button class="ocr-api-toggle" id="ocrApiToggle">Cấu hình</button>
+      </div>
       <!-- Drop / paste zone -->
       <div class="ocr-drop" id="ocrDrop">
         <div class="ocr-drop-inner">
@@ -5203,6 +5300,47 @@ Việt Nam</textarea>
     const ocrFileInput = document.getElementById('ocrFileInput');
     let ocrCount = 0;
 
+    // --- API key management ---
+    const ocrApiKey = document.getElementById('ocrApiKey');
+    const ocrApiSave = document.getElementById('ocrApiSave');
+    const ocrApiToggle = document.getElementById('ocrApiToggle');
+    const ocrApiInputRow = document.getElementById('ocrApiInputRow');
+    const ocrApiBadge = document.getElementById('ocrApiBadge');
+    let geminiKey = localStorage.getItem('ocr_gemini_key') || '';
+
+    function updateApiBadge() {
+      if (geminiKey) {
+        ocrApiBadge.textContent = 'đã kết nối';
+        ocrApiBadge.classList.add('active');
+        ocrApiToggle.textContent = 'Đổi key';
+      } else {
+        ocrApiBadge.textContent = 'chưa cấu hình';
+        ocrApiBadge.classList.remove('active');
+        ocrApiToggle.textContent = 'Cấu hình';
+      }
+    }
+    updateApiBadge();
+
+    ocrApiToggle.addEventListener('click', () => {
+      const showing = ocrApiInputRow.style.display !== 'none';
+      ocrApiInputRow.style.display = showing ? 'none' : 'flex';
+      if (!showing) {
+        ocrApiKey.value = geminiKey;
+        ocrApiKey.focus();
+      }
+    });
+    ocrApiSave.addEventListener('click', () => {
+      geminiKey = ocrApiKey.value.trim();
+      if (geminiKey) {
+        localStorage.setItem('ocr_gemini_key', geminiKey);
+      } else {
+        localStorage.removeItem('ocr_gemini_key');
+      }
+      updateApiBadge();
+      ocrApiInputRow.style.display = 'none';
+    });
+    ocrApiKey.addEventListener('keydown', e => { if (e.key === 'Enter') ocrApiSave.click(); });
+
     // --- Preview lightbox refs ---
     const ocrPv = document.getElementById('ocrPreview');
     const ocrPvImg = document.getElementById('ocrPvImg');
@@ -5336,29 +5474,87 @@ Việt Nam</textarea>
       runOCR(card, url);
     }
 
+    // Convert blob URL to base64 data
+    function blobUrlToBase64(blobUrl) {
+      return fetch(blobUrl)
+        .then(r => r.blob())
+        .then(blob => new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => {
+            const dataUrl = reader.result;
+            // Extract base64 after the comma
+            resolve({ base64: dataUrl.split(',')[1], mimeType: blob.type || 'image/jpeg' });
+          };
+          reader.onerror = reject;
+          reader.readAsDataURL(blob);
+        }));
+    }
+
+    // Gemini Vision API call
+    async function runGeminiOCR(imageUrl) {
+      const { base64, mimeType } = await blobUrlToBase64(imageUrl);
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${geminiKey}`;
+      const body = {
+        contents: [{
+          parts: [
+            { text: "Hãy đọc và trích xuất TOÀN BỘ văn bản trong ảnh này. Giữ nguyên bố cục dòng, thứ tự, và nội dung gốc. Nếu có chữ viết tay, cố gắng đọc chính xác nhất có thể. Chỉ trả về văn bản thuần, không giải thích thêm." },
+            { inlineData: { mimeType, data: base64 } }
+          ]
+        }],
+        generationConfig: { temperature: 0.1, maxOutputTokens: 4096 }
+      };
+      const resp = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      });
+      if (!resp.ok) {
+        const err = await resp.json().catch(() => ({}));
+        throw new Error(err.error?.message || `API error ${resp.status}`);
+      }
+      const data = await resp.json();
+      const text = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+      return text.trim();
+    }
+
+    // Tesseract fallback
+    async function runTesseractOCR(imageUrl, progressBar) {
+      const result = await Tesseract.recognize(imageUrl, 'vie+eng', {
+        logger: m => {
+          if (m.status === 'recognizing text' && typeof m.progress === 'number') {
+            progressBar.style.width = (m.progress * 100).toFixed(0) + '%';
+          }
+        }
+      });
+      return (result.data.text || '').trim();
+    }
+
     async function runOCR(card, imageUrl) {
       const textEl = card.querySelector('.ocr-card-text');
       const progressBar = card.querySelector('.ocr-progress-bar');
+      const progressEl = card.querySelector('.ocr-progress');
       const copyBtn = card.querySelector('.ocr-copy');
       const retryBtn = card.querySelector('.ocr-retry');
 
       try {
-        const result = await Tesseract.recognize(imageUrl, 'vie+eng', {
-          logger: m => {
-            if (m.status === 'recognizing text' && typeof m.progress === 'number') {
-              progressBar.style.width = (m.progress * 100).toFixed(0) + '%';
-            }
-          }
-        });
+        let text;
+        if (geminiKey) {
+          // Use Gemini Vision — no progress bar needed (fast API call)
+          progressBar.style.width = '60%';
+          textEl.querySelector('span').textContent = 'Đang đọc bằng Gemini AI…';
+          text = await runGeminiOCR(imageUrl);
+          progressBar.style.width = '100%';
+        } else {
+          // Fallback to Tesseract
+          text = await runTesseractOCR(imageUrl, progressBar);
+        }
 
-        const text = (result.data.text || '').trim();
-        card.querySelector('.ocr-progress').style.display = 'none';
+        progressEl.style.display = 'none';
 
         if (!text) {
           textEl.className = 'ocr-card-text ocr-error';
           textEl.textContent = 'Không phát hiện được chữ trong ảnh này.';
           retryBtn.style.display = '';
-          // Update preview if this card is currently shown
           if (ocrPv.classList.contains('open')) renderOcrPreview();
           return;
         }
@@ -5367,11 +5563,10 @@ Việt Nam</textarea>
         textEl.textContent = text;
         copyBtn.style.display = '';
         retryBtn.style.display = '';
-        // Update preview if this card is currently shown
         if (ocrPv.classList.contains('open')) renderOcrPreview();
       } catch (err) {
         console.error('OCR error:', err);
-        card.querySelector('.ocr-progress').style.display = 'none';
+        progressEl.style.display = 'none';
         textEl.className = 'ocr-card-text ocr-error';
         textEl.textContent = 'Lỗi: ' + (err.message || 'Không đọc được ảnh');
         retryBtn.style.display = '';
