@@ -2769,13 +2769,27 @@ Việt Nam</textarea>
         <div class="ocr-api-info">
           <span class="ocr-api-icon">🔑</span>
           <div>
-            <div class="ocr-api-title">Gemini API Key <span class="ocr-api-badge" id="ocrApiBadge">chưa cấu hình</span></div>
-            <div class="ocr-api-desc">Mặc định dùng PaddleOCR (offline, ~6MB). Thêm Gemini key để đọc chữ tay chính xác hơn. <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">Lấy API key →</a></div>
+            <div class="ocr-api-title">AI Vision API <span class="ocr-api-badge" id="ocrApiBadge">chưa cấu hình</span></div>
+            <div class="ocr-api-desc">Cần API key để đọc chữ viết tay chính xác. Chọn 1 trong 2 provider (đều miễn phí):</div>
           </div>
         </div>
         <div class="ocr-api-input-row" id="ocrApiInputRow" style="display:none">
-          <input type="password" id="ocrApiKey" placeholder="Paste Gemini API key..." class="ocr-api-input">
-          <button class="ocr-api-save" id="ocrApiSave">Lưu</button>
+          <div style="display:flex;flex-direction:column;gap:8px;width:100%">
+            <div style="display:flex;gap:6px;align-items:center">
+              <select id="ocrProvider" style="background:color-mix(in srgb, var(--text) 5%, transparent);border:1px solid var(--border);border-radius:8px;color:var(--text);padding:7px 10px;font:inherit;font-size:12px;cursor:pointer">
+                <option value="gemini">Gemini</option>
+                <option value="groq">Groq (Llama Vision)</option>
+              </select>
+              <input type="password" id="ocrApiKey" placeholder="Paste API key..." class="ocr-api-input">
+              <button class="ocr-api-save" id="ocrApiSave">Lưu</button>
+            </div>
+            <div class="ocr-api-desc" style="margin:0">
+              <span id="ocrProviderHelp">
+                Gemini: <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">Lấy key →</a> &nbsp;|&nbsp;
+                Groq: <a href="https://console.groq.com/keys" target="_blank" rel="noopener">Lấy key →</a>
+              </span>
+            </div>
+          </div>
         </div>
         <button class="ocr-api-toggle" id="ocrApiToggle">Cấu hình</button>
       </div>
@@ -5301,17 +5315,27 @@ Việt Nam</textarea>
     const ocrFileInput = document.getElementById('ocrFileInput');
     let ocrCount = 0;
 
-    // --- API key management ---
-    const ocrApiKey = document.getElementById('ocrApiKey');
+    // --- API key management (multi-provider) ---
+    const ocrApiKeyInput = document.getElementById('ocrApiKey');
     const ocrApiSave = document.getElementById('ocrApiSave');
     const ocrApiToggle = document.getElementById('ocrApiToggle');
     const ocrApiInputRow = document.getElementById('ocrApiInputRow');
     const ocrApiBadge = document.getElementById('ocrApiBadge');
-    let geminiKey = localStorage.getItem('ocr_gemini_key') || '';
+    const ocrProvider = document.getElementById('ocrProvider');
+    // Load saved config
+    let ocrConfig = JSON.parse(localStorage.getItem('ocr_config') || 'null') || { provider: '', key: '' };
+    // Migrate old gemini-only key
+    const oldGeminiKey = localStorage.getItem('ocr_gemini_key');
+    if (oldGeminiKey && !ocrConfig.key) {
+      ocrConfig = { provider: 'gemini', key: oldGeminiKey };
+      localStorage.setItem('ocr_config', JSON.stringify(ocrConfig));
+      localStorage.removeItem('ocr_gemini_key');
+    }
 
     function updateApiBadge() {
-      if (geminiKey) {
-        ocrApiBadge.textContent = 'đã kết nối';
+      if (ocrConfig.key) {
+        const name = ocrConfig.provider === 'groq' ? 'Groq' : 'Gemini';
+        ocrApiBadge.textContent = name + ' ✓';
         ocrApiBadge.classList.add('active');
         ocrApiToggle.textContent = 'Đổi key';
       } else {
@@ -5326,21 +5350,25 @@ Việt Nam</textarea>
       const showing = ocrApiInputRow.style.display !== 'none';
       ocrApiInputRow.style.display = showing ? 'none' : 'flex';
       if (!showing) {
-        ocrApiKey.value = geminiKey;
-        ocrApiKey.focus();
+        ocrProvider.value = ocrConfig.provider || 'gemini';
+        ocrApiKeyInput.value = ocrConfig.key || '';
+        ocrApiKeyInput.focus();
       }
     });
     ocrApiSave.addEventListener('click', () => {
-      geminiKey = ocrApiKey.value.trim();
-      if (geminiKey) {
-        localStorage.setItem('ocr_gemini_key', geminiKey);
+      const key = ocrApiKeyInput.value.trim();
+      const provider = ocrProvider.value;
+      if (key) {
+        ocrConfig = { provider, key };
+        localStorage.setItem('ocr_config', JSON.stringify(ocrConfig));
       } else {
-        localStorage.removeItem('ocr_gemini_key');
+        ocrConfig = { provider: '', key: '' };
+        localStorage.removeItem('ocr_config');
       }
       updateApiBadge();
       ocrApiInputRow.style.display = 'none';
     });
-    ocrApiKey.addEventListener('keydown', e => { if (e.key === 'Enter') ocrApiSave.click(); });
+    ocrApiKeyInput.addEventListener('keydown', e => { if (e.key === 'Enter') ocrApiSave.click(); });
 
     // --- Preview lightbox refs ---
     const ocrPv = document.getElementById('ocrPreview');
@@ -5529,51 +5557,65 @@ Việt Nam</textarea>
       return '';
     }
 
-    // 2) Gemini Vision API (premium — needs API key)
+    // 2) Vision API helpers
+    const OCR_PROMPT = "Hãy đọc và trích xuất TOÀN BỘ văn bản trong ảnh này. Giữ nguyên bố cục dòng, thứ tự, và nội dung gốc. Nếu có chữ viết tay, cố gắng đọc chính xác nhất có thể. Chỉ trả về văn bản thuần, không giải thích thêm.";
+
     function blobUrlToBase64(blobUrl) {
-      return fetch(blobUrl)
-        .then(r => r.blob())
-        .then(blob => new Promise((resolve, reject) => {
-          const reader = new FileReader();
-          reader.onload = () => resolve({ base64: reader.result.split(',')[1], mimeType: blob.type || 'image/jpeg' });
-          reader.onerror = reject;
-          reader.readAsDataURL(blob);
-        }));
+      return fetch(blobUrl).then(r => r.blob()).then(blob => new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve({ base64: reader.result.split(',')[1], mimeType: blob.type || 'image/jpeg' });
+        reader.onerror = reject;
+        reader.readAsDataURL(blob);
+      }));
     }
 
-    async function runGeminiOCR(imageUrl) {
+    async function runGeminiOCR(imageUrl, apiKey) {
       const { base64, mimeType } = await blobUrlToBase64(imageUrl);
-      const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent?key=${geminiKey}`;
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent?key=${apiKey}`;
       const body = {
-        contents: [{ parts: [
-          { text: "Hãy đọc và trích xuất TOÀN BỘ văn bản trong ảnh này. Giữ nguyên bố cục dòng, thứ tự, và nội dung gốc. Nếu có chữ viết tay, cố gắng đọc chính xác nhất có thể. Chỉ trả về văn bản thuần, không giải thích thêm." },
-          { inlineData: { mimeType, data: base64 } }
-        ]}],
+        contents: [{ parts: [{ text: OCR_PROMPT }, { inlineData: { mimeType, data: base64 } }] }],
         generationConfig: { temperature: 0.1, maxOutputTokens: 4096 }
       };
       const resp = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
-      if (!resp.ok) {
-        const err = await resp.json().catch(() => ({}));
-        throw new Error(err.error?.message || `API error ${resp.status}`);
-      }
+      if (!resp.ok) { const err = await resp.json().catch(() => ({})); throw new Error(err.error?.message || `API error ${resp.status}`); }
       const data = await resp.json();
       return (data.candidates?.[0]?.content?.parts?.[0]?.text || '').trim();
+    }
+
+    async function runGroqOCR(imageUrl, apiKey) {
+      const { base64, mimeType } = await blobUrlToBase64(imageUrl);
+      const dataUrl = `data:${mimeType};base64,${base64}`;
+      const body = {
+        model: 'llama-4-scout-17b-16e-instruct',
+        messages: [{ role: 'user', content: [
+          { type: 'text', text: OCR_PROMPT },
+          { type: 'image_url', image_url: { url: dataUrl } }
+        ]}],
+        temperature: 0.1, max_tokens: 4096
+      };
+      const resp = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
+        body: JSON.stringify(body)
+      });
+      if (!resp.ok) { const err = await resp.json().catch(() => ({})); throw new Error(err.error?.message || `Groq API error ${resp.status}`); }
+      const data = await resp.json();
+      return (data.choices?.[0]?.message?.content || '').trim();
     }
 
     // 3) Tesseract (last fallback)
     async function runTesseractOCR(imageUrl, progressBar) {
       const result = await Tesseract.recognize(imageUrl, 'vie+eng', {
         logger: m => {
-          if (m.status === 'recognizing text' && typeof m.progress === 'number') {
+          if (m.status === 'recognizing text' && typeof m.progress === 'number')
             progressBar.style.width = (m.progress * 100).toFixed(0) + '%';
-          }
         }
       });
       return (result.data.text || '').trim();
     }
 
     // ---- Main OCR dispatcher ----
-    // Priority: Gemini (if key) → PaddleOCR → Tesseract
+    // Priority: Vision API (if key) → PaddleOCR → Tesseract
     async function runOCR(card, imageUrl) {
       const textEl = card.querySelector('.ocr-card-text');
       const progressBar = card.querySelector('.ocr-progress-bar');
@@ -5585,31 +5627,37 @@ Việt Nam</textarea>
         let text = '';
         let usedEngine = '';
 
-        // Try Gemini first if key is set
-        if (geminiKey) {
+        // Try Vision API first if configured
+        if (ocrConfig.key) {
           try {
+            const providerName = ocrConfig.provider === 'groq' ? 'Groq (Llama Vision)' : 'Gemini';
             progressBar.style.width = '60%';
-            textEl.querySelector('span').textContent = 'Đang đọc bằng Gemini AI…';
-            text = await runGeminiOCR(imageUrl);
+            textEl.querySelector('span').textContent = `Đang đọc bằng ${providerName}…`;
+            if (ocrConfig.provider === 'groq') {
+              text = await runGroqOCR(imageUrl, ocrConfig.key);
+            } else {
+              text = await runGeminiOCR(imageUrl, ocrConfig.key);
+            }
             progressBar.style.width = '100%';
-            usedEngine = 'gemini';
-          } catch (geminiErr) {
-            console.warn('Gemini failed:', geminiErr.message);
+            usedEngine = ocrConfig.provider;
+          } catch (apiErr) {
+            console.warn('Vision API failed:', apiErr.message);
             text = '';
+            usedEngine = 'api-failed';
           }
         }
 
-        // Try PaddleOCR if Gemini unavailable or failed
+        // Try PaddleOCR if API unavailable or failed
         if (!text) {
           try {
             progressBar.style.width = '30%';
             textEl.querySelector('span').textContent = paddleReady ? 'Đang đọc bằng PaddleOCR…' : 'Đang tải PaddleOCR (~6MB lần đầu)…';
             text = await runPaddleOCR(imageUrl);
             progressBar.style.width = '100%';
-            usedEngine = usedEngine ? 'paddle-fallback' : 'paddle';
+            if (!usedEngine) usedEngine = 'paddle';
+            else usedEngine = 'paddle-fallback';
           } catch (paddleErr) {
             console.warn('PaddleOCR failed:', paddleErr.message);
-            text = '';
           }
         }
 
@@ -5632,16 +5680,13 @@ Việt Nam</textarea>
         }
 
         textEl.className = 'ocr-card-text';
-        // Show engine badge
-        const badges = {
-          'gemini': '',
-          'paddle': '',
-          'paddle-fallback': '<div style="color:#f90;font-size:11px;margin-bottom:6px;font-weight:600">⚠ Gemini lỗi — kết quả từ PaddleOCR</div>',
-          'tesseract': '<div style="color:#f90;font-size:11px;margin-bottom:6px;font-weight:600">⚠ Fallback Tesseract — kết quả có thể kém chính xác</div>',
-        };
-        const badge = badges[usedEngine] || '';
-        if (badge) {
-          textEl.innerHTML = badge + text.replace(/</g, '&lt;').replace(/\n/g, '<br>');
+        const warnBadge = (usedEngine === 'paddle-fallback')
+          ? '<div style="color:#f90;font-size:11px;margin-bottom:6px;font-weight:600">⚠ API lỗi — kết quả từ PaddleOCR</div>'
+          : (usedEngine === 'tesseract')
+          ? '<div style="color:#f90;font-size:11px;margin-bottom:6px;font-weight:600">⚠ Fallback Tesseract — kết quả có thể kém chính xác</div>'
+          : '';
+        if (warnBadge) {
+          textEl.innerHTML = warnBadge + text.replace(/</g, '&lt;').replace(/\n/g, '<br>');
         } else {
           textEl.textContent = text;
         }
