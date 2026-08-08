@@ -2770,7 +2770,7 @@ Việt Nam</textarea>
           <span class="ocr-api-icon">🔑</span>
           <div>
             <div class="ocr-api-title">Gemini API Key <span class="ocr-api-badge" id="ocrApiBadge">chưa cấu hình</span></div>
-            <div class="ocr-api-desc">Dùng Gemini Vision AI để đọc chữ chính xác hơn (miễn phí). <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">Lấy API key →</a></div>
+            <div class="ocr-api-desc">Mặc định dùng PaddleOCR (offline, ~6MB). Thêm Gemini key để đọc chữ tay chính xác hơn. <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">Lấy API key →</a></div>
           </div>
         </div>
         <div class="ocr-api-input-row" id="ocrApiInputRow" style="display:none">
@@ -5475,50 +5475,92 @@ Việt Nam</textarea>
       runOCR(card, url);
     }
 
-    // Convert blob URL to base64 data
+    // ---- OCR Engines ----
+
+    // 1) PaddleOCR (default — no API key, ~6MB model, cached)
+    let paddleService = null;
+    let paddleLoading = false;
+    let paddleReady = false;
+
+    async function ensurePaddle() {
+      if (paddleReady && paddleService) return paddleService;
+      if (paddleLoading) {
+        // Wait for ongoing init
+        while (paddleLoading) await new Promise(r => setTimeout(r, 200));
+        if (paddleReady) return paddleService;
+        throw new Error('PaddleOCR init failed');
+      }
+      paddleLoading = true;
+      try {
+        const mod = await import('https://esm.sh/ppu-paddle-ocr@latest/web');
+        paddleService = new mod.PaddleOcrService();
+        await paddleService.initialize();
+        paddleReady = true;
+        return paddleService;
+      } catch (err) {
+        paddleLoading = false;
+        throw err;
+      } finally {
+        paddleLoading = false;
+      }
+    }
+
+    async function runPaddleOCR(imageUrl) {
+      const svc = await ensurePaddle();
+      // Load image into a canvas for PaddleOCR
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+      await new Promise((resolve, reject) => {
+        img.onload = resolve;
+        img.onerror = () => reject(new Error('Image load failed'));
+        img.src = imageUrl;
+      });
+      const canvas = document.createElement('canvas');
+      canvas.width = img.naturalWidth;
+      canvas.height = img.naturalHeight;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0);
+      const result = await svc.recognize(canvas);
+      // result.text or result.items
+      if (result && result.text) return result.text.trim();
+      if (result && result.items) {
+        return result.items.map(it => it.text || '').join('\n').trim();
+      }
+      return '';
+    }
+
+    // 2) Gemini Vision API (premium — needs API key)
     function blobUrlToBase64(blobUrl) {
       return fetch(blobUrl)
         .then(r => r.blob())
         .then(blob => new Promise((resolve, reject) => {
           const reader = new FileReader();
-          reader.onload = () => {
-            const dataUrl = reader.result;
-            // Extract base64 after the comma
-            resolve({ base64: dataUrl.split(',')[1], mimeType: blob.type || 'image/jpeg' });
-          };
+          reader.onload = () => resolve({ base64: reader.result.split(',')[1], mimeType: blob.type || 'image/jpeg' });
           reader.onerror = reject;
           reader.readAsDataURL(blob);
         }));
     }
 
-    // Gemini Vision API call
     async function runGeminiOCR(imageUrl) {
       const { base64, mimeType } = await blobUrlToBase64(imageUrl);
       const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent?key=${geminiKey}`;
       const body = {
-        contents: [{
-          parts: [
-            { text: "Hãy đọc và trích xuất TOÀN BỘ văn bản trong ảnh này. Giữ nguyên bố cục dòng, thứ tự, và nội dung gốc. Nếu có chữ viết tay, cố gắng đọc chính xác nhất có thể. Chỉ trả về văn bản thuần, không giải thích thêm." },
-            { inlineData: { mimeType, data: base64 } }
-          ]
-        }],
+        contents: [{ parts: [
+          { text: "Hãy đọc và trích xuất TOÀN BỘ văn bản trong ảnh này. Giữ nguyên bố cục dòng, thứ tự, và nội dung gốc. Nếu có chữ viết tay, cố gắng đọc chính xác nhất có thể. Chỉ trả về văn bản thuần, không giải thích thêm." },
+          { inlineData: { mimeType, data: base64 } }
+        ]}],
         generationConfig: { temperature: 0.1, maxOutputTokens: 4096 }
       };
-      const resp = await fetch(url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body)
-      });
+      const resp = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
       if (!resp.ok) {
         const err = await resp.json().catch(() => ({}));
         throw new Error(err.error?.message || `API error ${resp.status}`);
       }
       const data = await resp.json();
-      const text = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
-      return text.trim();
+      return (data.candidates?.[0]?.content?.parts?.[0]?.text || '').trim();
     }
 
-    // Tesseract fallback
+    // 3) Tesseract (last fallback)
     async function runTesseractOCR(imageUrl, progressBar) {
       const result = await Tesseract.recognize(imageUrl, 'vie+eng', {
         logger: m => {
@@ -5530,6 +5572,8 @@ Việt Nam</textarea>
       return (result.data.text || '').trim();
     }
 
+    // ---- Main OCR dispatcher ----
+    // Priority: Gemini (if key) → PaddleOCR → Tesseract
     async function runOCR(card, imageUrl) {
       const textEl = card.querySelector('.ocr-card-text');
       const progressBar = card.querySelector('.ocr-progress-bar');
@@ -5538,8 +5582,10 @@ Việt Nam</textarea>
       const retryBtn = card.querySelector('.ocr-retry');
 
       try {
-        let text;
-        let usedEngine = 'tesseract';
+        let text = '';
+        let usedEngine = '';
+
+        // Try Gemini first if key is set
         if (geminiKey) {
           try {
             progressBar.style.width = '60%';
@@ -5548,15 +5594,31 @@ Việt Nam</textarea>
             progressBar.style.width = '100%';
             usedEngine = 'gemini';
           } catch (geminiErr) {
-            console.warn('Gemini failed, falling back to Tesseract:', geminiErr.message);
-            // Reset loading UI for Tesseract
-            progressBar.style.width = '0%';
-            textEl.querySelector('span').textContent = 'Gemini lỗi — đang thử Tesseract…';
-            text = await runTesseractOCR(imageUrl, progressBar);
-            usedEngine = 'tesseract-fallback';
+            console.warn('Gemini failed:', geminiErr.message);
+            text = '';
           }
-        } else {
+        }
+
+        // Try PaddleOCR if Gemini unavailable or failed
+        if (!text) {
+          try {
+            progressBar.style.width = '30%';
+            textEl.querySelector('span').textContent = paddleReady ? 'Đang đọc bằng PaddleOCR…' : 'Đang tải PaddleOCR (~6MB lần đầu)…';
+            text = await runPaddleOCR(imageUrl);
+            progressBar.style.width = '100%';
+            usedEngine = usedEngine ? 'paddle-fallback' : 'paddle';
+          } catch (paddleErr) {
+            console.warn('PaddleOCR failed:', paddleErr.message);
+            text = '';
+          }
+        }
+
+        // Last resort: Tesseract
+        if (!text) {
+          progressBar.style.width = '0%';
+          textEl.querySelector('span').textContent = 'Đang thử Tesseract…';
           text = await runTesseractOCR(imageUrl, progressBar);
+          usedEngine = 'tesseract';
         }
 
         progressEl.style.display = 'none';
@@ -5570,8 +5632,16 @@ Việt Nam</textarea>
         }
 
         textEl.className = 'ocr-card-text';
-        if (usedEngine === 'tesseract-fallback') {
-          textEl.innerHTML = '<div style="color:#f90;font-size:11px;margin-bottom:6px;font-weight:600">⚠ Gemini lỗi — kết quả từ Tesseract (có thể kém chính xác)</div>' + text.replace(/</g,'&lt;');
+        // Show engine badge
+        const badges = {
+          'gemini': '',
+          'paddle': '',
+          'paddle-fallback': '<div style="color:#f90;font-size:11px;margin-bottom:6px;font-weight:600">⚠ Gemini lỗi — kết quả từ PaddleOCR</div>',
+          'tesseract': '<div style="color:#f90;font-size:11px;margin-bottom:6px;font-weight:600">⚠ Fallback Tesseract — kết quả có thể kém chính xác</div>',
+        };
+        const badge = badges[usedEngine] || '';
+        if (badge) {
+          textEl.innerHTML = badge + text.replace(/</g, '&lt;').replace(/\n/g, '<br>');
         } else {
           textEl.textContent = text;
         }
