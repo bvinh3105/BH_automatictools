@@ -2205,7 +2205,7 @@
     flex: 1; min-height: 0;
     display: flex;
     padding: 16px;
-    gap: 16px;
+    gap: 0;
   }
   .ocr-pv-img-wrap {
     flex: 1; min-width: 0;
@@ -2213,6 +2213,7 @@
     align-items: center;
     justify-content: center;
     overflow: auto;
+    padding-right: 16px;
   }
   .ocr-pv-img-wrap img {
     max-width: 100%;
@@ -2222,7 +2223,7 @@
     box-shadow: 0 12px 40px rgba(0,0,0,0.35);
   }
   .ocr-pv-text-wrap {
-    width: 340px; min-width: 280px;
+    width: 340px; min-width: 340px; flex-shrink: 0;
     display: flex;
     flex-direction: column;
     background: rgba(255,255,255,0.06);
