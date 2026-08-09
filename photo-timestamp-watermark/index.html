@@ -5315,7 +5315,7 @@ Việt Nam</textarea>
     let teaseTimer = null;
 
     mascot.addEventListener('mouseenter', () => {
-      if (isSleeping || isDragging || isJumping) return;
+      if (isSleeping || isDragging || isJumping || isMoving || isChasing) return;
       teaseCount++;
 
       // Reset combo sau 5 giây không trêu
