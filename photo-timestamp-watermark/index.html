@@ -4927,12 +4927,12 @@ Việt Nam</textarea>
       if (isDragging || isSleeping || isFalling || isMoving || currentAnim === 'sound' || currentAnim === 'jump') return;
       if (noticeCooldown) return;
 
-      // Hạn chế check liên tục, 0.8 giây kiểm tra "để ý" chuột một lần
+      // Hạn chế check liên tục, 2 giây kiểm tra "để ý" chuột một lần
       noticeCooldown = true;
-      setTimeout(() => { noticeCooldown = false; }, 800);
+      setTimeout(() => { noticeCooldown = false; }, 2000);
 
-      // Tỷ lệ 2/5 (40%) mèo sẽ quyết định rượt theo chuột
-      if (Math.random() < 0.40) {
+      // Tỷ lệ 12% mèo sẽ quyết định rượt theo chuột (chảnh hơn)
+      if (Math.random() < 0.12) {
          clearTimeout(idleTimer);
          chaseMouse();
       }
@@ -5002,7 +5002,7 @@ Việt Nam</textarea>
       isMoving = false;
       isChasing = false;
       if (moveRAF) cancelAnimationFrame(moveRAF);
-      play('idle');
+      if (!isJumping) play('idle');
       scheduleIdleActivity();
     }
 
@@ -5039,48 +5039,108 @@ Việt Nam</textarea>
       moveRAF = requestAnimationFrame(step);
     }
 
-    // Hành động rượt chuột
+    // Hành động rượt chuột — chạy lấy đà rồi nhảy bắt
+    let isJumping = false;
+
     function chaseMouse() {
       isMoving = true;
       isChasing = true;
       play('run');
-      
-      // Random thời gian rượt: min 1 giây, max 3 giây
-      const chaseDuration = 1000 + Math.random() * 2000;
+
+      const chaseDuration = 1500 + Math.random() * 2500;
       const endTime = Date.now() + chaseDuration;
+      let runFrames = 0; // đếm frame chạy để tính "lấy đà"
 
       if (moveRAF) cancelAnimationFrame(moveRAF);
 
       function step() {
         if (!isChasing || isDragging) return;
+        runFrames++;
 
         if (Date.now() > endTime) {
-           // Hết thời gian mà chưa bắt được, từ bỏ
+           // Hết thời gian, từ bỏ — đôi khi nói chảnh
            stopMovement();
+           if (Math.random() < 0.4) {
+             const bored = ['chán...', 'hửm...', 'kệ đi', 'ko thèm bắt', '*ngáp*'];
+             say(bored[Math.floor(Math.random() * bored.length)], 1500);
+           }
            return;
         }
 
         const target = Math.max(20, Math.min(window.innerWidth - FRAME_PX - 20, mouseX - FRAME_PX / 2));
         const dx = target - posX;
 
-        if (Math.abs(dx) < RUN_SPEED) {
-           // Bắt kịp chuột
+        if (Math.abs(dx) < RUN_SPEED * 2) {
+           // Đủ gần — nhảy lên bắt chuột!
            posX = target;
            mascot.style.left = posX + 'px';
-           stopMovement();
-           play('jump', { onDone: () => {} });
-           say('bắt được rồi! 🐾', 1500);
+           isChasing = false;
+           isMoving = false;
+           jumpToCatch();
            return;
         }
 
         facingLeft = dx < 0;
         mascot.classList.toggle('flip', facingLeft);
 
-        posX += (dx > 0 ? 1 : -1) * RUN_SPEED;
+        // Tăng tốc dần khi chạy lấy đà
+        const accel = Math.min(RUN_SPEED * 1.5, RUN_SPEED + runFrames * 0.02);
+        posX += (dx > 0 ? 1 : -1) * accel;
         mascot.style.left = posX + 'px';
         moveRAF = requestAnimationFrame(step);
       }
       moveRAF = requestAnimationFrame(step);
+    }
+
+    // Nhảy lên cao bắt chuột (max 5x chiều cao sprite)
+    function jumpToCatch() {
+      isJumping = true;
+      play('jump');
+
+      const groundBottom = 16; // bottom offset khi đứng
+      const maxJumpH = FRAME_PX * 5; // max 5x sprite height
+      // Nhảy cao tùy vị trí chuột, nhưng không quá max
+      const mouseFromBottom = window.innerHeight - mouseY;
+      const jumpH = Math.min(maxJumpH, Math.max(FRAME_PX * 1.5, mouseFromBottom));
+
+      const totalDuration = 600; // ms
+      const startTime = Date.now();
+
+      mascot.style.bottom = '';
+      const startBottom = groundBottom;
+
+      function jumpStep() {
+        if (!isJumping) return;
+        const elapsed = Date.now() - startTime;
+        const t = Math.min(1, elapsed / totalDuration);
+        // Parabola: lên rồi xuống
+        const h = jumpH * 4 * t * (1 - t);
+        mascot.style.bottom = (startBottom + h) + 'px';
+        mascot.style.top = '';
+
+        if (t >= 1) {
+          // Hạ cánh
+          isJumping = false;
+          mascot.style.bottom = groundBottom + 'px';
+          mascot.style.top = '';
+
+          const caught = Math.random() < 0.45;
+          if (caught) {
+            play('eat');
+            const wins = ['bắt được rồi! 🐾', 'hehe 😼', 'meo meo~ 🎯', 'ngon! 🐱'];
+            say(wins[Math.floor(Math.random() * wins.length)], 1800);
+            setTimeout(() => { if (!isDragging && !isSleeping) { play('idle'); scheduleIdleActivity(); } }, 2000);
+          } else {
+            play('idle');
+            const miss = ['hụt rồi...', 'trượt! 😿', 'nhanh quá!', 'lần sau...'];
+            say(miss[Math.floor(Math.random() * miss.length)], 1500);
+            scheduleIdleActivity();
+          }
+          return;
+        }
+        requestAnimationFrame(jumpStep);
+      }
+      requestAnimationFrame(jumpStep);
     }
 
     let idleTimer = null;
@@ -5089,24 +5149,34 @@ Việt Nam</textarea>
 
     function scheduleIdleActivity() {
       clearTimeout(idleTimer);
-      const delay = 3500 + Math.random() * 6000;
+      const delay = 4000 + Math.random() * 8000; // Chậm rãi hơn, chảnh hơn
       idleTimer = setTimeout(() => {
         // Chặn gọi hành động rảnh rỗi nếu mèo đang bận di chuyển
-        if (isSleeping || isDragging || currentAnim === 'sound' || currentAnim === 'jump' || isMoving) {
+        if (isSleeping || isDragging || currentAnim === 'sound' || currentAnim === 'jump' || isMoving || isJumping) {
           scheduleIdleActivity();
           return;
         }
-        
+
         const r = Math.random();
         if (r < 0.25) {
+          // Chớp mắt / ngồi yên — mèo lười
           play('blink');
           setTimeout(() => { if (!isSleeping && !isDragging) play('idle'); scheduleIdleActivity(); }, 400);
-        } else if (r < 0.35) {
+        } else if (r < 0.40) {
+          // Ngắm nghía, liếm lông
           play('inspect');
-          setTimeout(() => { if (!isSleeping && !isDragging) play('idle'); scheduleIdleActivity(); }, 2400);
-        } else if (r < 0.55) {
+          const msgs = ['hmm...', 'lông mình đẹp ghê', '*liếm liếm*', '...'];
+          say(msgs[Math.floor(Math.random() * msgs.length)], 2000);
+          setTimeout(() => { if (!isSleeping && !isDragging) play('idle'); scheduleIdleActivity(); }, 2800);
+        } else if (r < 0.48) {
+          // Hiếm khi rượt — chảnh
           chaseMouse();
+        } else if (r < 0.58) {
+          // Đứng yên nhìn, không thèm đi
+          play('stand');
+          setTimeout(() => { if (!isSleeping && !isDragging) play('idle'); scheduleIdleActivity(); }, 2000 + Math.random() * 3000);
         } else {
+          // Đi dạo lững thững
           const minX = 60, maxX = window.innerWidth - FRAME_PX - 60;
           walkTo(minX + Math.random() * (maxX - minX));
         }
@@ -5233,11 +5303,72 @@ Việt Nam</textarea>
       resetUserIdle();
     });
 
+    // --- Trêu đùa với mèo ---
+    let teaseCount = 0;
+    let teaseTimer = null;
+
     mascot.addEventListener('mouseenter', () => {
-      if (isSleeping || isDragging) return;
-      play('sound', { onDone: () => {} });
-      const messages = ['meo meo~', 'meo :3', 'ựm...', 'hí hí', 'chào Thảo', 'còn chỗ nào đau không'];
-      say(messages[Math.floor(Math.random() * messages.length)]);
+      if (isSleeping || isDragging || isJumping) return;
+      teaseCount++;
+
+      // Reset combo sau 5 giây không trêu
+      clearTimeout(teaseTimer);
+      teaseTimer = setTimeout(() => { teaseCount = 0; }, 5000);
+
+      if (teaseCount >= 5) {
+        // Trêu quá nhiều → giận
+        play('sound', { onDone: () => {} });
+        const angry = ['đừng có chọc nữa! 😾', 'HỪ!', 'bực rồi đấy!', 'meoooo!! 😤'];
+        say(angry[Math.floor(Math.random() * angry.length)], 2000);
+        teaseCount = 0;
+        // Chạy trốn sang hướng ngược lại
+        setTimeout(() => {
+          if (!isDragging && !isSleeping) {
+            const fleeX = mouseX > posX ? Math.max(40, posX - 200 - Math.random() * 200) : Math.min(window.innerWidth - FRAME_PX - 40, posX + 200 + Math.random() * 200);
+            walkTo(fleeX);
+          }
+        }, 600);
+      } else if (teaseCount >= 3) {
+        // Trêu vài lần → khó chịu
+        play('sound', { onDone: () => {} });
+        const annoyed = ['ựm... 😒', 'gì đấy!', 'thôi đi mà', 'dừng lại!'];
+        say(annoyed[Math.floor(Math.random() * annoyed.length)]);
+      } else {
+        // Lần đầu — dễ thương
+        play('sound', { onDone: () => {} });
+        const messages = ['meo meo~', 'meo :3', 'ựm...', 'hí hí', 'chào Thảo ❤️', 'gãi đầu đi~'];
+        say(messages[Math.floor(Math.random() * messages.length)]);
+      }
+    });
+
+    // Click vào mèo nhiều lần → phản ứng khác nhau
+    let clickCombo = 0;
+    let clickTimer = null;
+    mascot.addEventListener('click', () => {
+      if (isDragging || didDrag) return;
+      clickCombo++;
+      clearTimeout(clickTimer);
+      clickTimer = setTimeout(() => { clickCombo = 0; }, 3000);
+
+      if (clickCombo >= 4) {
+        // Click nhiều quá → mèo quay vòng vòng
+        play('run');
+        const spin = ['chóng mặt rồi! 🌀', 'aaaa quay!', 'xoay xoay~'];
+        say(spin[Math.floor(Math.random() * spin.length)], 1500);
+        let spins = 0;
+        const spinInterval = setInterval(() => {
+          facingLeft = !facingLeft;
+          mascot.classList.toggle('flip', facingLeft);
+          spins++;
+          if (spins >= 6) {
+            clearInterval(spinInterval);
+            play('idle');
+            say('hoa mắt... 😵‍💫', 1500);
+            clickCombo = 0;
+            scheduleIdleActivity();
+          }
+        }, 200);
+      }
     });
 
     mascot.addEventListener('keydown', e => {
