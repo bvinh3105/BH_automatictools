@@ -5558,7 +5558,7 @@ Việt Nam</textarea>
     }
 
     // 2) Vision API helpers
-    const OCR_PROMPT = "Hãy đọc và trích xuất TOÀN BỘ văn bản trong ảnh này. Giữ nguyên bố cục dòng, thứ tự, và nội dung gốc. Nếu có chữ viết tay, cố gắng đọc chính xác nhất có thể. Chỉ trả về văn bản thuần, không giải thích thêm.";
+    const OCR_PROMPT = "Đọc và trích xuất TOÀN BỘ văn bản trong ảnh. Giữ nguyên bố cục dòng và thứ tự. Nếu có chữ viết tay, đọc chính xác nhất có thể. CHỈ trả về văn bản thuần túy, KHÔNG giải thích, KHÔNG mô tả ảnh, KHÔNG nêu chiến lược, KHÔNG suy luận. Trả lời ngắn gọn nhất có thể.";
 
     function blobUrlToBase64(blobUrl) {
       return fetch(blobUrl).then(r => r.blob()).then(blob => new Promise((resolve, reject) => {
@@ -5587,11 +5587,15 @@ Việt Nam</textarea>
       const dataUrl = `data:${mimeType};base64,${base64}`;
       const body = {
         model: 'qwen/qwen3.6-27b',
-        messages: [{ role: 'user', content: [
-          { type: 'text', text: OCR_PROMPT },
-          { type: 'image_url', image_url: { url: dataUrl } }
-        ]}],
-        temperature: 0.1, max_tokens: 4096
+        messages: [
+          { role: 'system', content: 'You are an OCR tool. Output ONLY the extracted text. No reasoning, no explanation, no thinking.' },
+          { role: 'user', content: [
+            { type: 'text', text: OCR_PROMPT },
+            { type: 'image_url', image_url: { url: dataUrl } }
+          ]}
+        ],
+        temperature: 0.1, max_tokens: 4096,
+        chat_template_kwargs: { enable_thinking: false }
       };
       const resp = await fetch('https://api.groq.com/openai/v1/chat/completions', {
         method: 'POST',
@@ -5600,7 +5604,10 @@ Việt Nam</textarea>
       });
       if (!resp.ok) { const err = await resp.json().catch(() => ({})); throw new Error(err.error?.message || `Groq API error ${resp.status}`); }
       const data = await resp.json();
-      return (data.choices?.[0]?.message?.content || '').trim();
+      let text = (data.choices?.[0]?.message?.content || '').trim();
+      // Strip thinking tags if model still outputs them
+      text = text.replace(/<think>[\s\S]*?<\/think>/gi, '').trim();
+      return text;
     }
 
     // 3) Tesseract (last fallback)
