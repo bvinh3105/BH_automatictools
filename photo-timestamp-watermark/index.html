@@ -5304,6 +5304,8 @@ Việt Nam</textarea>
       isFalling = false;
       isMoving = false;
       isChasing = false;
+      if (isSleeping) { isSleeping = false; sleepDepth = 0; idleActionCount = 0; }
+      bubble.classList.remove('show'); // xóa thoại cũ
       moveEpoch++;
       if (moveRAF) { cancelAnimationFrame(moveRAF); moveRAF = null; }
       clearTimeout(idleTimer);
