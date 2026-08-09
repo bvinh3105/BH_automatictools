@@ -2336,6 +2336,7 @@
     filter: drop-shadow(0 3px 8px rgba(0, 0, 0, 0.22));
     transition: filter 0.15s;
     touch-action: none;
+    overflow: visible;
   }
   .mascot:active, .mascot.dragging {
     cursor: grabbing;
@@ -2344,32 +2345,40 @@
   .mascot.flip {
     transform: scaleX(-1);
   }
+  .mascot.flip .mascot-bubble {
+    transform: scaleX(-1) translateX(50%) translateY(6px) scale(0.9);
+  }
+  .mascot.flip .mascot-bubble.show {
+    transform: scaleX(-1) translateX(50%) translateY(-4px) scale(1);
+  }
   /* Speech bubble that pops up when the cat is spoken-to */
   .mascot-bubble {
-    position: fixed;
+    position: absolute;
+    left: 50%;
+    bottom: 100%;
+    transform: translateX(-50%) translateY(6px) scale(0.9);
     z-index: 56;
-    padding: 8px 14px;
+    padding: 6px 12px;
     background: var(--glass-strong);
     backdrop-filter: blur(20px) saturate(180%);
     -webkit-backdrop-filter: blur(20px) saturate(180%);
     border: 1px solid var(--border);
-    border-radius: 14px 14px 14px 4px;
+    border-radius: 12px;
     color: var(--text);
-    font-size: 12.5px;
+    font-size: 12px;
     font-weight: 600;
     box-shadow: var(--shadow);
     opacity: 0;
-    transform: translateY(6px) scale(0.9);
-    transform-origin: bottom left;
+    transform-origin: center bottom;
     pointer-events: none;
     transition: opacity 0.25s cubic-bezier(0.16, 1, 0.3, 1),
                 transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
     white-space: nowrap;
-    max-width: 240px;
+    max-width: 200px;
   }
   .mascot-bubble.show {
     opacity: 1;
-    transform: translateY(0) scale(1);
+    transform: translateX(-50%) translateY(-4px) scale(1);
   }
   @media (max-width: 640px) {
     .mascot { width: 72px; height: 72px; background-size: auto 72px; bottom: 12px; }
@@ -2874,8 +2883,9 @@ Việt Nam</textarea>
 </div><!-- /master-layout -->
 
 <!-- Pixel mascot cat (bottom-right) -->
-<div class="mascot" id="mascot" aria-label="Meo" role="button" tabindex="0"></div>
-<div class="mascot-bubble" id="mascotBubble" aria-hidden="true"></div>
+<div class="mascot" id="mascot" aria-label="Meo" role="button" tabindex="0">
+  <div class="mascot-bubble" id="mascotBubble" aria-hidden="true"></div>
+</div>
 
 <script>
   // ---------- Sidebar Navigation ----------
@@ -4986,16 +4996,9 @@ Việt Nam</textarea>
     let bubbleTimer = null;
     function say(text, ms = 2200) {
       bubble.textContent = text;
-      posBubble();
       bubble.classList.add('show');
       clearTimeout(bubbleTimer);
       bubbleTimer = setTimeout(() => bubble.classList.remove('show'), ms);
-    }
-    
-    function posBubble() {
-      const r = mascot.getBoundingClientRect();
-      bubble.style.left = (facingLeft ? r.right + 6 : r.left - 6) + 'px';
-      bubble.style.top = (r.top - 42) + 'px';
     }
 
     // Dừng mọi hành động di chuyển (ngăn lỗi trượt khi đang idle)
@@ -5244,7 +5247,6 @@ Việt Nam</textarea>
       mascot.style.left = newX + 'px';
       mascot.style.bottom = 'auto';
       mascot.style.top = (e.clientY - (FRAME_PX / 2)) + 'px';
-      posBubble();
     });
 
     function startFall() {
@@ -5439,7 +5441,7 @@ Việt Nam</textarea>
     window.addEventListener('resize', () => {
       const maxX = window.innerWidth - FRAME_PX - 20;
       if (posX > maxX) { posX = maxX; mascot.style.left = posX + 'px'; }
-      if (bubble.classList.contains('show')) posBubble();
+      // bubble is now a child of mascot, no manual repositioning needed
     });
   })();
 
