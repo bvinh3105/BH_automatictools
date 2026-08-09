@@ -5099,60 +5099,68 @@ Việt Nam</textarea>
       moveRAF = requestAnimationFrame(step);
     }
 
-    // Nhảy parabol bắt chuột — bay ngang + lên xuống theo cung
+    // Nhảy parabol bắt chuột — vật lý mô phỏng thực tế
     function jumpToCatch() {
       isJumping = true;
       play('jump');
 
       const groundBottom = 16;
       const maxJumpH = FRAME_PX * 5;
-      // Chiều cao nhảy theo vị trí chuột (càng cao càng nhảy cao)
-      const mouseFromBottom = window.innerHeight - mouseY;
-      const jumpH = Math.min(maxJumpH, Math.max(FRAME_PX * 1.2, mouseFromBottom));
 
-      // Tính điểm đích ngang — nhảy về phía chuột nhưng giới hạn khoảng cách
+      // Vị trí chuột tính từ mặt đất
+      const mouseFromBottom = window.innerHeight - mouseY;
+      const jumpH = Math.min(maxJumpH, Math.max(FRAME_PX * 1.5, mouseFromBottom));
+
+      // Tính khoảng cách ngang đến chuột
       const startX = posX;
       const minX = 20, maxX = window.innerWidth - FRAME_PX - 20;
       const rawTargetX = mouseX - FRAME_PX / 2;
-      const maxLeap = FRAME_PX * 4; // nhảy xa tối đa 4x sprite
       const clampedTarget = Math.max(minX, Math.min(maxX, rawTargetX));
-      const dx = clampedTarget - startX;
-      const targetXClamped = startX + Math.sign(dx) * Math.min(Math.abs(dx), maxLeap);
+      const hDist = clampedTarget - startX;
+      const maxLeap = FRAME_PX * 5;
+      const landX = startX + Math.sign(hDist) * Math.min(Math.abs(hDist), maxLeap);
 
-      // Hướng nhảy
-      facingLeft = dx < 0;
-      mascot.classList.toggle('flip', facingLeft);
+      // Nếu chuột gần ngay trên đầu (<1 sprite ngang) → nhảy thẳng đứng
+      const isVerticalJump = Math.abs(hDist) < FRAME_PX;
 
-      // Thời gian nhảy tỷ lệ với độ cao (mượt hơn)
-      const totalDuration = 450 + (jumpH / maxJumpH) * 350; // 450-800ms
-      const startTime = Date.now();
+      // Hướng mặt
+      if (!isVerticalJump) {
+        facingLeft = hDist < 0;
+        mascot.classList.toggle('flip', facingLeft);
+      }
+
+      // Vật lý: tính vận tốc ban đầu từ độ cao mong muốn
+      // v² = 2 * g * h  →  vy0 = sqrt(2*g*h)
+      const GRAVITY = 0.38;   // pixel/frame² — nhẹ hơn để bay lâu, nhìn rõ
+      const vy0 = Math.sqrt(2 * GRAVITY * jumpH);
+
+      // Thời gian bay = 2 * vy0 / g (lên + xuống)
+      const totalFrames = Math.ceil(2 * vy0 / GRAVITY);
+      // Vận tốc ngang = khoảng cách / tổng frame
+      const vx = isVerticalJump ? 0 : (landX - startX) / totalFrames;
+
+      let frame = 0;
+      let vy = -vy0; // âm = lên trên
+      let currentH = 0;
+      let peakReached = false;
 
       mascot.style.bottom = '';
 
       function jumpStep() {
         if (!isJumping) return;
-        const elapsed = Date.now() - startTime;
-        const t = Math.min(1, elapsed / totalDuration);
+        frame++;
 
-        // Parabol: chiều cao = đỉnh ở t=0.5
-        const h = jumpH * 4 * t * (1 - t);
-        // Di chuyển ngang tuyến tính
-        const currentX = startX + (targetXClamped - startX) * t;
+        // Vật lý
+        vy += GRAVITY;
+        currentH -= vy; // vy âm = bay lên, dương = rơi xuống
+        const currentX = startX + vx * frame;
 
-        posX = currentX;
-        mascot.style.left = posX + 'px';
-        mascot.style.bottom = (groundBottom + h) + 'px';
-        mascot.style.top = '';
-
-        // Chuyển animation fall khi đang rơi xuống (nửa sau)
-        if (t > 0.55 && currentAnim !== 'fall') {
-          play('fall');
-        }
-
-        if (t >= 1) {
-          // Hạ cánh
+        // Chạm đất
+        if (currentH <= 0 && frame > 2) {
+          currentH = 0;
           isJumping = false;
-          posX = Math.max(minX, Math.min(maxX, posX));
+
+          posX = Math.max(minX, Math.min(maxX, currentX));
           mascot.style.left = posX + 'px';
           mascot.style.bottom = groundBottom + 'px';
           mascot.style.top = '';
@@ -5171,6 +5179,18 @@ Việt Nam</textarea>
           }
           return;
         }
+
+        // Chuyển animation fall khi bắt đầu rơi
+        if (!peakReached && vy > 0) {
+          peakReached = true;
+          play('fall');
+        }
+
+        posX = Math.max(minX, Math.min(maxX, currentX));
+        mascot.style.left = posX + 'px';
+        mascot.style.bottom = (groundBottom + Math.max(0, currentH)) + 'px';
+        mascot.style.top = '';
+
         requestAnimationFrame(jumpStep);
       }
       requestAnimationFrame(jumpStep);
