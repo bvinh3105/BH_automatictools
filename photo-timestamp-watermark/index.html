@@ -2778,7 +2778,8 @@ Việt Nam</textarea>
             <div style="display:flex;gap:6px;align-items:center">
               <select id="ocrProvider" style="background:color-mix(in srgb, var(--text) 5%, transparent);border:1px solid var(--border);border-radius:8px;color:var(--text);padding:7px 10px;font:inherit;font-size:12px;cursor:pointer">
                 <option value="gemini">Gemini</option>
-                <option value="groq">Groq (Llama Vision)</option>
+                <option value="groq">Groq (Qwen Vision)</option>
+                <option value="ollama">Local (Ollama)</option>
               </select>
               <input type="password" id="ocrApiKey" placeholder="Paste API key..." class="ocr-api-input">
               <button class="ocr-api-save" id="ocrApiSave">Lưu</button>
@@ -2786,7 +2787,8 @@ Việt Nam</textarea>
             <div class="ocr-api-desc" style="margin:0">
               <span id="ocrProviderHelp">
                 Gemini: <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">Lấy key →</a> &nbsp;|&nbsp;
-                Groq: <a href="https://console.groq.com/keys" target="_blank" rel="noopener">Lấy key →</a>
+                Groq: <a href="https://console.groq.com/keys" target="_blank" rel="noopener">Lấy key →</a> &nbsp;|&nbsp;
+                Ollama: <a href="https://ollama.com/download" target="_blank" rel="noopener">Tải Ollama →</a>
               </span>
             </div>
           </div>
@@ -5333,7 +5335,12 @@ Việt Nam</textarea>
     }
 
     function updateApiBadge() {
-      if (ocrConfig.key) {
+      if (ocrConfig.provider === 'ollama') {
+        const url = ocrConfig.key || 'http://localhost:11434';
+        ocrApiBadge.textContent = 'Ollama ✓';
+        ocrApiBadge.classList.add('active');
+        ocrApiToggle.textContent = 'Đổi cấu hình';
+      } else if (ocrConfig.key) {
         const name = ocrConfig.provider === 'groq' ? 'Groq' : 'Gemini';
         ocrApiBadge.textContent = name + ' ✓';
         ocrApiBadge.classList.add('active');
@@ -5352,13 +5359,29 @@ Việt Nam</textarea>
       if (!showing) {
         ocrProvider.value = ocrConfig.provider || 'gemini';
         ocrApiKeyInput.value = ocrConfig.key || '';
+        updateKeyPlaceholder();
         ocrApiKeyInput.focus();
       }
     });
+    function updateKeyPlaceholder() {
+      const p = ocrProvider.value;
+      if (p === 'ollama') {
+        ocrApiKeyInput.type = 'text';
+        ocrApiKeyInput.placeholder = 'URL (mặc định: http://localhost:11434)';
+      } else {
+        ocrApiKeyInput.type = 'password';
+        ocrApiKeyInput.placeholder = 'Paste API key...';
+      }
+    }
+    ocrProvider.addEventListener('change', updateKeyPlaceholder);
+
     ocrApiSave.addEventListener('click', () => {
       const key = ocrApiKeyInput.value.trim();
       const provider = ocrProvider.value;
-      if (key) {
+      if (provider === 'ollama') {
+        ocrConfig = { provider, key: key || 'http://localhost:11434' };
+        localStorage.setItem('ocr_config', JSON.stringify(ocrConfig));
+      } else if (key) {
         ocrConfig = { provider, key };
         localStorage.setItem('ocr_config', JSON.stringify(ocrConfig));
       } else {
@@ -5594,8 +5617,7 @@ Việt Nam</textarea>
             { type: 'image_url', image_url: { url: dataUrl } }
           ]}
         ],
-        temperature: 0.1, max_tokens: 4096,
-        chat_template_kwargs: { enable_thinking: false }
+        temperature: 0.1, max_tokens: 4096
       };
       const resp = await fetch('https://api.groq.com/openai/v1/chat/completions', {
         method: 'POST',
@@ -5610,7 +5632,32 @@ Việt Nam</textarea>
       return text;
     }
 
-    // 3) Tesseract (last fallback)
+    // 3) Ollama (local)
+    async function runOllamaOCR(imageUrl, baseUrl) {
+      const { base64 } = await blobUrlToBase64(imageUrl);
+      const url = (baseUrl || 'http://localhost:11434').replace(/\/+$/, '');
+      const body = {
+        model: 'qwen2.5vl:3b',
+        messages: [
+          { role: 'system', content: 'You are an OCR tool. Output ONLY the extracted text. No reasoning, no explanation.' },
+          { role: 'user', content: OCR_PROMPT, images: [base64] }
+        ],
+        stream: false,
+        options: { temperature: 0.1, num_predict: 4096 }
+      };
+      const resp = await fetch(url + '/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      });
+      if (!resp.ok) { const err = await resp.json().catch(() => ({})); throw new Error(err.error || `Ollama error ${resp.status}`); }
+      const data = await resp.json();
+      let text = (data.message?.content || '').trim();
+      text = text.replace(/<think>[\s\S]*?<\/think>/gi, '').trim();
+      return text;
+    }
+
+    // 4) Tesseract (last fallback)
     async function runTesseractOCR(imageUrl, progressBar) {
       const result = await Tesseract.recognize(imageUrl, 'vie+eng', {
         logger: m => {
@@ -5635,12 +5682,15 @@ Việt Nam</textarea>
         let usedEngine = '';
 
         // Try Vision API first if configured
-        if (ocrConfig.key) {
+        if (ocrConfig.key || ocrConfig.provider === 'ollama') {
           try {
-            const providerName = ocrConfig.provider === 'groq' ? 'Groq (Llama Vision)' : 'Gemini';
+            const providerNames = { groq: 'Groq (Qwen Vision)', gemini: 'Gemini', ollama: 'Ollama (Local)' };
+            const providerName = providerNames[ocrConfig.provider] || 'API';
             progressBar.style.width = '60%';
             textEl.querySelector('span').textContent = `Đang đọc bằng ${providerName}…`;
-            if (ocrConfig.provider === 'groq') {
+            if (ocrConfig.provider === 'ollama') {
+              text = await runOllamaOCR(imageUrl, ocrConfig.key);
+            } else if (ocrConfig.provider === 'groq') {
               text = await runGroqOCR(imageUrl, ocrConfig.key);
             } else {
               text = await runGeminiOCR(imageUrl, ocrConfig.key);
