@@ -5586,7 +5586,7 @@ Việt Nam</textarea>
       const { base64, mimeType } = await blobUrlToBase64(imageUrl);
       const dataUrl = `data:${mimeType};base64,${base64}`;
       const body = {
-        model: 'llama-4-scout-17b-16e-instruct',
+        model: 'qwen/qwen3.6-27b',
         messages: [{ role: 'user', content: [
           { type: 'text', text: OCR_PROMPT },
           { type: 'image_url', image_url: { url: dataUrl } }
