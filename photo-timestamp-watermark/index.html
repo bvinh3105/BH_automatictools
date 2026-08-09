@@ -5099,35 +5099,61 @@ Việt Nam</textarea>
       moveRAF = requestAnimationFrame(step);
     }
 
-    // Nhảy lên cao bắt chuột (max 5x chiều cao sprite)
+    // Nhảy parabol bắt chuột — bay ngang + lên xuống theo cung
     function jumpToCatch() {
       isJumping = true;
       play('jump');
 
-      const groundBottom = 16; // bottom offset khi đứng
-      const maxJumpH = FRAME_PX * 5; // max 5x sprite height
-      // Nhảy cao tùy vị trí chuột, nhưng không quá max
+      const groundBottom = 16;
+      const maxJumpH = FRAME_PX * 5;
+      // Chiều cao nhảy theo vị trí chuột (càng cao càng nhảy cao)
       const mouseFromBottom = window.innerHeight - mouseY;
-      const jumpH = Math.min(maxJumpH, Math.max(FRAME_PX * 1.5, mouseFromBottom));
+      const jumpH = Math.min(maxJumpH, Math.max(FRAME_PX * 1.2, mouseFromBottom));
 
-      const totalDuration = 600; // ms
+      // Tính điểm đích ngang — nhảy về phía chuột nhưng giới hạn khoảng cách
+      const startX = posX;
+      const minX = 20, maxX = window.innerWidth - FRAME_PX - 20;
+      const rawTargetX = mouseX - FRAME_PX / 2;
+      const maxLeap = FRAME_PX * 4; // nhảy xa tối đa 4x sprite
+      const clampedTarget = Math.max(minX, Math.min(maxX, rawTargetX));
+      const dx = clampedTarget - startX;
+      const targetXClamped = startX + Math.sign(dx) * Math.min(Math.abs(dx), maxLeap);
+
+      // Hướng nhảy
+      facingLeft = dx < 0;
+      mascot.classList.toggle('flip', facingLeft);
+
+      // Thời gian nhảy tỷ lệ với độ cao (mượt hơn)
+      const totalDuration = 450 + (jumpH / maxJumpH) * 350; // 450-800ms
       const startTime = Date.now();
 
       mascot.style.bottom = '';
-      const startBottom = groundBottom;
 
       function jumpStep() {
         if (!isJumping) return;
         const elapsed = Date.now() - startTime;
         const t = Math.min(1, elapsed / totalDuration);
-        // Parabola: lên rồi xuống
+
+        // Parabol: chiều cao = đỉnh ở t=0.5
         const h = jumpH * 4 * t * (1 - t);
-        mascot.style.bottom = (startBottom + h) + 'px';
+        // Di chuyển ngang tuyến tính
+        const currentX = startX + (targetXClamped - startX) * t;
+
+        posX = currentX;
+        mascot.style.left = posX + 'px';
+        mascot.style.bottom = (groundBottom + h) + 'px';
         mascot.style.top = '';
+
+        // Chuyển animation fall khi đang rơi xuống (nửa sau)
+        if (t > 0.55 && currentAnim !== 'fall') {
+          play('fall');
+        }
 
         if (t >= 1) {
           // Hạ cánh
           isJumping = false;
+          posX = Math.max(minX, Math.min(maxX, posX));
+          mascot.style.left = posX + 'px';
           mascot.style.bottom = groundBottom + 'px';
           mascot.style.top = '';
 
