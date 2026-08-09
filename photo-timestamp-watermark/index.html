@@ -4903,8 +4903,9 @@ Việt Nam</textarea>
     let isMoving = false;
     let isChasing = false;
     let moveRAF = null;
+    let moveEpoch = 0; // mỗi lần bắt đầu di chuyển mới tăng epoch, loop cũ tự dừng
     const WALK_SPEED = 1.2;
-    const RUN_SPEED = 4.0; // Chạy nhanh hơn khi rượt chuột
+    const RUN_SPEED = 4.0;
 
     // Trạng thái kéo thả
     let isDragging = false;
@@ -5001,7 +5002,8 @@ Việt Nam</textarea>
     function stopMovement() {
       isMoving = false;
       isChasing = false;
-      if (moveRAF) cancelAnimationFrame(moveRAF);
+      moveEpoch++; // vô hiệu mọi loop cũ
+      if (moveRAF) { cancelAnimationFrame(moveRAF); moveRAF = null; }
       if (!isJumping) play('idle');
       scheduleIdleActivity();
     }
@@ -5010,18 +5012,19 @@ Việt Nam</textarea>
     function walkTo(x) {
       const minX = 20, maxX = window.innerWidth - FRAME_PX - 20;
       targetX = Math.max(minX, Math.min(maxX, x));
-      if (Math.abs(targetX - posX) < 5) return;
+      if (Math.abs(targetX - posX) < 5) { scheduleIdleActivity(); return; }
 
+      moveEpoch++;
+      const myEpoch = moveEpoch;
       isMoving = true;
+      isChasing = false;
+      if (moveRAF) { cancelAnimationFrame(moveRAF); moveRAF = null; }
       play('walk');
 
-      if (moveRAF) cancelAnimationFrame(moveRAF);
-
       function step() {
-        // Nếu bị hành động khác can thiệp thì dừng ngay
-        if (!isMoving || isChasing || isDragging) return; 
+        if (myEpoch !== moveEpoch) return; // loop cũ → tự chết
         const dx = targetX - posX;
-        
+
         facingLeft = dx < 0;
         mascot.classList.toggle('flip', facingLeft);
 
@@ -5031,7 +5034,7 @@ Việt Nam</textarea>
           stopMovement();
           return;
         }
-        
+
         posX += (dx > 0 ? 1 : -1) * WALK_SPEED;
         mascot.style.left = posX + 'px';
         moveRAF = requestAnimationFrame(step);
@@ -5043,18 +5046,19 @@ Việt Nam</textarea>
     let isJumping = false;
 
     function chaseMouse() {
+      moveEpoch++;
+      const myEpoch = moveEpoch;
       isMoving = true;
       isChasing = true;
+      if (moveRAF) { cancelAnimationFrame(moveRAF); moveRAF = null; }
       play('run');
 
       const chaseDuration = 1500 + Math.random() * 2500;
       const endTime = Date.now() + chaseDuration;
-      let runFrames = 0; // đếm frame chạy để tính "lấy đà"
-
-      if (moveRAF) cancelAnimationFrame(moveRAF);
+      let runFrames = 0;
 
       function step() {
-        if (!isChasing || isDragging) return;
+        if (myEpoch !== moveEpoch) return; // loop cũ → tự chết
         runFrames++;
 
         if (Date.now() > endTime) {
@@ -5218,7 +5222,8 @@ Việt Nam</textarea>
       isFalling = false;
       isMoving = false;
       isChasing = false;
-      if (moveRAF) cancelAnimationFrame(moveRAF);
+      moveEpoch++;
+      if (moveRAF) { cancelAnimationFrame(moveRAF); moveRAF = null; }
       clearTimeout(idleTimer);
       mascot.setPointerCapture(e.pointerId);
     });
