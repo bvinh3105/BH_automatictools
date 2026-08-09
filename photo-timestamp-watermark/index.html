@@ -5179,35 +5179,77 @@ Việt Nam</textarea>
     let idleTimer = null;
     let userIdleTimer = null;
     let isSleeping = false;
+    let sleepDepth = 0;       // 0 = thức, 1-3 = ngủ sâu dần
+    let idleActionCount = 0;  // đếm hành động liên tiếp → mệt → ngủ
+
+    function fallAsleep(voluntary) {
+      isSleeping = true;
+      sleepDepth = 1;
+      isMoving = false;
+      isChasing = false;
+      moveEpoch++;
+      if (moveRAF) { cancelAnimationFrame(moveRAF); moveRAF = null; }
+      play('sleep');
+      if (voluntary) {
+        const msgs = ['*ngáp*... 😴', 'buồn ngủ quá...', 'zzz...', '*cuộn tròn*'];
+        say(msgs[Math.floor(Math.random() * msgs.length)], 2000);
+      }
+      // Ngủ sâu dần theo thời gian
+      clearTimeout(idleTimer);
+      idleTimer = setTimeout(() => { if (isSleeping) sleepDepth = 2; }, 8000);
+      setTimeout(() => { if (isSleeping) sleepDepth = 3; }, 20000);
+    }
+
+    function wakeUp() {
+      isSleeping = false;
+      sleepDepth = 0;
+      idleActionCount = 0;
+      play('idle');
+      const msgs = ['ơ... gọi ai đấy...', 'meo~ ✨', '*vươn vai*', 'hả...?', 'ngủ ngon quá...'];
+      say(msgs[Math.floor(Math.random() * msgs.length)], 1800);
+      scheduleIdleActivity();
+    }
 
     function scheduleIdleActivity() {
       clearTimeout(idleTimer);
-      const delay = 4000 + Math.random() * 8000; // Chậm rãi hơn, chảnh hơn
+      const delay = 4000 + Math.random() * 8000;
       idleTimer = setTimeout(() => {
-        // Chặn gọi hành động rảnh rỗi nếu mèo đang bận di chuyển
         if (isSleeping || isDragging || currentAnim === 'sound' || currentAnim === 'jump' || isMoving || isJumping) {
           scheduleIdleActivity();
           return;
         }
 
+        idleActionCount++;
+
+        // Sau 4-6 hành động liên tiếp → mệt → ngủ
+        if (idleActionCount > 3 + Math.floor(Math.random() * 3)) {
+          fallAsleep(true);
+          return;
+        }
+
         const r = Math.random();
-        if (r < 0.25) {
-          // Chớp mắt / ngồi yên — mèo lười
+        if (r < 0.20) {
+          // Chớp mắt / ngồi yên
           play('blink');
           setTimeout(() => { if (!isSleeping && !isDragging) play('idle'); scheduleIdleActivity(); }, 400);
-        } else if (r < 0.40) {
+        } else if (r < 0.35) {
           // Ngắm nghía, liếm lông
           play('inspect');
           const msgs = ['hmm...', 'lông mình đẹp ghê', '*liếm liếm*', '...'];
           say(msgs[Math.floor(Math.random() * msgs.length)], 2000);
           setTimeout(() => { if (!isSleeping && !isDragging) play('idle'); scheduleIdleActivity(); }, 2800);
-        } else if (r < 0.48) {
+        } else if (r < 0.42) {
           // Hiếm khi rượt — chảnh
           chaseMouse();
-        } else if (r < 0.58) {
-          // Đứng yên nhìn, không thèm đi
+        } else if (r < 0.52) {
+          // Đứng yên nhìn
           play('stand');
           setTimeout(() => { if (!isSleeping && !isDragging) play('idle'); scheduleIdleActivity(); }, 2000 + Math.random() * 3000);
+        } else if (r < 0.62) {
+          // Ngáp rồi tiếp tục — dấu hiệu buồn ngủ
+          play('blink');
+          say('*ngáp*...', 1500);
+          setTimeout(() => { if (!isSleeping && !isDragging) play('idle'); scheduleIdleActivity(); }, 1800);
         } else {
           // Đi dạo lững thững
           const minX = 60, maxX = window.innerWidth - FRAME_PX - 60;
@@ -5216,25 +5258,16 @@ Việt Nam</textarea>
       }, delay);
     }
 
+    // User idle → mèo ngủ sau 30 giây không tương tác
     function resetUserIdle() {
       clearTimeout(userIdleTimer);
-      if (isSleeping) {
-        isSleeping = false;
-        isMoving = false;
-        isChasing = false;
-        play('idle');
-        say('meo~ ✨', 1500);
-      }
+      // KHÔNG tự đánh thức mèo khi user di chuột — chỉ click mới đánh thức
       userIdleTimer = setTimeout(() => {
-        isSleeping = true;
-        isMoving = false;
-        isChasing = false;
-        if (moveRAF) cancelAnimationFrame(moveRAF);
-        play('sleep');
-      }, 45_000);
+        if (!isSleeping) fallAsleep(true);
+      }, 30_000);
     }
-    
-    ['mousemove', 'keydown', 'click', 'wheel', 'touchstart'].forEach(ev => {
+
+    ['mousemove', 'keydown', 'wheel', 'touchstart'].forEach(ev => {
       window.addEventListener(ev, resetUserIdle, { passive: true });
     });
 
@@ -5323,15 +5356,20 @@ Việt Nam</textarea>
         startFall();
       } else {
         if (isSleeping) {
-          isSleeping = false;
-          play('idle');
-          say('ơ, gọi ai đấy...');
+          // Cần click nhiều lần tùy độ sâu giấc ngủ
+          sleepDepth--;
+          if (sleepDepth <= 0) {
+            wakeUp();
+          } else {
+            const stir = ['zzz...', 'mmm...', '*trở mình*', '5 phút nữa...', 'đừng...'];
+            say(stir[Math.floor(Math.random() * stir.length)], 1200);
+          }
         } else {
           play('jump', { onDone: () => {} });
           const msgs = ['nhảy nhảy!', 'yayyy', 'meoo!', 'hí :3'];
           say(msgs[Math.floor(Math.random() * msgs.length)]);
+          scheduleIdleActivity();
         }
-        scheduleIdleActivity();
       }
       resetUserIdle();
     });
@@ -5341,7 +5379,14 @@ Việt Nam</textarea>
     let teaseTimer = null;
 
     mascot.addEventListener('mouseenter', () => {
-      if (isSleeping || isDragging || isJumping || isMoving || isChasing) return;
+      if (isDragging || isJumping || isMoving || isChasing) return;
+      // Hover khi đang ngủ → ru mèo ngủ sâu hơn
+      if (isSleeping) {
+        sleepDepth = Math.min(3, sleepDepth + 1);
+        const lullaby = ['zzz...', '*rì rì*', '*ngủ say*', '...💤', '*cuộn tròn hơn*'];
+        say(lullaby[Math.floor(Math.random() * lullaby.length)], 1500);
+        return;
+      }
       teaseCount++;
 
       // Reset combo sau 5 giây không trêu
