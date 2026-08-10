@@ -5652,17 +5652,29 @@ Việt Nam</textarea>
       ocrFileInput.value = '';
     });
 
-    // --- Paste anywhere (only when OCR tab is active) ---
+    // --- Paste anywhere (Ctrl+V) — route to active tab ---
     document.addEventListener('paste', e => {
-      if (document.getElementById('pane-resize').style.display === 'none') return;
+      // Bỏ qua nếu đang focus vào input/textarea
+      const tag = document.activeElement?.tagName;
+      if (tag === 'INPUT' || tag === 'TEXTAREA') return;
+
       const items = [...(e.clipboardData?.items || [])];
       const imgFiles = items
         .filter(i => i.type.startsWith('image/'))
         .map(i => i.getAsFile())
         .filter(Boolean);
-      if (imgFiles.length) {
-        e.preventDefault();
+      if (!imgFiles.length) return;
+      e.preventDefault();
+
+      const ocrTab = document.getElementById('pane-resize');
+      const stampTab = document.getElementById('pane-timestamp');
+
+      if (ocrTab && ocrTab.style.display !== 'none') {
+        // Tab OCR đang mở
         handleOcrFiles(imgFiles);
+      } else if (stampTab && stampTab.style.display !== 'none') {
+        // Tab Watermark đang mở
+        addFiles(imgFiles);
       }
     });
 
