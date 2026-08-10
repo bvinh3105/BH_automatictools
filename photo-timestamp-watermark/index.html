@@ -5824,7 +5824,75 @@ Việt Nam</textarea>
     }
 
     // 2) Vision API helpers
-    const OCR_PROMPT = "Đọc và trích xuất TOÀN BỘ văn bản trong ảnh. Giữ nguyên bố cục dòng và thứ tự. Nếu có chữ viết tay, đọc chính xác nhất có thể. CHỈ trả về văn bản thuần túy, KHÔNG giải thích, KHÔNG mô tả ảnh, KHÔNG nêu chiến lược, KHÔNG suy luận. Trả lời ngắn gọn nhất có thể.";
+    const OCR_PROMPT = `Bạn là chuyên gia OCR tiếng Việt. Đọc và trích xuất TOÀN BỘ văn bản trong ảnh.
+
+QUY TẮC:
+- Giữ nguyên bố cục dòng, thứ tự từ trên xuống dưới, trái sang phải
+- Với chữ viết tay tiếng Việt: đặc biệt chú ý dấu thanh (sắc, huyền, hỏi, ngã, nặng) và dấu phụ (ă, â, ê, ô, ơ, ư, đ)
+- Nếu không chắc một ký tự, suy luận từ ngữ cảnh câu tiếng Việt (ví dụ: "bảo hiểm" chứ không phải "bao hiem")
+- Với form/biểu mẫu: ghi theo format "Tên trường: giá trị"
+- Số tiền giữ nguyên format (VD: 3,454,546 đồng)
+- CHỈ trả về văn bản thuần túy. KHÔNG giải thích, KHÔNG mô tả ảnh, KHÔNG suy luận.`;
+
+    // Tiền xử lý ảnh: tăng tương phản + làm nét cho chữ viết tay
+    function preprocessImage(imageUrl) {
+      return new Promise((resolve, reject) => {
+        const img = new Image();
+        img.crossOrigin = 'anonymous';
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          const w = img.naturalWidth;
+          const h = img.naturalHeight;
+
+          // Upscale ảnh nhỏ (< 1500px) lên 2x để model đọc dễ hơn
+          const scale = Math.max(w, h) < 1500 ? 2 : 1;
+          canvas.width = w * scale;
+          canvas.height = h * scale;
+          const ctx = canvas.getContext('2d');
+
+          // Vẽ ảnh gốc (có scale nếu cần)
+          ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+          // Tăng tương phản + làm nét bằng filter
+          ctx.filter = 'contrast(1.4) brightness(1.05) saturate(0)';
+          ctx.globalCompositeOperation = 'source-over';
+          ctx.globalAlpha = 0.5;
+          ctx.drawImage(canvas, 0, 0);
+          ctx.globalAlpha = 1;
+          ctx.filter = 'none';
+          ctx.globalCompositeOperation = 'source-over';
+
+          // Adaptive threshold bằng tay: chuyển sang trắng đen nếu là ảnh chữ tay
+          const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+          const d = imageData.data;
+
+          // Tính brightness trung bình để xem có nên threshold không
+          let totalBright = 0;
+          for (let i = 0; i < d.length; i += 4) {
+            totalBright += d[i] * 0.299 + d[i+1] * 0.587 + d[i+2] * 0.114;
+          }
+          const avgBright = totalBright / (d.length / 4);
+
+          // Chỉ threshold nếu ảnh sáng (giấy trắng chữ đen)
+          if (avgBright > 120) {
+            const threshold = avgBright * 0.62; // ngưỡng linh hoạt
+            for (let i = 0; i < d.length; i += 4) {
+              const gray = d[i] * 0.299 + d[i+1] * 0.587 + d[i+2] * 0.114;
+              const val = gray < threshold ? 0 : 255;
+              d[i] = d[i+1] = d[i+2] = val;
+            }
+            ctx.putImageData(imageData, 0, 0);
+          }
+
+          canvas.toBlob(blob => {
+            if (!blob) { resolve(imageUrl); return; }
+            resolve(URL.createObjectURL(blob));
+          }, 'image/png');
+        };
+        img.onerror = () => resolve(imageUrl); // fallback ảnh gốc
+        img.src = imageUrl;
+      });
+    }
 
     function blobUrlToBase64(blobUrl) {
       return fetch(blobUrl).then(r => r.blob()).then(blob => new Promise((resolve, reject) => {
@@ -5854,7 +5922,7 @@ Việt Nam</textarea>
       const body = {
         model: 'qwen/qwen3.6-27b',
         messages: [
-          { role: 'system', content: 'You are an OCR tool. Output ONLY the extracted text. No reasoning, no explanation, no thinking.' },
+          { role: 'system', content: 'You are a Vietnamese OCR expert specializing in handwritten text. Output ONLY the extracted text exactly as written. Pay close attention to Vietnamese diacritics (sắc, huyền, hỏi, ngã, nặng) and special characters (ă, â, ê, ô, ơ, ư, đ). No reasoning, no explanation, no thinking.' },
           { role: 'user', content: [
             { type: 'text', text: OCR_PROMPT },
             { type: 'image_url', image_url: { url: dataUrl } }
@@ -5882,7 +5950,7 @@ Việt Nam</textarea>
       const body = {
         model: 'qwen2.5vl:3b',
         messages: [
-          { role: 'system', content: 'You are an OCR tool. Output ONLY the extracted text. No reasoning, no explanation.' },
+          { role: 'system', content: 'You are a Vietnamese OCR expert specializing in handwritten text. Output ONLY the extracted text. Pay close attention to Vietnamese diacritics. No reasoning, no explanation.' },
           { role: 'user', content: OCR_PROMPT, images: [base64] }
         ],
         stream: false,
@@ -5924,6 +5992,12 @@ Việt Nam</textarea>
         let text = '';
         let usedEngine = '';
 
+        // Tiền xử lý ảnh cho chữ viết tay
+        progressBar.style.width = '15%';
+        textEl.querySelector('span').textContent = 'Đang xử lý ảnh…';
+        let processedUrl;
+        try { processedUrl = await preprocessImage(imageUrl); } catch { processedUrl = imageUrl; }
+
         // Try Vision API first if configured
         if (ocrConfig.key || ocrConfig.provider === 'ollama') {
           try {
@@ -5932,11 +6006,11 @@ Việt Nam</textarea>
             progressBar.style.width = '60%';
             textEl.querySelector('span').textContent = `Đang đọc bằng ${providerName}…`;
             if (ocrConfig.provider === 'ollama') {
-              text = await runOllamaOCR(imageUrl, ocrConfig.key);
+              text = await runOllamaOCR(processedUrl, ocrConfig.key);
             } else if (ocrConfig.provider === 'groq') {
-              text = await runGroqOCR(imageUrl, ocrConfig.key);
+              text = await runGroqOCR(processedUrl, ocrConfig.key);
             } else {
-              text = await runGeminiOCR(imageUrl, ocrConfig.key);
+              text = await runGeminiOCR(processedUrl, ocrConfig.key);
             }
             progressBar.style.width = '100%';
             usedEngine = ocrConfig.provider;
@@ -5952,7 +6026,7 @@ Việt Nam</textarea>
           try {
             progressBar.style.width = '30%';
             textEl.querySelector('span').textContent = paddleReady ? 'Đang đọc bằng PaddleOCR…' : 'Đang tải PaddleOCR (~6MB lần đầu)…';
-            text = await runPaddleOCR(imageUrl);
+            text = await runPaddleOCR(processedUrl);
             progressBar.style.width = '100%';
             if (!usedEngine) usedEngine = 'paddle';
             else usedEngine = 'paddle-fallback';
@@ -5965,7 +6039,7 @@ Việt Nam</textarea>
         if (!text) {
           progressBar.style.width = '0%';
           textEl.querySelector('span').textContent = 'Đang thử Tesseract…';
-          text = await runTesseractOCR(imageUrl, progressBar);
+          text = await runTesseractOCR(processedUrl, progressBar);
           usedEngine = 'tesseract';
         }
 
