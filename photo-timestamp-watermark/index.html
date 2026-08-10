@@ -2809,7 +2809,7 @@ Việt Nam</textarea>
         <div class="ocr-drop-inner">
           <div class="ocr-drop-icon">📝</div>
           <h3>Đọc chữ từ ảnh</h3>
-          <p>Kéo thả, dán (Ctrl+V) hoặc chọn ảnh — tối đa 5 ảnh</p>
+          <p>Kéo thả, dán (Ctrl+V) hoặc chọn ảnh</p>
           <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:8px;">
             <label class="btn-ghost ocr-pick-btn"><input type="file" id="ocrFileInput" accept="image/*" multiple hidden>Chọn ảnh</label>
           </div>
@@ -5542,7 +5542,7 @@ Việt Nam</textarea>
   // ===== TAB 2: TEXT READER (OCR) =============================
   // ============================================================
   (function initOCR() {
-    const MAX_IMAGES = 5;
+    const MAX_IMAGES = Infinity;
     const ocrDrop = document.getElementById('ocrDrop');
     const ocrCards = document.getElementById('ocrCards');
     const ocrFileInput = document.getElementById('ocrFileInput');
