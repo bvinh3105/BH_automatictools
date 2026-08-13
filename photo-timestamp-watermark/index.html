@@ -6480,7 +6480,10 @@ QUY TẮC:
         let rotatedUrl;
         try { rotatedUrl = await autoRotateImage(imageUrl); } catch { rotatedUrl = imageUrl; }
 
-        // Step 2: Detect rotation bằng Vision API (pre-flight nhanh, ảnh 512px)
+        const hasApi = ocrConfig.key || ocrConfig.provider === 'ollama';
+        let apiError = null;
+
+        // Step 2: Detect rotation bằng Vision API (chỉ 1 call nhỏ, ảnh 512px)
         if (ocrConfig.key && ocrConfig.provider !== 'ollama') {
           try {
             progressBar.style.width = '15%';
@@ -6497,15 +6500,15 @@ QUY TẮC:
         const cardImg = card.querySelector('.ocr-card-img img');
         if (cardImg && rotatedUrl !== imageUrl) cardImg.src = rotatedUrl;
 
-        // Try Vision API first if configured
-        // Vision APIs (Gemini/Groq/Ollama) dùng ẢNH GỐC (chỉ auto-rotate)
-        // KHÔNG threshold/B&W → giữ nguyên dấu tiếng Việt + serial numbers
-        if (ocrConfig.key || ocrConfig.provider === 'ollama') {
+        // === Strategy: API có → dùng API ONLY (không fallback PaddleOCR rác) ===
+        // === API không có → PaddleOCR + post-processing → Tesseract ===
+        if (hasApi) {
+          // CHỈ dùng Vision API — hiển thị lỗi rõ ràng nếu fail
+          const providerNames = { groq: 'Groq (Qwen Vision)', gemini: 'Gemini', ollama: 'Ollama (Local)' };
+          const providerName = providerNames[ocrConfig.provider] || 'API';
+          progressBar.style.width = '60%';
+          textEl.querySelector('span').textContent = `Đang đọc bằng ${providerName}…`;
           try {
-            const providerNames = { groq: 'Groq (Qwen Vision)', gemini: 'Gemini', ollama: 'Ollama (Local)' };
-            const providerName = providerNames[ocrConfig.provider] || 'API';
-            progressBar.style.width = '60%';
-            textEl.querySelector('span').textContent = `Đang đọc bằng ${providerName}…`;
             if (ocrConfig.provider === 'ollama') {
               text = await runOllamaOCR(rotatedUrl, ocrConfig.key);
             } else if (ocrConfig.provider === 'groq') {
@@ -6516,15 +6519,14 @@ QUY TẮC:
             progressBar.style.width = '100%';
             usedEngine = ocrConfig.provider;
           } catch (apiErr) {
-            console.warn('Vision API failed:', apiErr.message);
+            apiError = apiErr.message || 'Unknown API error';
+            console.warn(`${providerName} failed:`, apiError);
+            // KHÔNG fallback sang PaddleOCR — hiện lỗi cho user biết
             text = '';
-            usedEngine = 'api-failed';
+            usedEngine = 'api-error';
           }
-        }
-
-        // Try PaddleOCR if API unavailable or failed
-        // PaddleOCR dùng ảnh đã preprocess nhẹ (tăng contrast, KHÔNG threshold)
-        if (!text) {
+        } else {
+          // Không có API → PaddleOCR (+ post-processing) → Tesseract
           let localUrl;
           try { localUrl = await preprocessForLocalOCR(rotatedUrl); } catch { localUrl = rotatedUrl; }
           try {
@@ -6532,24 +6534,33 @@ QUY TẮC:
             textEl.querySelector('span').textContent = paddleReady ? 'Đang đọc bằng PaddleOCR…' : 'Đang tải PaddleOCR (~6MB lần đầu)…';
             text = postProcessVietnamese(await runPaddleOCR(localUrl));
             progressBar.style.width = '100%';
-            if (!usedEngine) usedEngine = 'paddle';
-            else usedEngine = 'paddle-fallback';
+            usedEngine = 'paddle';
           } catch (paddleErr) {
             console.warn('PaddleOCR failed:', paddleErr.message);
           }
-        }
 
-        // Last resort: Tesseract
-        if (!text) {
-          let localUrl;
-          try { localUrl = await preprocessForLocalOCR(rotatedUrl); } catch { localUrl = rotatedUrl; }
-          progressBar.style.width = '0%';
-          textEl.querySelector('span').textContent = 'Đang thử Tesseract…';
-          text = postProcessVietnamese(await runTesseractOCR(localUrl, progressBar));
-          usedEngine = 'tesseract';
+          // Last resort: Tesseract
+          if (!text) {
+            progressBar.style.width = '0%';
+            textEl.querySelector('span').textContent = 'Đang thử Tesseract…';
+            text = postProcessVietnamese(await runTesseractOCR(localUrl || rotatedUrl, progressBar));
+            usedEngine = 'tesseract';
+          }
         }
 
         progressEl.style.display = 'none';
+
+        // API lỗi → hiện lỗi rõ ràng, KHÔNG fallback PaddleOCR
+        if (usedEngine === 'api-error') {
+          textEl.className = 'ocr-card-text ocr-error';
+          const providerName = { groq: 'Groq', gemini: 'Gemini', ollama: 'Ollama' }[ocrConfig.provider] || 'API';
+          textEl.innerHTML = `<div style="color:#e55;font-size:12px;font-weight:600;margin-bottom:8px">❌ ${providerName} lỗi</div>`
+            + `<div style="font-size:11px;color:var(--muted);margin-bottom:8px">${(apiError || '').replace(/</g, '&lt;')}</div>`
+            + `<div style="font-size:11px">Kiểm tra API key hoặc thử lại. Nếu lỗi liên tục, bấm 🔄 để thử lại.</div>`;
+          retryBtn.style.display = '';
+          if (ocrPv.classList.contains('open')) renderOcrPreview();
+          return;
+        }
 
         if (!text) {
           textEl.className = 'ocr-card-text ocr-error';
@@ -6560,10 +6571,10 @@ QUY TẮC:
         }
 
         textEl.className = 'ocr-card-text';
-        const warnBadge = (usedEngine === 'paddle-fallback')
-          ? '<div style="color:#f90;font-size:11px;margin-bottom:6px;font-weight:600">⚠ API lỗi — kết quả từ PaddleOCR</div>'
+        const warnBadge = (usedEngine === 'paddle')
+          ? '<div style="color:#f90;font-size:11px;margin-bottom:6px;font-weight:600">⚠ Đọc bằng PaddleOCR (offline) — kết quả có thể kém chính xác</div>'
           : (usedEngine === 'tesseract')
-          ? '<div style="color:#f90;font-size:11px;margin-bottom:6px;font-weight:600">⚠ Fallback Tesseract — kết quả có thể kém chính xác</div>'
+          ? '<div style="color:#f90;font-size:11px;margin-bottom:6px;font-weight:600">⚠ Đọc bằng Tesseract (offline) — kết quả có thể kém chính xác</div>'
           : '';
         if (warnBadge) {
           textEl.innerHTML = warnBadge + text.replace(/</g, '&lt;').replace(/\n/g, '<br>');
