@@ -6289,7 +6289,7 @@ QUY TẮC:
 
         let angle = 0;
         if (provider === 'gemini') {
-          const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=${apiKey}`;
+          const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
           const body = {
             contents: [{ parts: [{ text: prompt }, { inlineData: { mimeType, data: base64 } }] }],
             generationConfig: { temperature: 0, maxOutputTokens: 10 }
@@ -6342,7 +6342,7 @@ QUY TẮC:
 
     async function runGeminiOCR(imageUrl, apiKey) {
       const { base64, mimeType } = await blobUrlToBase64(imageUrl);
-      const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=${apiKey}`;
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
       const body = {
         contents: [{ parts: [{ text: OCR_PROMPT }, { inlineData: { mimeType, data: base64 } }] }],
         generationConfig: { temperature: 0.1, maxOutputTokens: 4096 }
