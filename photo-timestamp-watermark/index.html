@@ -1958,11 +1958,46 @@
   .cs-canvas-wrap { flex:1; display:flex; flex-direction:column; overflow:hidden; position:relative; }
   .cs-zoom-controls { display:flex; align-items:center; gap:6px; padding:8px 12px; border-bottom:1px solid var(--border); background:color-mix(in srgb, var(--glass) 40%, transparent); }
   .cs-zoom-controls span { font-size:12px; color:var(--text-dim); min-width:40px; text-align:center; }
-  .cs-canvas-scroll { flex:1; overflow:auto; display:flex; align-items:center; justify-content:center; background:color-mix(in srgb, var(--text) 3%, transparent); cursor:crosshair; }
+  .cs-canvas-scroll { flex:1; overflow:auto; display:flex; align-items:center; justify-content:center; background:#808080; cursor:crosshair; position:relative; }
+  .cs-canvas-scroll canvas { box-shadow:0 2px 12px rgba(0,0,0,0.35); }
   #csCanvas { image-rendering:pixelated; }
+  /* Layers panel (right) */
+  .cs-layers-panel {
+    width:200px; min-width:160px; border-left:1px solid var(--border);
+    background:color-mix(in srgb, var(--glass) 60%, transparent);
+    display:flex; flex-direction:column; overflow:hidden;
+  }
+  .cs-layers-header {
+    display:flex; align-items:center; justify-content:space-between;
+    padding:8px 10px; border-bottom:1px solid var(--border);
+    font-size:12px; font-weight:700; color:var(--text);
+  }
+  .cs-layers-list { flex:1; overflow-y:auto; padding:4px 0; }
+  .cs-layer-item {
+    display:flex; align-items:center; gap:4px; padding:5px 8px; margin:1px 4px;
+    border-radius:6px; border:1px solid transparent; cursor:pointer;
+    font-size:11px; color:var(--text); transition:all .15s; user-select:none;
+  }
+  .cs-layer-item:hover { background:color-mix(in srgb, var(--accent) 10%, transparent); }
+  .cs-layer-item.active { background:color-mix(in srgb, var(--accent) 20%, transparent); border-color:var(--accent); }
+  .cs-layer-eye, .cs-layer-lock {
+    width:20px; height:20px; border:none; background:none; color:var(--text);
+    cursor:pointer; font-size:13px; display:flex; align-items:center; justify-content:center;
+    border-radius:4px; opacity:.7; flex-shrink:0;
+  }
+  .cs-layer-eye:hover, .cs-layer-lock:hover { opacity:1; background:color-mix(in srgb, var(--accent) 15%, transparent); }
+  .cs-layer-eye.hidden { opacity:.3; }
+  .cs-layer-lock.locked { opacity:1; color:var(--accent); }
+  .cs-layer-name { flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .cs-layer-thumb {
+    width:24px; height:24px; border-radius:3px; border:1px solid var(--border);
+    flex-shrink:0; display:flex; align-items:center; justify-content:center;
+    font-size:14px; background:var(--glass);
+  }
   @media (max-width:768px) {
     .cs-layout { flex-direction:column; }
     .cs-toolbar { width:100%; min-width:unset; max-height:40vh; border-right:none; border-bottom:1px solid var(--border); }
+    .cs-layers-panel { width:100%; min-width:unset; max-height:25vh; border-left:none; border-top:1px solid var(--border); }
   }
 
   /* Empty tab placeholder */
@@ -3037,6 +3072,16 @@ Việt Nam</textarea>
         </div>
         <div class="cs-canvas-scroll" id="csCanvasScroll">
           <canvas id="csCanvas"></canvas>
+        </div>
+      </div>
+
+      <!-- Right: Layers panel (Illustrator-style) -->
+      <div class="cs-layers-panel" id="csLayersPanel">
+        <div class="cs-layers-header">
+          <span>Layers</span>
+        </div>
+        <div class="cs-layers-list" id="csLayersList">
+          <!-- JS renders layers -->
         </div>
       </div>
     </div>
@@ -6019,12 +6064,102 @@ QUY TẮC:
 - Giữ nguyên bố cục dòng, thứ tự từ trên xuống dưới, trái sang phải
 - Với chữ viết tay tiếng Việt: đặc biệt chú ý dấu thanh (sắc, huyền, hỏi, ngã, nặng) và dấu phụ (ă, â, ê, ô, ơ, ư, đ)
 - Nếu không chắc một ký tự, suy luận từ ngữ cảnh câu tiếng Việt (ví dụ: "bảo hiểm" chứ không phải "bao hiem")
+- CHÚ Ý CHỮ VIẾT TAY / THƯ PHÁP TIẾNG VIỆT:
+  + Chữ "C" hoa viết tay thường có nét cong tròn mở sang phải, KHÔNG có gạch ngang → KHÔNG nhầm với "Đ" (Đ có gạch ngang xuyên thân chữ)
+  + Phân biệt: Cao ≠ Đào, Cường ≠ Đường, Cảnh ≠ Đảnh, Công ≠ Đông
+  + Chữ "G" hoa viết tay có đuôi kéo xuống, không nhầm với "C" hay "O"
+  + Chữ "B" hoa viết tay có 2 bụng tròn, không nhầm với "D" (D chỉ có 1 cung)
+  + Họ Việt Nam phổ biến: Nguyễn, Trần, Lê, Phạm, Hoàng/Huỳnh, Phan, Vũ/Võ, Đặng, Bùi, Đỗ, Hồ, Ngô, Dương, Lý, Cao, Đào, Trương, Đinh, Lương, Tạ, Mai, Tô, Chu
+  + Chức vụ phổ biến: Thượng tá, Đại tá, Thiếu tá, Trung tá, Đại úy, Thiếu úy, Trưởng CA, Phó CA
+  + Khi đọc tên người trong văn bản hành chính/pháp lý, ưu tiên họ phổ biến hơn
+- CHÚ Ý ĐƠN VỊ HÀNH CHÍNH VIỆT NAM (rất phổ biến trong giấy tờ):
+  + "Xã" (commune) — dấu NGÃ (~), KHÔNG PHẢI "Xí" (dấu sắc). VD: "TRƯỞNG CA XÃ" ≠ "TRƯỞNG CA XÍ"
+  + Phường, Quận, Huyện, Tỉnh, Thành phố — đây là các đơn vị hành chính chuẩn
+  + "Xã" xuất hiện rất nhiều trong giấy đăng ký xe, sổ đỏ, CMND/CCCD
+- CHÚ Ý SỐ SERIAL / MÃ SỐ (Số máy, Số khung, Số CMND, Biển số):
+  + Đọc TỪNG KÝ TỰ một, KHÔNG suy luận hay tự sửa
+  + Phân biệt rõ: 0 (số không) vs O (chữ O), 1 (số một) vs I (chữ I) vs l (chữ L nhỏ)
+  + Số khung/số máy thường gồm cả CHỮ + SỐ (VD: RLUJC81DBMN000132, G4NLMU946156)
+  + KHÔNG thêm/bớt ký tự, KHÔNG sửa lỗi serial number — ghi chính xác như thấy
+- NẾU ẢNH BỊ XOAY (ngang, ngược, nghiêng): hãy tự xác định chiều đọc đúng rồi đọc theo chiều đó
 - Với form/biểu mẫu: ghi theo format "Tên trường: giá trị"
 - Số tiền giữ nguyên format (VD: 3,454,546 đồng)
 - CHỈ trả về văn bản thuần túy. KHÔNG giải thích, KHÔNG mô tả ảnh, KHÔNG suy luận.`;
 
-    // Tiền xử lý ảnh: tăng tương phản + làm nét cho chữ viết tay
-    function preprocessImage(imageUrl) {
+    // --- Auto-rotate: đọc EXIF orientation từ JPEG binary ---
+    function readExifOrientation(arrayBuffer) {
+      const view = new DataView(arrayBuffer);
+      if (view.getUint16(0, false) !== 0xFFD8) return 1; // not JPEG
+      let offset = 2;
+      while (offset < view.byteLength - 2) {
+        const marker = view.getUint16(offset, false);
+        offset += 2;
+        if (marker === 0xFFE1) { // APP1 = EXIF
+          const len = view.getUint16(offset, false);
+          const exifStart = offset + 2;
+          if (view.getUint32(exifStart, false) !== 0x45786966) return 1; // "Exif"
+          const tiffStart = exifStart + 6;
+          const bigEndian = view.getUint16(tiffStart, false) === 0x4D4D;
+          const ifdOffset = view.getUint32(tiffStart + 4, bigEndian) + tiffStart;
+          const entries = view.getUint16(ifdOffset, bigEndian);
+          for (let i = 0; i < entries; i++) {
+            const entryOff = ifdOffset + 2 + i * 12;
+            if (entryOff + 12 > view.byteLength) break;
+            if (view.getUint16(entryOff, bigEndian) === 0x0112) { // Orientation tag
+              return view.getUint16(entryOff + 8, bigEndian);
+            }
+          }
+          return 1;
+        } else if ((marker & 0xFF00) === 0xFF00) {
+          offset += view.getUint16(offset, false);
+        } else break;
+      }
+      return 1;
+    }
+
+    // Auto-rotate image based on EXIF orientation
+    function autoRotateImage(imageUrl) {
+      return new Promise((resolve) => {
+        fetch(imageUrl).then(r => r.arrayBuffer()).then(buf => {
+          const orientation = readExifOrientation(buf);
+          if (orientation <= 1 || orientation > 8) { resolve(imageUrl); return; }
+
+          const img = new Image();
+          img.crossOrigin = 'anonymous';
+          img.onload = () => {
+            const c = document.createElement('canvas');
+            const ctx = c.getContext('2d');
+            const w = img.naturalWidth, h = img.naturalHeight;
+
+            // Orientation 5-8: swap width/height
+            if (orientation >= 5) { c.width = h; c.height = w; }
+            else { c.width = w; c.height = h; }
+
+            // Apply transform
+            switch (orientation) {
+              case 2: ctx.transform(-1, 0, 0, 1, w, 0); break;
+              case 3: ctx.transform(-1, 0, 0, -1, w, h); break;
+              case 4: ctx.transform(1, 0, 0, -1, 0, h); break;
+              case 5: ctx.transform(0, 1, 1, 0, 0, 0); break;
+              case 6: ctx.transform(0, 1, -1, 0, h, 0); break;
+              case 7: ctx.transform(0, -1, -1, 0, h, w); break;
+              case 8: ctx.transform(0, -1, 1, 0, 0, w); break;
+            }
+            ctx.drawImage(img, 0, 0);
+            c.toBlob(blob => {
+              if (!blob) { resolve(imageUrl); return; }
+              resolve(URL.createObjectURL(blob));
+            }, 'image/jpeg', 0.95);
+          };
+          img.onerror = () => resolve(imageUrl);
+          img.src = imageUrl;
+        }).catch(() => resolve(imageUrl));
+      });
+    }
+
+    // Tiền xử lý ảnh cho LOCAL OCR (PaddleOCR/Tesseract) — tăng tương phản
+    // Vision APIs (Gemini/Groq/Ollama) dùng ảnh gốc (không threshold) để giữ dấu tiếng Việt + serial numbers
+    function preprocessForLocalOCR(imageUrl) {
       return new Promise((resolve, reject) => {
         const img = new Image();
         img.crossOrigin = 'anonymous';
@@ -6033,52 +6168,27 @@ QUY TẮC:
           const w = img.naturalWidth;
           const h = img.naturalHeight;
 
-          // Upscale ảnh nhỏ (< 1500px) lên 2x để model đọc dễ hơn
           const scale = Math.max(w, h) < 1500 ? 2 : 1;
           canvas.width = w * scale;
           canvas.height = h * scale;
           const ctx = canvas.getContext('2d');
-
-          // Vẽ ảnh gốc (có scale nếu cần)
           ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
 
-          // Tăng tương phản + làm nét bằng filter
-          ctx.filter = 'contrast(1.4) brightness(1.05) saturate(0)';
+          // Tăng tương phản nhẹ (không aggressive threshold)
+          ctx.filter = 'contrast(1.3) brightness(1.05)';
           ctx.globalCompositeOperation = 'source-over';
-          ctx.globalAlpha = 0.5;
+          ctx.globalAlpha = 0.4;
           ctx.drawImage(canvas, 0, 0);
           ctx.globalAlpha = 1;
           ctx.filter = 'none';
           ctx.globalCompositeOperation = 'source-over';
-
-          // Adaptive threshold bằng tay: chuyển sang trắng đen nếu là ảnh chữ tay
-          const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-          const d = imageData.data;
-
-          // Tính brightness trung bình để xem có nên threshold không
-          let totalBright = 0;
-          for (let i = 0; i < d.length; i += 4) {
-            totalBright += d[i] * 0.299 + d[i+1] * 0.587 + d[i+2] * 0.114;
-          }
-          const avgBright = totalBright / (d.length / 4);
-
-          // Chỉ threshold nếu ảnh sáng (giấy trắng chữ đen)
-          if (avgBright > 120) {
-            const threshold = avgBright * 0.62; // ngưỡng linh hoạt
-            for (let i = 0; i < d.length; i += 4) {
-              const gray = d[i] * 0.299 + d[i+1] * 0.587 + d[i+2] * 0.114;
-              const val = gray < threshold ? 0 : 255;
-              d[i] = d[i+1] = d[i+2] = val;
-            }
-            ctx.putImageData(imageData, 0, 0);
-          }
 
           canvas.toBlob(blob => {
             if (!blob) { resolve(imageUrl); return; }
             resolve(URL.createObjectURL(blob));
           }, 'image/png');
         };
-        img.onerror = () => resolve(imageUrl); // fallback ảnh gốc
+        img.onerror = () => resolve(imageUrl);
         img.src = imageUrl;
       });
     }
@@ -6181,13 +6291,15 @@ QUY TẮC:
         let text = '';
         let usedEngine = '';
 
-        // Tiền xử lý ảnh cho chữ viết tay
-        progressBar.style.width = '15%';
+        // Auto-rotate ảnh theo EXIF (nếu bị xoay do chụp ngang)
+        progressBar.style.width = '10%';
         textEl.querySelector('span').textContent = 'Đang xử lý ảnh…';
-        let processedUrl;
-        try { processedUrl = await preprocessImage(imageUrl); } catch { processedUrl = imageUrl; }
+        let rotatedUrl;
+        try { rotatedUrl = await autoRotateImage(imageUrl); } catch { rotatedUrl = imageUrl; }
 
         // Try Vision API first if configured
+        // Vision APIs (Gemini/Groq/Ollama) dùng ẢNH GỐC (chỉ auto-rotate)
+        // KHÔNG threshold/B&W → giữ nguyên dấu tiếng Việt + serial numbers
         if (ocrConfig.key || ocrConfig.provider === 'ollama') {
           try {
             const providerNames = { groq: 'Groq (Qwen Vision)', gemini: 'Gemini', ollama: 'Ollama (Local)' };
@@ -6195,11 +6307,11 @@ QUY TẮC:
             progressBar.style.width = '60%';
             textEl.querySelector('span').textContent = `Đang đọc bằng ${providerName}…`;
             if (ocrConfig.provider === 'ollama') {
-              text = await runOllamaOCR(processedUrl, ocrConfig.key);
+              text = await runOllamaOCR(rotatedUrl, ocrConfig.key);
             } else if (ocrConfig.provider === 'groq') {
-              text = await runGroqOCR(processedUrl, ocrConfig.key);
+              text = await runGroqOCR(rotatedUrl, ocrConfig.key);
             } else {
-              text = await runGeminiOCR(processedUrl, ocrConfig.key);
+              text = await runGeminiOCR(rotatedUrl, ocrConfig.key);
             }
             progressBar.style.width = '100%';
             usedEngine = ocrConfig.provider;
@@ -6211,11 +6323,14 @@ QUY TẮC:
         }
 
         // Try PaddleOCR if API unavailable or failed
+        // PaddleOCR dùng ảnh đã preprocess nhẹ (tăng contrast, KHÔNG threshold)
         if (!text) {
+          let localUrl;
+          try { localUrl = await preprocessForLocalOCR(rotatedUrl); } catch { localUrl = rotatedUrl; }
           try {
             progressBar.style.width = '30%';
             textEl.querySelector('span').textContent = paddleReady ? 'Đang đọc bằng PaddleOCR…' : 'Đang tải PaddleOCR (~6MB lần đầu)…';
-            text = await runPaddleOCR(processedUrl);
+            text = await runPaddleOCR(localUrl);
             progressBar.style.width = '100%';
             if (!usedEngine) usedEngine = 'paddle';
             else usedEngine = 'paddle-fallback';
@@ -6226,9 +6341,11 @@ QUY TẮC:
 
         // Last resort: Tesseract
         if (!text) {
+          let localUrl;
+          try { localUrl = await preprocessForLocalOCR(rotatedUrl); } catch { localUrl = rotatedUrl; }
           progressBar.style.width = '0%';
           textEl.querySelector('span').textContent = 'Đang thử Tesseract…';
-          text = await runTesseractOCR(processedUrl, progressBar);
+          text = await runTesseractOCR(localUrl, progressBar);
           usedEngine = 'tesseract';
         }
 
@@ -6392,6 +6509,9 @@ QUY TẮC:
     let undoStack = [];
     let redoStack = [];
     let undoLock = false;
+    // Layer visibility
+    let layerVisible = { background: true, image: true, stitches: true, grid: true };
+    let layerLocked = { background: true, image: false, stitches: false, grid: true };
 
     // Default palette (common thread colors)
     const DEFAULT_PALETTE = [
@@ -6478,6 +6598,8 @@ QUY TẮC:
         refOpacity: 0.3, imgLocked: true,
         maskMode: false, maskW: 100, maskH: 100,
         maskX: null, maskY: null,
+        layerVisible: { background: true, image: true, stitches: true, grid: true },
+        layerLocked: { background: true, image: false, stitches: false, grid: true },
       };
     }
 
@@ -6491,6 +6613,7 @@ QUY TẮC:
         imgX, imgY, imgW, imgH, imgRot,
         refOpacity, imgLocked,
         maskMode, maskW, maskH, maskX, maskY,
+        layerVisible: {...layerVisible}, layerLocked: {...layerLocked},
       });
     }
 
@@ -6518,6 +6641,8 @@ QUY TẮC:
       refOpacity = ab.refOpacity; imgLocked = ab.imgLocked;
       maskMode = ab.maskMode; maskW = ab.maskW; maskH = ab.maskH;
       maskX = ab.maskX; maskY = ab.maskY;
+      layerVisible = ab.layerVisible ? {...ab.layerVisible} : { background: true, image: true, stitches: true, grid: true };
+      layerLocked = ab.layerLocked ? {...ab.layerLocked} : { background: true, image: false, stitches: false, grid: true };
       editTarget = 'none'; dragMode = null; dragStart = null;
 
       // Sync UI controls
@@ -6542,6 +6667,7 @@ QUY TẮC:
 
       undoStack = []; redoStack = [];
       renderArtboardList();
+      renderLayers();
       recalcGrid();
     }
 
@@ -6908,11 +7034,13 @@ QUY TẮC:
       ctx.clearRect(0, 0, w, h);
 
       // White background
-      ctx.fillStyle = '#ffffff';
-      ctx.fillRect(0, 0, w, h);
+      if (layerVisible.background) {
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, w, h);
+      }
 
       // Reference image — vẽ với transform (vị trí/kích thước/xoay tự do)
-      if (refImage) {
+      if (refImage && layerVisible.image) {
         ctx.save();
         ctx.globalAlpha = refOpacity;
 
@@ -6979,7 +7107,8 @@ QUY TẮC:
       }
 
       // Draw stitches
-      for (const [key, stitch] of Object.entries(stitches)) {
+      if (!layerVisible.stitches) { /* skip stitches */ }
+      else for (const [key, stitch] of Object.entries(stitches)) {
         const [c, r] = key.split(',').map(Number);
         const x = c * cellPx, y = r * cellPx;
 
@@ -7002,26 +7131,27 @@ QUY TẮC:
       }
 
       // Grid lines
-      ctx.strokeStyle = 'rgba(0,0,0,0.15)';
-      ctx.lineWidth = 0.5;
-      for (let c = 0; c <= gridCols; c++) {
-        const x = c * cellPx;
-        // Bold every 10 cells
-        if (c % 10 === 0) { ctx.strokeStyle = 'rgba(0,0,0,0.4)'; ctx.lineWidth = 1; }
-        else { ctx.strokeStyle = 'rgba(0,0,0,0.12)'; ctx.lineWidth = 0.5; }
-        ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h); ctx.stroke();
-      }
-      for (let r = 0; r <= gridRows; r++) {
-        const y = r * cellPx;
-        if (r % 10 === 0) { ctx.strokeStyle = 'rgba(0,0,0,0.4)'; ctx.lineWidth = 1; }
-        else { ctx.strokeStyle = 'rgba(0,0,0,0.12)'; ctx.lineWidth = 0.5; }
-        ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke();
-      }
+      if (layerVisible.grid) {
+        ctx.strokeStyle = 'rgba(0,0,0,0.15)';
+        ctx.lineWidth = 0.5;
+        for (let c = 0; c <= gridCols; c++) {
+          const x = c * cellPx;
+          if (c % 10 === 0) { ctx.strokeStyle = 'rgba(0,0,0,0.4)'; ctx.lineWidth = 1; }
+          else { ctx.strokeStyle = 'rgba(0,0,0,0.12)'; ctx.lineWidth = 0.5; }
+          ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h); ctx.stroke();
+        }
+        for (let r = 0; r <= gridRows; r++) {
+          const y = r * cellPx;
+          if (r % 10 === 0) { ctx.strokeStyle = 'rgba(0,0,0,0.4)'; ctx.lineWidth = 1; }
+          else { ctx.strokeStyle = 'rgba(0,0,0,0.12)'; ctx.lineWidth = 0.5; }
+          ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke();
+        }
 
-      // Bold border
-      ctx.strokeStyle = 'rgba(0,0,0,0.6)';
-      ctx.lineWidth = 2;
-      ctx.strokeRect(0, 0, w, h);
+        // Bold border
+        ctx.strokeStyle = 'rgba(0,0,0,0.6)';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(0, 0, w, h);
+      }
 
       // Transform handles — show based on editTarget
       if (refImage) {
@@ -7033,6 +7163,50 @@ QUY TẮC:
           drawTransformHandles('#0096ff');
         }
         // group/mask handles already drawn in mask section above
+      }
+    }
+
+    // --- Layers panel ---
+    const csLayersList = document.getElementById('csLayersList');
+    const LAYER_DEFS = [
+      { id: 'grid',       name: 'Grid',       icon: '▦' },
+      { id: 'stitches',   name: 'Stitches',   icon: '✕' },
+      { id: 'image',      name: 'Image',      icon: '🖼' },
+      { id: 'background', name: 'Background', icon: '◻' },
+    ];
+
+    function renderLayers() {
+      if (!csLayersList) return;
+      csLayersList.innerHTML = '';
+      for (const layer of LAYER_DEFS) {
+        const el = document.createElement('div');
+        el.className = 'cs-layer-item' + (layer.id === 'stitches' ? ' active' : '');
+        const vis = layerVisible[layer.id];
+        const lck = layerLocked[layer.id];
+        el.innerHTML = `
+          <button class="cs-layer-eye${vis ? '' : ' hidden'}" data-layer="${layer.id}" title="${vis ? 'Ẩn' : 'Hiện'}">
+            ${vis ? '👁' : '👁‍🗨'}
+          </button>
+          <button class="cs-layer-lock${lck ? ' locked' : ''}" data-layer="${layer.id}" title="${lck ? 'Mở khóa' : 'Khóa'}">
+            ${lck ? '🔒' : '🔓'}
+          </button>
+          <span class="cs-layer-thumb">${layer.icon}</span>
+          <span class="cs-layer-name">${layer.name}</span>
+        `;
+        // Eye toggle
+        el.querySelector('.cs-layer-eye').addEventListener('click', (e) => {
+          e.stopPropagation();
+          layerVisible[layer.id] = !layerVisible[layer.id];
+          renderLayers();
+          draw();
+        });
+        // Lock toggle
+        el.querySelector('.cs-layer-lock').addEventListener('click', (e) => {
+          e.stopPropagation();
+          layerLocked[layer.id] = !layerLocked[layer.id];
+          renderLayers();
+        });
+        csLayersList.appendChild(el);
       }
     }
 
@@ -7589,6 +7763,7 @@ QUY TẮC:
     artboards.push(firstAb);
     activeArtboardId = firstAb.id;
     renderArtboardList();
+    renderLayers();
     recalcGrid();
     setTimeout(() => document.getElementById('csZoomFit')?.click(), 100);
 
