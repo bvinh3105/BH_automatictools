@@ -1883,13 +1883,13 @@
   /* ===== Cross Stitch Designer ===== */
   .cs-layout { display:flex; height:100%; gap:0; overflow:hidden; }
   .cs-toolbar {
-    width:260px; min-width:220px; padding:16px 14px; overflow-y:auto;
+    width:240px; min-width:200px; padding:10px 10px; overflow-y:auto;
     border-right:1px solid var(--border);
     background:color-mix(in srgb, var(--glass) 60%, transparent);
-    display:flex; flex-direction:column; gap:4px;
+    display:flex; flex-direction:column; gap:2px;
   }
-  .cs-title { font-size:16px; font-weight:700; margin:0 0 8px; color:var(--text); }
-  .cs-section { margin-bottom:10px; }
+  .cs-title { font-size:14px; font-weight:700; margin:0 0 4px; color:var(--text); }
+  .cs-section { margin-bottom:6px; }
   .cs-label { font-size:11px; font-weight:600; color:var(--text-dim); text-transform:uppercase; letter-spacing:.5px; margin-bottom:5px; display:block; }
   .cs-hint { font-size:10px; color:var(--text-dim); margin:2px 0 0; }
   .cs-upload {
@@ -1898,8 +1898,8 @@
   }
   .cs-upload:hover { border-color:var(--accent); }
   .cs-upload-text { font-size:13px; color:var(--text-dim); }
-  .cs-img-preview { position:relative; margin-top:6px; border-radius:8px; overflow:hidden; }
-  .cs-img-preview img { width:100%; display:block; border-radius:8px; }
+  .cs-img-preview { position:relative; margin-top:4px; border-radius:6px; overflow:hidden; }
+  .cs-img-preview img { max-height:60px; width:auto; display:block; border-radius:6px; margin:0 auto; object-fit:contain; }
   .cs-remove-img { position:absolute; top:4px; right:4px; background:rgba(0,0,0,.6); color:#fff; border:none; border-radius:50%; width:22px; height:22px; cursor:pointer; font-size:12px; line-height:22px; text-align:center; }
   .cs-opacity-row { display:flex; align-items:center; gap:6px; margin-top:4px; font-size:11px; color:var(--text-dim); }
   .cs-opacity-row input[type=range] { flex:1; height:4px; }
@@ -1925,10 +1925,10 @@
   }
   .cs-tool.active { background:var(--accent); color:#fff; border-color:var(--accent); }
   .cs-tool:hover:not(.active) { background:color-mix(in srgb, var(--accent) 15%, transparent); }
-  .cs-color-input { width:100%; height:32px; border:none; border-radius:8px; cursor:pointer; margin-bottom:6px; }
+  .cs-color-input { width:100%; height:24px; border:none; border-radius:6px; cursor:pointer; margin-bottom:4px; }
   .cs-palette { display:flex; flex-wrap:wrap; gap:3px; }
   .cs-palette-swatch {
-    width:20px; height:20px; border-radius:4px; cursor:pointer; border:2px solid transparent;
+    width:16px; height:16px; border-radius:3px; cursor:pointer; border:2px solid transparent;
     transition:border-color .15s, transform .1s;
   }
   .cs-palette-swatch:hover { transform:scale(1.2); }
@@ -2931,118 +2931,94 @@ Việt Nam</textarea>
   <div class="app">
     <!-- Cross Stitch Pattern Designer -->
     <div class="cs-layout">
-      <!-- Left toolbar -->
+      <!-- Left toolbar — compact, fits 1 screen -->
       <div class="cs-toolbar">
-        <h3 class="cs-title">🧵 Cross Stitch</h3>
+        <h3 class="cs-title" style="margin-bottom:4px">🧵 Cross Stitch</h3>
 
-        <!-- Image upload -->
-        <div class="cs-section">
-          <label class="cs-label">Ảnh tham khảo</label>
-          <div class="cs-upload" id="csUpload">
+        <!-- Image upload (compact) -->
+        <div class="cs-section" style="margin-bottom:6px">
+          <div class="cs-upload" id="csUpload" style="padding:10px 8px">
             <input type="file" id="csFileInput" accept="image/*" hidden />
-            <span class="cs-upload-text">📷 Chọn hoặc dán ảnh</span>
+            <span class="cs-upload-text" style="font-size:12px">📷 Chọn hoặc dán ảnh</span>
           </div>
           <div class="cs-img-preview" id="csImgPreview" style="display:none">
-            <img id="csRefImg" />
+            <img id="csRefImg" style="max-height:60px;width:auto;object-fit:contain;margin:0 auto;display:block" />
             <button class="cs-btn-sm cs-remove-img" id="csRemoveImg" title="Xóa ảnh">✕</button>
-            <div class="cs-opacity-row">
-              <label>Độ mờ:</label>
+            <div class="cs-opacity-row" style="margin-top:2px">
+              <label>Mờ:</label>
               <input type="range" id="csOpacity" min="0" max="100" value="30" />
-              <span id="csOpacityVal">30%</span>
-            </div>
-            <div class="cs-opacity-row">
-              <label>
-                <input type="checkbox" id="csLockRatio" checked /> Khoá tỷ lệ
-              </label>
-              <label style="margin-left:auto">
-                <input type="checkbox" id="csMaskMode" /> Mask (crop)
-              </label>
+              <span id="csOpacityVal" style="min-width:28px">30%</span>
+              <label style="margin-left:4px"><input type="checkbox" id="csLockRatio" checked /> 🔒</label>
+              <label style="margin-left:4px"><input type="checkbox" id="csMaskMode" /> Mask</label>
             </div>
             <div id="csMaskSize" style="display:none" class="cs-opacity-row">
               <label>Mask:</label>
-              <input type="number" id="csMaskW" min="5" max="999" value="100" style="width:55px;padding:2px 4px;border:1px solid var(--border);border-radius:4px;background:var(--glass);color:var(--text);font-size:11px;text-align:center" />
+              <input type="number" id="csMaskW" min="5" max="999" value="100" style="width:48px;padding:2px 3px;border:1px solid var(--border);border-radius:4px;background:var(--glass);color:var(--text);font-size:10px;text-align:center" />
               <span>×</span>
-              <input type="number" id="csMaskH" min="5" max="999" value="100" style="width:55px;padding:2px 4px;border:1px solid var(--border);border-radius:4px;background:var(--glass);color:var(--text);font-size:11px;text-align:center" />
+              <input type="number" id="csMaskH" min="5" max="999" value="100" style="width:48px;padding:2px 3px;border:1px solid var(--border);border-radius:4px;background:var(--glass);color:var(--text);font-size:10px;text-align:center" />
               <span>mm</span>
             </div>
-            <p class="cs-hint" id="csMaskHint" style="display:none">💡 Nhấp đôi mask trên canvas để kéo điều chỉnh</p>
+            <p class="cs-hint" id="csMaskHint" style="display:none;margin:1px 0 0">Dblclick mask → kéo chỉnh | Esc = lùi</p>
           </div>
         </div>
 
-        <!-- Artboards -->
-        <div class="cs-section">
-          <label class="cs-label">Artboard</label>
-          <div class="cs-artboard-list" id="csArtboardList"></div>
-          <button class="cs-btn" id="csAddArtboard" style="font-size:11px;padding:5px">+ Thêm artboard</button>
-        </div>
-
-        <!-- Canvas size -->
-        <div class="cs-section">
-          <label class="cs-label">Cỡ giấy</label>
-          <div class="cs-radio-group">
-            <button class="cs-radio" data-size="A5">A5</button>
-            <button class="cs-radio active" data-size="A4">A4</button>
-            <button class="cs-radio" data-size="A3">A3</button>
-            <button class="cs-radio" data-size="custom">Tuỳ chỉnh</button>
+        <!-- Artboard + Paper size (merged row) -->
+        <div class="cs-section" style="margin-bottom:6px">
+          <div style="display:flex;align-items:center;gap:4px;margin-bottom:4px">
+            <label class="cs-label" style="margin:0;min-width:fit-content">Artboard</label>
+            <div class="cs-artboard-list" id="csArtboardList" style="flex:1;flex-direction:row;overflow-x:auto;max-height:none"></div>
+            <button class="cs-btn-sm" id="csAddArtboard" title="Thêm artboard" style="font-size:14px;flex-shrink:0">+</button>
           </div>
-          <div class="cs-custom-size" id="csCustomSize" style="display:none">
-            <input type="number" id="csCustomW" placeholder="Rộng (mm)" min="10" max="1000" value="210" />
+          <div style="display:flex;align-items:center;gap:4px;flex-wrap:wrap">
+            <div class="cs-radio-group" style="gap:2px">
+              <button class="cs-radio" data-size="A5" style="padding:3px 8px;font-size:11px">A5</button>
+              <button class="cs-radio active" data-size="A4" style="padding:3px 8px;font-size:11px">A4</button>
+              <button class="cs-radio" data-size="A3" style="padding:3px 8px;font-size:11px">A3</button>
+              <button class="cs-radio" data-size="custom" style="padding:3px 8px;font-size:11px">⚙</button>
+            </div>
+            <input type="range" id="csDensity" min="4" max="32" value="14" style="flex:1;min-width:50px;height:4px" />
+            <span id="csDensityVal" style="font-size:11px;font-weight:600;color:var(--text);min-width:30px">14 ct</span>
+          </div>
+          <div class="cs-custom-size" id="csCustomSize" style="display:none;margin-top:4px">
+            <input type="number" id="csCustomW" placeholder="W" min="10" max="1000" value="210" style="width:50px" />
             <span>×</span>
-            <input type="number" id="csCustomH" placeholder="Cao (mm)" min="10" max="1000" value="297" />
+            <input type="number" id="csCustomH" placeholder="H" min="10" max="1000" value="297" style="width:50px" />
             <span>mm</span>
           </div>
+          <div class="cs-grid-info" id="csGridInfo" style="font-size:10px">Lưới: 116 × 164 ô</div>
         </div>
 
-        <!-- Grid density -->
-        <div class="cs-section">
-          <label class="cs-label">Mật độ lưới</label>
-          <div class="cs-density-row">
-            <input type="range" id="csDensity" min="4" max="32" value="14" />
-            <span id="csDensityVal">14 ct</span>
-          </div>
-          <p class="cs-hint">ct = ô/inch (Aida count). 14ct phổ biến nhất.</p>
-          <div class="cs-grid-info" id="csGridInfo">Lưới: 116 × 164 ô</div>
-        </div>
-
-        <!-- Drawing tools -->
-        <div class="cs-section">
-          <label class="cs-label">Công cụ</label>
-          <div class="cs-tools">
-            <button class="cs-tool" data-tool="select" title="Chọn/Di chuyển (V)">⊹</button>
-            <button class="cs-tool active" data-tool="cross" title="Chữ thập ✕ (X)">✕</button>
-            <button class="cs-tool" data-tool="half" title="Nửa chữ thập ╱ (H)">╱</button>
-            <button class="cs-tool" data-tool="backstitch" title="Đường viền ─ (B)">─</button>
-            <button class="cs-tool" data-tool="eraser" title="Tẩy (E)">🧹</button>
-            <button class="cs-tool" data-tool="fill" title="Đổ màu (F)">🪣</button>
-            <button class="cs-tool" data-tool="picker" title="Hút màu (I)">💉</button>
+        <!-- Tools (compact row) -->
+        <div class="cs-section" style="margin-bottom:6px">
+          <div class="cs-tools" style="gap:3px">
+            <button class="cs-tool" data-tool="select" title="Chọn (V)" style="width:30px;height:30px;font-size:14px">⊹</button>
+            <button class="cs-tool active" data-tool="cross" title="✕ (X)" style="width:30px;height:30px;font-size:14px">✕</button>
+            <button class="cs-tool" data-tool="half" title="╱ (H)" style="width:30px;height:30px;font-size:14px">╱</button>
+            <button class="cs-tool" data-tool="backstitch" title="─ (B)" style="width:30px;height:30px;font-size:14px">─</button>
+            <button class="cs-tool" data-tool="eraser" title="Tẩy (E)" style="width:30px;height:30px;font-size:13px">🧹</button>
+            <button class="cs-tool" data-tool="fill" title="Fill (F)" style="width:30px;height:30px;font-size:13px">🪣</button>
+            <button class="cs-tool" data-tool="picker" title="Pick (I)" style="width:30px;height:30px;font-size:13px">💉</button>
           </div>
         </div>
 
-        <!-- Color palette -->
-        <div class="cs-section">
-          <label class="cs-label">Màu chỉ</label>
-          <input type="color" id="csColor" value="#e74c3c" class="cs-color-input" />
-          <div class="cs-palette" id="csPalette">
-            <!-- populated by JS -->
+        <!-- Color: picker + palette compact -->
+        <div class="cs-section" style="margin-bottom:6px">
+          <div style="display:flex;align-items:center;gap:4px;margin-bottom:4px">
+            <input type="color" id="csColor" value="#e74c3c" style="width:28px;height:22px;border:none;border-radius:4px;cursor:pointer;padding:0" />
+            <label class="cs-label" style="margin:0">Màu chỉ</label>
+            <span class="cs-stats" id="csStats" style="margin-left:auto;font-size:10px"><b id="csStitchCount">0</b> mũi</span>
           </div>
-          <div class="cs-used-colors" id="csUsedColors">
-            <label class="cs-label" style="margin-top:8px">Đang dùng</label>
-            <div class="cs-used-list" id="csUsedList"></div>
+          <div class="cs-palette" id="csPalette" style="gap:2px">
+            <!-- JS fills -->
           </div>
+          <div class="cs-used-list" id="csUsedList" style="margin-top:3px"></div>
         </div>
 
-        <!-- Actions -->
-        <div class="cs-section">
-          <button class="cs-btn" id="csClear">🗑️ Xoá tất cả</button>
-          <button class="cs-btn" id="csExport">💾 Xuất PNG</button>
-          <button class="cs-btn" id="csExportPDF">📄 Xuất PDF</button>
-        </div>
-
-        <!-- Stats -->
-        <div class="cs-section">
-          <div class="cs-stats" id="csStats">
-            <span>Đã thêu: <b id="csStitchCount">0</b> mũi</span>
-          </div>
+        <!-- Actions (inline row) -->
+        <div class="cs-section" style="margin-bottom:0;display:flex;gap:3px;flex-wrap:wrap">
+          <button class="cs-btn" id="csClear" style="flex:1;padding:5px;font-size:11px">🗑️ Xoá</button>
+          <button class="cs-btn" id="csExport" style="flex:1;padding:5px;font-size:11px">💾 PNG</button>
+          <button class="cs-btn" id="csExportPDF" style="flex:1;padding:5px;font-size:11px">📄 PDF</button>
         </div>
       </div>
 
@@ -6391,16 +6367,19 @@ QUY TẮC:
     let refOpacity = 0.3;
     // Image transform (Illustrator-style)
     let imgX = 0, imgY = 0, imgW = 0, imgH = 0, imgRot = 0;
-    let imgSelected = false;
     let imgLocked = true; // lock aspect ratio
     let maskMode = false;
     let maskW = 100, maskH = 100; // in mm (for print)
     let maskX = null, maskY = null; // px on canvas (null = centered)
-    let maskEditMode = false;
-    let maskDragMode = null; // null | 'move' | 'nw' | 'ne' | 'sw' | 'se'
-    let maskDragStart = null;
-    let imgDragMode = null; // null | 'move' | 'nw' | 'ne' | 'sw' | 'se' | 'rotate'
-    let imgDragStart = null;
+    // === Illustrator Clipping Mask ===
+    // 'none'  → click → 'group' (mask on) or 'image' (mask off)
+    // 'group' → dblclick → isolation: click mask border→'mask', click image→'image'
+    // 'mask'  → chỉnh riêng mask rect (cam)
+    // 'image' → chỉnh riêng ảnh (xanh lá khi isolation, xanh khi ko mask)
+    // Escape → step back
+    let editTarget = 'none';
+    let dragMode = null; // 'move' | 'nw'|'ne'|'sw'|'se' | 'rotate'
+    let dragStart = null; // snapshot at drag begin
     let stitches = {}; // key: "col,row" → { type, color }
     let isDrawing = false;
     let lastCell = null;
@@ -6536,9 +6515,10 @@ QUY TẮC:
         csUpload.style.display = '';
       }
       imgX = ab.imgX; imgY = ab.imgY; imgW = ab.imgW; imgH = ab.imgH; imgRot = ab.imgRot;
-      refOpacity = ab.refOpacity; imgLocked = ab.imgLocked; imgSelected = false;
+      refOpacity = ab.refOpacity; imgLocked = ab.imgLocked;
       maskMode = ab.maskMode; maskW = ab.maskW; maskH = ab.maskH;
-      maskX = ab.maskX; maskY = ab.maskY; maskEditMode = false;
+      maskX = ab.maskX; maskY = ab.maskY;
+      editTarget = 'none'; dragMode = null; dragStart = null;
 
       // Sync UI controls
       csOpacity.value = Math.round(refOpacity * 100);
@@ -6812,7 +6792,7 @@ QUY TẮC:
         imgX = (cw - imgW) / 2;
         imgY = (ch - imgH) / 2;
         imgRot = 0;
-        imgSelected = true;
+        editTarget = maskMode ? 'group' : 'image';
         imgLocked = true;
         draw();
       };
@@ -6821,7 +6801,7 @@ QUY TẮC:
 
     csRemoveImg.addEventListener('click', () => {
       refImage = null;
-      imgSelected = false;
+      editTarget = 'none'; dragMode = null; dragStart = null;
       csImgPreview.style.display = 'none';
       csUpload.style.display = '';
       csFileInput.value = '';
@@ -6843,7 +6823,7 @@ QUY TẮC:
       maskMode = e.target.checked;
       csMaskSizeEl.style.display = maskMode ? 'flex' : 'none';
       document.getElementById('csMaskHint').style.display = maskMode ? '' : 'none';
-      if (maskMode) { maskX = null; maskY = null; maskEditMode = false; } // center on enable
+      if (maskMode) { maskX = null; maskY = null; editTarget = 'none'; } // center on enable
       draw();
     });
     csMaskWInput.addEventListener('change', () => { maskW = parseInt(csMaskWInput.value) || 100; draw(); });
@@ -6964,42 +6944,29 @@ QUY TẮC:
           ctx.fillRect(mX + mPxW, mY, w - mX - mPxW, mPxH); // right
           ctx.globalAlpha = 1;
 
-          // Mask border
-          ctx.strokeStyle = maskEditMode ? '#ff6600' : '#0096ff';
+          // Mask border — color by edit level
+          const isIsoMask = editTarget === 'mask';
+          const isGroup = editTarget === 'group';
+          const maskColor = isIsoMask ? '#ff6600' : '#0096ff';
+          ctx.strokeStyle = maskColor;
           ctx.lineWidth = 2;
-          ctx.setLineDash([8, 4]);
+          ctx.setLineDash(isIsoMask ? [] : [8, 4]);
           ctx.strokeRect(mX, mY, mPxW, mPxH);
           ctx.setLineDash([]);
 
           // Kích thước label (mm)
-          ctx.fillStyle = maskEditMode ? '#ff6600' : '#0096ff';
+          ctx.fillStyle = maskColor;
           ctx.font = '12px sans-serif';
           ctx.textAlign = 'center';
           ctx.fillText(`${Math.round(maskW)} × ${Math.round(maskH)} mm`, mX + mPxW / 2, mY - 8);
 
-          // Mask edit handles (khi double-click)
-          if (maskEditMode) {
-            const corners = [
-              { x: mX, y: mY, id: 'nw' },
-              { x: mX + mPxW, y: mY, id: 'ne' },
-              { x: mX + mPxW, y: mY + mPxH, id: 'se' },
-              { x: mX, y: mY + mPxH, id: 'sw' },
-            ];
-            corners.forEach(c => {
-              ctx.fillStyle = '#fff';
-              ctx.strokeStyle = '#ff6600';
-              ctx.lineWidth = 2;
-              ctx.fillRect(c.x - 5, c.y - 5, 10, 10);
-              ctx.strokeRect(c.x - 5, c.y - 5, 10, 10);
-            });
-            // Center move handle
-            const mcx = mX + mPxW / 2, mcy = mY + mPxH / 2;
-            ctx.strokeStyle = 'rgba(255,102,0,0.4)';
-            ctx.lineWidth = 1;
-            ctx.beginPath();
-            ctx.moveTo(mcx - 10, mcy); ctx.lineTo(mcx + 10, mcy);
-            ctx.moveTo(mcx, mcy - 10); ctx.lineTo(mcx, mcy + 10);
-            ctx.stroke();
+          // Group handles (blue) on mask rect
+          if (isGroup) {
+            drawHandlesOnRect(mX, mY, mPxW, mPxH, 0, '#0096ff', false);
+          }
+          // Isolation: mask layer handles (orange)
+          if (isIsoMask) {
+            drawHandlesOnRect(mX, mY, mPxW, mPxH, 0, '#ff6600', false);
           }
         } else {
           // Vẽ bình thường, không mask
@@ -7056,9 +7023,16 @@ QUY TẮC:
       ctx.lineWidth = 2;
       ctx.strokeRect(0, 0, w, h);
 
-      // Transform handles (Illustrator-style)
-      if (refImage && imgSelected) {
-        drawTransformHandles();
+      // Transform handles — show based on editTarget
+      if (refImage) {
+        if (editTarget === 'image' && maskMode) {
+          // Isolation: image layer (green handles + rotate)
+          drawTransformHandles('#22c55e');
+        } else if (editTarget === 'image' && !maskMode) {
+          // No mask: image handles (blue + rotate)
+          drawTransformHandles('#0096ff');
+        }
+        // group/mask handles already drawn in mask section above
       }
     }
 
@@ -7084,60 +7058,65 @@ QUY TẮC:
       };
     }
 
-    function drawTransformHandles() {
+    // Generic rect handles (for mask / group)
+    function drawHandlesOnRect(rx, ry, rw, rh, rot, color, showRotate) {
+      ctx.save();
+      const corners = [
+        { x: rx, y: ry }, { x: rx + rw, y: ry },
+        { x: rx + rw, y: ry + rh }, { x: rx, y: ry + rh }
+      ];
+      // Border
+      ctx.strokeStyle = color; ctx.lineWidth = 1.5; ctx.setLineDash([6,4]);
+      ctx.beginPath(); ctx.moveTo(corners[0].x, corners[0].y);
+      corners.forEach((c,i) => { if(i) ctx.lineTo(c.x, c.y); });
+      ctx.closePath(); ctx.stroke(); ctx.setLineDash([]);
+      // Corner handles
+      corners.forEach(p => {
+        ctx.fillStyle = '#fff'; ctx.strokeStyle = color; ctx.lineWidth = 2;
+        ctx.fillRect(p.x - HANDLE_SIZE/2, p.y - HANDLE_SIZE/2, HANDLE_SIZE, HANDLE_SIZE);
+        ctx.strokeRect(p.x - HANDLE_SIZE/2, p.y - HANDLE_SIZE/2, HANDLE_SIZE, HANDLE_SIZE);
+      });
+      // Center crosshair
+      const ccx = rx + rw/2, ccy = ry + rh/2;
+      ctx.strokeStyle = color + '80'; ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(ccx-8, ccy); ctx.lineTo(ccx+8, ccy);
+      ctx.moveTo(ccx, ccy-8); ctx.lineTo(ccx, ccy+8);
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    // Image transform handles (with rotation)
+    function drawTransformHandles(color) {
+      color = color || '#0096ff';
       const c = getImgCorners();
       const pts = [c.nw, c.ne, c.se, c.sw];
-
-      // Bounding box dashed line
       ctx.save();
-      ctx.strokeStyle = '#0096ff';
-      ctx.lineWidth = 1.5;
-      ctx.setLineDash([6, 4]);
-      ctx.beginPath();
-      ctx.moveTo(pts[0].x, pts[0].y);
+      // Bounding box
+      ctx.strokeStyle = color; ctx.lineWidth = 1.5; ctx.setLineDash([6,4]);
+      ctx.beginPath(); ctx.moveTo(pts[0].x, pts[0].y);
       for (let i = 1; i < 4; i++) ctx.lineTo(pts[i].x, pts[i].y);
-      ctx.closePath();
-      ctx.stroke();
-      ctx.setLineDash([]);
-
+      ctx.closePath(); ctx.stroke(); ctx.setLineDash([]);
       // Rotation line + handle
-      ctx.strokeStyle = '#0096ff';
-      ctx.lineWidth = 1;
-      const topMid = { x: (c.nw.x + c.ne.x) / 2, y: (c.nw.y + c.ne.y) / 2 };
-      ctx.beginPath();
-      ctx.moveTo(topMid.x, topMid.y);
-      ctx.lineTo(c.rotHandle.x, c.rotHandle.y);
-      ctx.stroke();
-
-      // Rotate handle (circle)
-      ctx.fillStyle = '#fff';
-      ctx.strokeStyle = '#0096ff';
-      ctx.lineWidth = 2;
-      ctx.beginPath();
-      ctx.arc(c.rotHandle.x, c.rotHandle.y, 6, 0, Math.PI * 2);
-      ctx.fill(); ctx.stroke();
-      // Arrow icon
-      ctx.fillStyle = '#0096ff';
-      ctx.font = '10px sans-serif';
-      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.strokeStyle = color; ctx.lineWidth = 1;
+      const topMid = { x: (c.nw.x+c.ne.x)/2, y: (c.nw.y+c.ne.y)/2 };
+      ctx.beginPath(); ctx.moveTo(topMid.x, topMid.y); ctx.lineTo(c.rotHandle.x, c.rotHandle.y); ctx.stroke();
+      ctx.fillStyle = '#fff'; ctx.strokeStyle = color; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.arc(c.rotHandle.x, c.rotHandle.y, 6, 0, Math.PI*2); ctx.fill(); ctx.stroke();
+      ctx.fillStyle = color; ctx.font = '10px sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
       ctx.fillText('↻', c.rotHandle.x, c.rotHandle.y);
-
-      // Corner handles (squares)
+      // Corner handles
       pts.forEach(p => {
-        ctx.fillStyle = '#fff';
-        ctx.strokeStyle = '#0096ff';
-        ctx.lineWidth = 2;
-        ctx.fillRect(p.x - HANDLE_SIZE / 2, p.y - HANDLE_SIZE / 2, HANDLE_SIZE, HANDLE_SIZE);
-        ctx.strokeRect(p.x - HANDLE_SIZE / 2, p.y - HANDLE_SIZE / 2, HANDLE_SIZE, HANDLE_SIZE);
+        ctx.fillStyle = '#fff'; ctx.strokeStyle = color; ctx.lineWidth = 2;
+        ctx.fillRect(p.x-HANDLE_SIZE/2, p.y-HANDLE_SIZE/2, HANDLE_SIZE, HANDLE_SIZE);
+        ctx.strokeRect(p.x-HANDLE_SIZE/2, p.y-HANDLE_SIZE/2, HANDLE_SIZE, HANDLE_SIZE);
       });
-
       // Center crosshair
-      ctx.strokeStyle = 'rgba(0,150,255,0.5)';
-      ctx.lineWidth = 1;
       const cc = c.center;
+      ctx.strokeStyle = color+'80'; ctx.lineWidth = 1;
       ctx.beginPath();
-      ctx.moveTo(cc.x - 8, cc.y); ctx.lineTo(cc.x + 8, cc.y);
-      ctx.moveTo(cc.x, cc.y - 8); ctx.lineTo(cc.x, cc.y + 8);
+      ctx.moveTo(cc.x-8, cc.y); ctx.lineTo(cc.x+8, cc.y);
+      ctx.moveTo(cc.x, cc.y-8); ctx.lineTo(cc.x, cc.y+8);
       ctx.stroke();
       ctx.restore();
     }
@@ -7154,10 +7133,10 @@ QUY TẮC:
 
     function hitTestTransform(mx, my) {
       if (!refImage) return null;
-      const hitR = 12 / zoom; // scale hitbox với zoom
+      const hitR = 12 / zoom;
 
-      // Handles chỉ hiện khi đã selected
-      if (imgSelected) {
+      // Handles only when image layer is active
+      if (editTarget === 'image') {
         const c = getImgCorners();
         if (Math.hypot(mx - c.rotHandle.x, my - c.rotHandle.y) < hitR) return 'rotate';
         if (Math.hypot(mx - c.nw.x, my - c.nw.y) < hitR) return 'nw';
@@ -7182,7 +7161,7 @@ QUY TẮC:
     }
 
     function hitTestMask(mx, my) {
-      if (!maskMode || !maskEditMode) return null;
+      if (!maskMode || (editTarget !== 'mask' && editTarget !== 'group')) return null;
       const { mX, mY, mPxW, mPxH } = getMaskRect();
       const hitR = 12 / zoom;
 
@@ -7203,98 +7182,208 @@ QUY TẮC:
       return mx >= mX - 15 && mx <= mX + mPxW + 15 && my >= mY - 15 && my <= mY + mPxH + 15;
     }
 
-    // --- Double-click: mask edit toggle ---
+    // === ILLUSTRATOR CLIPPING MASK: double-click isolation ===
     canvas.addEventListener('dblclick', function csDblClick(e) {
-      if (!maskMode) return;
       const { mx, my } = getCanvasXY(e);
-      if (isInsideMask(mx, my)) {
-        maskEditMode = !maskEditMode;
-        draw();
-        e.preventDefault();
-      } else if (maskEditMode) {
-        maskEditMode = false;
-        draw();
+      if (maskMode && refImage) {
+        if (editTarget === 'none' || editTarget === 'group') {
+          // Enter isolation — decide mask vs image by click position
+          if (isInsideMask(mx, my)) {
+            // Inside mask area → check if on mask border or on image
+            const { mX, mY, mPxW, mPxH } = getMaskRect();
+            const margin = 12 / zoom;
+            const onBorder = mx < mX + margin || mx > mX + mPxW - margin || my < mY + margin || my > mY + mPxH - margin;
+            editTarget = onBorder ? 'mask' : (isInsideImage(mx, my) ? 'image' : 'mask');
+          } else {
+            editTarget = 'mask';
+          }
+          draw(); e.preventDefault(); return;
+        }
+        if (editTarget === 'mask' || editTarget === 'image') {
+          // Exit isolation → back to group
+          editTarget = 'group'; draw(); e.preventDefault(); return;
+        }
+      } else if (!maskMode && refImage) {
+        // No mask: dblclick toggles image selection
+        editTarget = editTarget === 'image' ? 'none' : 'image';
+        draw(); e.preventDefault();
       }
     });
 
-    // --- Pointer events: transform handles + mask edit + stitch drawing ---
+    // === Unified drag helper: applies to group / mask / image ===
+    function applyDrag(mx, my, e) {
+      if (!dragStart) return;
+      const s = dragStart;
+      const dx = mx - s.mx, dy = my - s.my;
+
+      if (s.target === 'group') {
+        // Group: move/resize mask+image together
+        if (dragMode === 'move') {
+          maskX = s.maskX + dx; maskY = s.maskY + dy;
+          imgX = s.imgX + dx; imgY = s.imgY + dy;
+        } else {
+          // Corner resize → scale both proportionally
+          let newW = s.maskPxW, newH = s.maskPxH, newMX = s.maskX, newMY = s.maskY;
+          if (dragMode === 'se') { newW = s.maskPxW + dx; newH = s.maskPxH + dy; }
+          else if (dragMode === 'ne') { newW = s.maskPxW + dx; newH = s.maskPxH - dy; newMY = s.maskY + dy; }
+          else if (dragMode === 'sw') { newW = s.maskPxW - dx; newH = s.maskPxH + dy; newMX = s.maskX + dx; }
+          else if (dragMode === 'nw') { newW = s.maskPxW - dx; newH = s.maskPxH - dy; newMX = s.maskX + dx; newMY = s.maskY + dy; }
+          newW = Math.max(mmToPx(10), newW); newH = Math.max(mmToPx(10), newH);
+          const scale = newW / s.maskPxW;
+          // Fixed corner depends on drag corner
+          const fixX = (dragMode === 'nw' || dragMode === 'sw') ? s.maskX + s.maskPxW : s.maskX;
+          const fixY = (dragMode === 'nw' || dragMode === 'ne') ? s.maskY + s.maskPxH : s.maskY;
+          imgX = fixX + (s.imgX - fixX) * scale;
+          imgY = fixY + (s.imgY - fixY) * scale;
+          imgW = s.imgW * scale; imgH = s.imgH * scale;
+          maskX = newMX; maskY = newMY;
+          maskW = Math.round(pxToMm(newW)); maskH = Math.round(pxToMm(newH));
+          csMaskWInput.value = maskW; csMaskHInput.value = maskH;
+        }
+      } else if (s.target === 'mask') {
+        // Mask layer only
+        if (dragMode === 'move') {
+          maskX = s.maskX + dx; maskY = s.maskY + dy;
+        } else {
+          let newX = s.maskX, newY = s.maskY, newW = s.maskPxW, newH = s.maskPxH;
+          if (dragMode === 'se') { newW = s.maskPxW + dx; newH = s.maskPxH + dy; }
+          else if (dragMode === 'ne') { newW = s.maskPxW + dx; newH = s.maskPxH - dy; newY = s.maskY + dy; }
+          else if (dragMode === 'sw') { newW = s.maskPxW - dx; newH = s.maskPxH + dy; newX = s.maskX + dx; }
+          else if (dragMode === 'nw') { newW = s.maskPxW - dx; newH = s.maskPxH - dy; newX = s.maskX + dx; newY = s.maskY + dy; }
+          maskX = newX; maskY = newY;
+          maskW = Math.round(pxToMm(Math.max(mmToPx(10), newW)));
+          maskH = Math.round(pxToMm(Math.max(mmToPx(10), newH)));
+          csMaskWInput.value = maskW; csMaskHInput.value = maskH;
+        }
+      } else if (s.target === 'image') {
+        // Image layer only
+        if (dragMode === 'move') {
+          imgX = s.imgX + dx; imgY = s.imgY + dy;
+        } else if (dragMode === 'rotate') {
+          const cx = s.imgX + s.imgW/2, cy = s.imgY + s.imgH/2;
+          const a0 = Math.atan2(s.my - cy, s.mx - cx);
+          const a1 = Math.atan2(my - cy, mx - cx);
+          imgRot = s.imgRot + (a1 - a0);
+          const deg = (imgRot * 180 / Math.PI) % 360;
+          for (const snap of [0,90,180,270,-90,-180,-270]) {
+            if (Math.abs(deg - snap) < 5) { imgRot = snap * Math.PI / 180; break; }
+          }
+        } else {
+          // Corner resize (with rotation math)
+          const cx = s.imgX + s.imgW/2, cy = s.imgY + s.imgH/2;
+          const cos = Math.cos(-s.imgRot), sin = Math.sin(-s.imgRot);
+          const lmx = (mx-cx)*cos - (my-cy)*sin + cx;
+          const lmy = (mx-cx)*sin + (my-cy)*cos + cy;
+          const smx = (s.mx-cx)*cos - (s.my-cy)*sin + cx;
+          const smy = (s.mx-cx)*sin + (s.my-cy)*cos + cy;
+          const ldx = lmx-smx, ldy = lmy-smy;
+          let nW = s.imgW, nH = s.imgH, nX = s.imgX, nY = s.imgY;
+          if (dragMode === 'se') { nW = s.imgW+ldx; nH = s.imgH+ldy; }
+          else if (dragMode === 'ne') { nW = s.imgW+ldx; nH = s.imgH-ldy; nY = s.imgY+ldy; }
+          else if (dragMode === 'sw') { nW = s.imgW-ldx; nH = s.imgH+ldy; nX = s.imgX+ldx; }
+          else if (dragMode === 'nw') { nW = s.imgW-ldx; nH = s.imgH-ldy; nX = s.imgX+ldx; nY = s.imgY+ldy; }
+          nW = Math.max(20, nW); nH = Math.max(20, nH);
+          if (imgLocked || e?.shiftKey) {
+            const ratio = s.imgW / s.imgH;
+            nH = nW / ratio;
+            if (dragMode === 'nw') nY = s.imgY + s.imgH - nH;
+            if (dragMode === 'ne') nY = s.imgY + s.imgH - nH;
+          }
+          imgX = nX; imgY = nY; imgW = nW; imgH = nH;
+        }
+      }
+      draw();
+    }
+
+    // === Pointer events ===
     canvas.addEventListener('pointerdown', function csPointerDown(e) {
-      // Middle-click hoặc Space+click → pan (ưu tiên trước mọi thứ)
+      // Pan: middle-click or Space+click
       if (e.button === 1 || (e.button === 0 && spaceHeld)) {
-        e.preventDefault();
-        e.stopPropagation();
-        isPanning = true;
-        panStartX = e.clientX;
-        panStartY = e.clientY;
-        panScrollX = csCanvasScroll.scrollLeft;
-        panScrollY = csCanvasScroll.scrollTop;
-        canvas.style.cursor = 'grabbing';
-        canvas.setPointerCapture(e.pointerId);
+        e.preventDefault(); e.stopPropagation();
+        isPanning = true; panStartX = e.clientX; panStartY = e.clientY;
+        panScrollX = csCanvasScroll.scrollLeft; panScrollY = csCanvasScroll.scrollTop;
+        canvas.style.cursor = 'grabbing'; canvas.setPointerCapture(e.pointerId);
         return;
       }
 
       const { mx, my } = getCanvasXY(e);
+      const { mX, mY, mPxW, mPxH } = getMaskRect();
 
-      // 1. Mask edit mode: test mask handles first
-      if (maskMode && maskEditMode) {
+      // --- Isolation mode: mask layer ---
+      if (editTarget === 'mask') {
         const mhit = hitTestMask(mx, my);
         if (mhit) {
-          e.preventDefault();
-          const { mX, mY, mPxW, mPxH } = getMaskRect();
-          maskDragMode = mhit;
-          maskDragStart = { mx, my, mX, mY, mPxW, mPxH };
-          canvas.setPointerCapture(e.pointerId);
-          return;
+          e.preventDefault(); dragMode = mhit;
+          dragStart = { target: 'mask', mx, my, maskX: mX, maskY: mY, maskPxW: mPxW, maskPxH: mPxH };
+          canvas.setPointerCapture(e.pointerId); return;
+        }
+        // Click on image inside mask → switch to image layer
+        if (isInsideImage(mx, my)) { editTarget = 'image'; draw(); return; }
+        // Click outside → exit isolation to group
+        editTarget = 'group'; draw(); return;
+      }
+
+      // --- Isolation mode: image layer ---
+      if (editTarget === 'image') {
+        const ihit = hitTestTransform(mx, my);
+        if (ihit) {
+          e.preventDefault(); dragMode = ihit;
+          dragStart = { target: 'image', mx, my, imgX, imgY, imgW, imgH, imgRot, aspect: imgW/imgH };
+          canvas.setPointerCapture(e.pointerId); return;
+        }
+        // Click on mask border → switch to mask layer (if in isolation)
+        if (maskMode && isInsideMask(mx, my) && !isInsideImage(mx, my)) {
+          editTarget = 'mask'; draw(); return;
+        }
+        // Click outside → exit
+        editTarget = maskMode ? 'group' : 'none'; draw();
+        if (!maskMode && currentTool !== 'select') { /* fall through to stitch */ } else return;
+      }
+
+      // --- Group mode (mask on) ---
+      if (editTarget === 'group' && maskMode) {
+        const mhit = hitTestMask(mx, my);
+        if (mhit) {
+          e.preventDefault(); dragMode = mhit;
+          dragStart = { target: 'group', mx, my, maskX: mX, maskY: mY, maskPxW: mPxW, maskPxH: mPxH, imgX, imgY, imgW, imgH };
+          canvas.setPointerCapture(e.pointerId); return;
+        }
+        // Click outside mask → deselect
+        editTarget = 'none'; draw();
+        if (currentTool !== 'select') { /* fall through to stitch */ } else return;
+      }
+
+      // --- Nothing selected: click to select ---
+      if (editTarget === 'none' && refImage) {
+        if (maskMode && isInsideMask(mx, my)) {
+          editTarget = 'group'; draw();
+          // Start group move immediately
+          dragMode = 'move';
+          dragStart = { target: 'group', mx, my, maskX: mX, maskY: mY, maskPxW: mPxW, maskPxH: mPxH, imgX, imgY, imgW, imgH };
+          e.preventDefault(); canvas.setPointerCapture(e.pointerId); return;
+        }
+        if (!maskMode && (currentTool === 'select' || isInsideImage(mx, my))) {
+          if (isInsideImage(mx, my)) {
+            editTarget = 'image'; draw();
+            dragMode = 'move';
+            dragStart = { target: 'image', mx, my, imgX, imgY, imgW, imgH, imgRot, aspect: imgW/imgH };
+            e.preventDefault(); canvas.setPointerCapture(e.pointerId); return;
+          }
         }
       }
 
-      // 2. Image transform handles (select tool or any tool when image is selected)
-      if (refImage && (currentTool === 'select' || imgSelected)) {
-        const hit = hitTestTransform(mx, my);
-        if (hit) {
-          e.preventDefault();
-          imgDragMode = hit;
-          imgSelected = true;
-          imgDragStart = {
-            mx, my, imgX, imgY, imgW, imgH, imgRot,
-            aspect: imgW / imgH,
-          };
-          canvas.setPointerCapture(e.pointerId);
-          draw();
-          return;
-        }
-        // Clicked outside image → deselect
-        if (imgSelected && currentTool === 'select') {
-          imgSelected = false;
-          draw();
-          return; // select tool doesn't draw stitches
-        }
-      }
+      // Select tool: don't draw stitches
+      if (currentTool === 'select') return;
 
-      // Select tool: if clicked on image, select it
-      if (currentTool === 'select') {
-        if (refImage && isInsideImage(mx, my)) {
-          imgSelected = true;
-          imgDragMode = 'move';
-          imgDragStart = { mx, my, imgX, imgY, imgW, imgH, imgRot, aspect: imgW / imgH };
-          canvas.setPointerCapture(e.pointerId);
-          draw();
-        }
-        return; // select tool never draws stitches
-      }
-
-      // 3. Normal stitch drawing
+      // --- Normal stitch drawing ---
       const cell = getCellFromEvent(e);
       if (!cell) return;
-      e.preventDefault();
-      isDrawing = true;
-      lastCell = cell;
+      e.preventDefault(); isDrawing = true; lastCell = cell;
       applyTool(cell.col, cell.row);
       canvas.setPointerCapture(e.pointerId);
     });
 
     canvas.addEventListener('pointermove', function csPointerMove(e) {
-      // Pan đang hoạt động
       if (isPanning) {
         csCanvasScroll.scrollLeft = panScrollX - (e.clientX - panStartX);
         csCanvasScroll.scrollTop = panScrollY - (e.clientY - panStartY);
@@ -7303,133 +7392,53 @@ QUY TẮC:
 
       const { mx, my } = getCanvasXY(e);
 
-      // Mask drag
-      if (maskDragMode && maskDragStart) {
-        e.preventDefault();
-        const s = maskDragStart;
-        const dx = mx - s.mx, dy = my - s.my;
-        if (maskDragMode === 'move') {
-          maskX = s.mX + dx;
-          maskY = s.mY + dy;
-        } else {
-          // Corner resize → convert back to mm
-          let newX = s.mX, newY = s.mY, newW = s.mPxW, newH = s.mPxH;
-          if (maskDragMode === 'se') {
-            newW = Math.max(mmToPx(10), s.mPxW + dx); newH = Math.max(mmToPx(10), s.mPxH + dy);
-          } else if (maskDragMode === 'ne') {
-            newW = Math.max(mmToPx(10), s.mPxW + dx); newH = Math.max(mmToPx(10), s.mPxH - dy); newY = s.mY + dy;
-          } else if (maskDragMode === 'sw') {
-            newW = Math.max(mmToPx(10), s.mPxW - dx); newH = Math.max(mmToPx(10), s.mPxH + dy); newX = s.mX + dx;
-          } else if (maskDragMode === 'nw') {
-            newW = Math.max(mmToPx(10), s.mPxW - dx); newH = Math.max(mmToPx(10), s.mPxH - dy); newX = s.mX + dx; newY = s.mY + dy;
-          }
-          maskX = newX; maskY = newY;
-          maskW = Math.round(pxToMm(newW)); maskH = Math.round(pxToMm(newH));
-          // Sync inputs
-          csMaskWInput.value = maskW; csMaskHInput.value = maskH;
-        }
-        draw();
-        return;
+      // Active drag
+      if (dragMode && dragStart) {
+        e.preventDefault(); applyDrag(mx, my, e); return;
       }
 
-      // Image transform drag
-      if (imgDragMode && imgDragStart) {
-        e.preventDefault();
-        const s = imgDragStart;
-        const dx = mx - s.mx, dy = my - s.my;
-
-        if (imgDragMode === 'move') {
-          imgX = s.imgX + dx;
-          imgY = s.imgY + dy;
-        } else if (imgDragMode === 'rotate') {
-          const cx = s.imgX + s.imgW / 2, cy = s.imgY + s.imgH / 2;
-          const angleBefore = Math.atan2(s.my - cy, s.mx - cx);
-          const angleAfter = Math.atan2(my - cy, mx - cx);
-          imgRot = s.imgRot + (angleAfter - angleBefore);
-          // Snap to 0/90/180/270 within 5°
-          const deg = (imgRot * 180 / Math.PI) % 360;
-          for (const snap of [0, 90, 180, 270, -90, -180, -270]) {
-            if (Math.abs(deg - snap) < 5) { imgRot = snap * Math.PI / 180; break; }
-          }
-        } else {
-          // Corner resize
-          const cx = s.imgX + s.imgW / 2, cy = s.imgY + s.imgH / 2;
-          const cos = Math.cos(-s.imgRot), sin = Math.sin(-s.imgRot);
-          const lmx = (mx - cx) * cos - (my - cy) * sin + cx;
-          const lmy = (mx - cx) * sin + (my - cy) * cos + cy;
-          const smx = (s.mx - cx) * cos - (s.my - cy) * sin + cx;
-          const smy = (s.mx - cx) * sin + (s.my - cy) * cos + cy;
-          const ldx = lmx - smx, ldy = lmy - smy;
-
-          let newW = s.imgW, newH = s.imgH, newX = s.imgX, newY = s.imgY;
-          if (imgDragMode === 'se') {
-            newW = Math.max(20, s.imgW + ldx); newH = Math.max(20, s.imgH + ldy);
-          } else if (imgDragMode === 'ne') {
-            newW = Math.max(20, s.imgW + ldx); newH = Math.max(20, s.imgH - ldy); newY = s.imgY + ldy;
-          } else if (imgDragMode === 'sw') {
-            newW = Math.max(20, s.imgW - ldx); newH = Math.max(20, s.imgH + ldy); newX = s.imgX + ldx;
-          } else if (imgDragMode === 'nw') {
-            newW = Math.max(20, s.imgW - ldx); newH = Math.max(20, s.imgH - ldy); newX = s.imgX + ldx; newY = s.imgY + ldy;
-          }
-
-          if (imgLocked || e.shiftKey) {
-            const ratio = s.aspect;
-            if (imgDragMode === 'se' || imgDragMode === 'nw') {
-              newH = newW / ratio;
-              if (imgDragMode === 'nw') newY = s.imgY + s.imgH - newH;
-            } else {
-              newH = newW / ratio;
-              if (imgDragMode === 'ne') newY = s.imgY + s.imgH - newH;
-            }
-          }
-          imgX = newX; imgY = newY; imgW = newW; imgH = newH;
-        }
-        draw();
-        return;
-      }
-
-      // Cursor style
+      // Cursor hints (no drag active)
       if (!isDrawing) {
-        if (maskMode && maskEditMode) {
-          const mhit = hitTestMask(mx, my);
-          if (mhit === 'move') { canvas.style.cursor = 'move'; return; }
-          if (mhit === 'nw' || mhit === 'se') { canvas.style.cursor = 'nwse-resize'; return; }
-          if (mhit === 'ne' || mhit === 'sw') { canvas.style.cursor = 'nesw-resize'; return; }
+        let cursor = currentTool === 'select' ? 'default' : 'crosshair';
+        if (editTarget === 'mask') {
+          const mh = hitTestMask(mx, my);
+          if (mh === 'move') cursor = 'move';
+          else if (mh === 'nw' || mh === 'se') cursor = 'nwse-resize';
+          else if (mh === 'ne' || mh === 'sw') cursor = 'nesw-resize';
+        } else if (editTarget === 'image') {
+          const ih = hitTestTransform(mx, my);
+          if (ih === 'move') cursor = 'move';
+          else if (ih === 'rotate') cursor = 'grab';
+          else if (ih === 'nw' || ih === 'se') cursor = 'nwse-resize';
+          else if (ih === 'ne' || ih === 'sw') cursor = 'nesw-resize';
+        } else if (editTarget === 'group' && maskMode) {
+          const gh = hitTestMask(mx, my);
+          if (gh === 'move') cursor = 'move';
+          else if (gh === 'nw' || gh === 'se') cursor = 'nwse-resize';
+          else if (gh === 'ne' || gh === 'sw') cursor = 'nesw-resize';
+        } else if (refImage && currentTool === 'select') {
+          if (isInsideImage(mx, my) || (maskMode && isInsideMask(mx, my))) cursor = 'pointer';
         }
-        if (refImage && (currentTool === 'select' || imgSelected)) {
-          const hit = hitTestTransform(mx, my);
-          if (hit === 'move') canvas.style.cursor = 'move';
-          else if (hit === 'rotate') canvas.style.cursor = 'grab';
-          else if (hit === 'nw' || hit === 'se') canvas.style.cursor = 'nwse-resize';
-          else if (hit === 'ne' || hit === 'sw') canvas.style.cursor = 'nesw-resize';
-          else canvas.style.cursor = currentTool === 'select' ? 'default' : 'crosshair';
-          return;
-        }
-        canvas.style.cursor = currentTool === 'select' ? 'default' : 'crosshair';
+        canvas.style.cursor = cursor;
       }
 
-      // Normal stitch drawing
+      // Stitch drawing
       if (!isDrawing) return;
       const cell = getCellFromEvent(e);
       if (!cell) return;
       if (lastCell && cell.col === lastCell.col && cell.row === lastCell.row) return;
       lastCell = cell;
-      if (currentTool !== 'fill' && currentTool !== 'picker') {
-        applyTool(cell.col, cell.row);
-      }
+      if (currentTool !== 'fill' && currentTool !== 'picker') applyTool(cell.col, cell.row);
     });
 
     canvas.addEventListener('pointerup', function csPointerUp() {
-      if (isPanning) { isPanning = false; canvas.style.cursor = spaceHeld ? 'grab' : (currentTool === 'select' ? 'default' : 'crosshair'); return; }
-      if (maskDragMode) { maskDragMode = null; maskDragStart = null; return; }
-      if (imgDragMode) { imgDragMode = null; imgDragStart = null; return; }
+      if (isPanning) { isPanning = false; canvas.style.cursor = spaceHeld ? 'grab' : 'default'; return; }
+      if (dragMode) { dragMode = null; dragStart = null; return; }
       isDrawing = false; lastCell = null;
     });
 
     canvas.addEventListener('pointerleave', () => {
-      if (isPanning) return;
-      if (imgDragMode) return;
-      if (maskDragMode) return;
+      if (isPanning || dragMode) return;
       isDrawing = false; lastCell = null;
     });
 
@@ -7555,8 +7564,14 @@ QUY TẮC:
       else if (e.key === 'i' || e.key === 'I') { currentTool = 'picker'; updateToolButtons(); }
       else if (e.key === 'r' || e.key === 'R') { setViewRotation(viewRotation + 15); }
       else if (e.key === 'Escape') {
-        if (maskEditMode) { maskEditMode = false; draw(); }
-        if (imgSelected) { imgSelected = false; draw(); }
+        // Step back: image→group (or none), mask→group, group→none
+        if (editTarget === 'image' || editTarget === 'mask') {
+          editTarget = maskMode ? 'group' : 'none';
+        } else if (editTarget === 'group') {
+          editTarget = 'none';
+        }
+        dragMode = null; dragStart = null;
+        draw();
       }
       else if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === 'z') {
         doRedo(); e.preventDefault();
