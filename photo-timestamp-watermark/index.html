@@ -6490,12 +6490,86 @@ QUY TẮC:
       setZoom(Math.min(scaleW, scaleH, 2));
     });
 
-    csCanvasScroll.addEventListener('wheel', e => {
-      if (e.ctrlKey || e.metaKey) {
+    // --- Pan & Zoom (Illustrator-style) ---
+    let isPanning = false;
+    let panStartX = 0, panStartY = 0;
+    let panScrollX = 0, panScrollY = 0;
+    let spaceHeld = false;
+
+    // Space key → hand tool (like AI)
+    document.addEventListener('keydown', e => {
+      if (e.code === 'Space' && !spaceHeld && document.getElementById('pane-compress').style.display !== 'none') {
+        if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+        spaceHeld = true;
+        csCanvasScroll.style.cursor = 'grab';
         e.preventDefault();
-        setZoom(zoom * (e.deltaY < 0 ? 1.1 : 0.9));
+      }
+    });
+    document.addEventListener('keyup', e => {
+      if (e.code === 'Space') {
+        spaceHeld = false;
+        if (!isPanning) csCanvasScroll.style.cursor = '';
+      }
+    });
+
+    // Middle-click or Space+click → pan
+    csCanvasScroll.addEventListener('pointerdown', e => {
+      if (e.button === 1 || (e.button === 0 && spaceHeld)) {
+        e.preventDefault();
+        isPanning = true;
+        panStartX = e.clientX;
+        panStartY = e.clientY;
+        panScrollX = csCanvasScroll.scrollLeft;
+        panScrollY = csCanvasScroll.scrollTop;
+        csCanvasScroll.style.cursor = 'grabbing';
+        csCanvasScroll.setPointerCapture(e.pointerId);
+      }
+    });
+
+    csCanvasScroll.addEventListener('pointermove', e => {
+      if (!isPanning) return;
+      const dx = e.clientX - panStartX;
+      const dy = e.clientY - panStartY;
+      csCanvasScroll.scrollLeft = panScrollX - dx;
+      csCanvasScroll.scrollTop = panScrollY - dy;
+    });
+
+    csCanvasScroll.addEventListener('pointerup', e => {
+      if (!isPanning) return;
+      isPanning = false;
+      csCanvasScroll.style.cursor = spaceHeld ? 'grab' : '';
+    });
+
+    // Prevent middle-click auto-scroll browser behavior
+    csCanvasScroll.addEventListener('mousedown', e => { if (e.button === 1) e.preventDefault(); });
+
+    // Scroll-zoom toward cursor (Ctrl+Scroll or just Scroll)
+    csCanvasScroll.addEventListener('wheel', e => {
+      e.preventDefault();
+
+      if (e.ctrlKey || e.metaKey) {
+        // Zoom toward cursor position
+        const rect = csCanvasScroll.getBoundingClientRect();
+        const mouseX = e.clientX - rect.left + csCanvasScroll.scrollLeft;
+        const mouseY = e.clientY - rect.top + csCanvasScroll.scrollTop;
+
+        const oldZoom = zoom;
+        const factor = e.deltaY < 0 ? 1.15 : 1 / 1.15;
+        setZoom(zoom * factor);
+
+        // Adjust scroll to keep cursor position stable
+        const scale = zoom / oldZoom;
+        csCanvasScroll.scrollLeft = mouseX * scale - (e.clientX - rect.left);
+        csCanvasScroll.scrollTop = mouseY * scale - (e.clientY - rect.top);
+      } else {
+        // Normal scroll → pan
+        csCanvasScroll.scrollLeft += e.deltaX || 0;
+        csCanvasScroll.scrollTop += e.deltaY || 0;
       }
     }, { passive: false });
+
+    // Alt+scroll → horizontal pan (like AI)
+    // (handled above in deltaX)
 
     // --- Image upload ---
     csUpload.addEventListener('click', () => csFileInput.click());
