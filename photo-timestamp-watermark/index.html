@@ -2153,6 +2153,11 @@
     padding: 4px 6px;
   }
   .ocr-card-actions .ocr-remove:hover { color: #e55; }
+  .ocr-card-actions .ocr-rotate {
+    font-size: 16px; padding: 4px 6px; border: 1px solid var(--border);
+    border-radius: 6px; background: var(--glass); color: var(--text); cursor: pointer;
+  }
+  .ocr-card-actions .ocr-rotate:hover { background: var(--accent); color: #fff; }
   .ocr-card-text {
     flex: 1;
     background: color-mix(in srgb, var(--text) 4%, transparent);
@@ -5937,6 +5942,7 @@ Việt Nam</textarea>
           <div class="ocr-card-header">
             <span class="ocr-card-name">${file.name}</span>
             <div class="ocr-card-actions">
+              <button class="ocr-rotate" title="Xoay 90°">↻</button>
               <button class="ocr-copy" title="Copy text" style="display:none">📋 Copy</button>
               <button class="ocr-retry" title="Thử lại" style="display:none">🔄</button>
               <button class="ocr-remove" title="Xoá">×</button>
@@ -5986,6 +5992,31 @@ Việt Nam</textarea>
           btn.textContent = '✓ Copied';
           setTimeout(() => btn.textContent = orig, 1500);
         });
+      });
+
+      // Rotate button — xoay ảnh 90° rồi OCR lại
+      let cardRotation = 0;
+      card.querySelector('.ocr-rotate').addEventListener('click', async (e) => {
+        e.stopPropagation();
+        cardRotation = (cardRotation + 90) % 360;
+        const rotBtn = card.querySelector('.ocr-rotate');
+        rotBtn.disabled = true;
+        rotBtn.textContent = '⏳';
+        try {
+          const rotatedUrl = await rotateImage(url, cardRotation);
+          card.querySelector('.ocr-card-img img').src = rotatedUrl;
+          // Re-run OCR with rotated image
+          card.querySelector('.ocr-retry').style.display = 'none';
+          card.querySelector('.ocr-copy').style.display = 'none';
+          const textEl = card.querySelector('.ocr-card-text');
+          textEl.className = 'ocr-card-text ocr-loading';
+          textEl.innerHTML = '<div class="ocr-spinner"></div><span>Đang đọc lại (xoay ' + cardRotation + '°)…</span>';
+          card.querySelector('.ocr-progress').style.display = '';
+          runOCR(card, rotatedUrl);
+          if (ocrPv.classList.contains('open')) renderOcrPreview();
+        } catch { /* ignore */ }
+        rotBtn.disabled = false;
+        rotBtn.textContent = '↻';
       });
 
       // Retry button
@@ -6380,6 +6411,56 @@ QUY TẮC:
       return (result.data.text || '').trim();
     }
 
+    // --- Vietnamese post-processing for local OCR (PaddleOCR/Tesseract) ---
+    function postProcessVietnamese(text) {
+      if (!text) return text;
+      // Sửa tên trường giấy tờ xe / hành chính phổ biến
+      const fieldFixes = [
+        [/T[eê]n ch[uú] x[ceê]/gi, 'Tên chủ xe'],
+        [/Owncr'?s/gi, "Owner's"], [/full namc/gi, 'full name'],
+        [/[ĐD]ia chi/gi, 'Địa chỉ'], [/[Aa]ddrcss/gi, 'Address'],
+        [/Nh[aâ]n hi[eê][çc]u/gi, 'Nhãn hiệu'], [/Brand/g, 'Brand'],
+        [/S[oô6] lo[aạ]i/gi, 'Số loại'], [/Model code/g, 'Model code'],
+        [/S[oô6] m[aá]y/gi, 'Số máy'], [/Engine N/g, 'Engine N'],
+        [/S[oô6] khung/gi, 'Số khung'], [/Chassis N/g, 'Chassis N'],
+        [/M[aà]u s[oơ]n/gi, 'Màu sơn'], [/Color/g, 'Color'],
+        [/S[oô6] ch[oô] ng[oô][iì]/gi, 'Số chỗ ngồi'],
+        [/Number\s*of\s*seats/gi, 'Number of seats'],
+        [/Bi[eê]n s[oô6] [dđ][aă]ng k[yý]/gi, 'Biến số đăng ký'],
+        [/N[°o] plate/gi, 'N° plate'],
+        [/Gi[aá] tr[iị] [dđ][eê]n ng[aà]y/gi, 'Giá trị đến ngày'],
+        [/Date of expiry/gi, 'Date of expiry'],
+        [/Ho[aạ]t [dđ][oô]ng trong ph[aạ]m vi/gi, 'Hoạt động trong phạm vi'],
+        [/TR[UƯ][OÔ]NG CA/gi, 'TRƯỞNG CA'],
+        [/CONG AN/gi, 'CÔNG AN'],
+        [/Th[uư][oơ]ng t[aá]/gi, 'Thượng tá'],
+        [/[ĐD][aạ]i t[aá]/gi, 'Đại tá'],
+        // XÃ vs XÍ
+        [/\bX[IÍ]\b/g, 'XÃ'], [/\bx[ií]\b/g, 'xã'],
+        // Tráng → Trắng
+        [/\bTr[aá]ng\b/g, 'Trắng'],
+      ];
+      for (const [pattern, replacement] of fieldFixes) {
+        text = text.replace(pattern, replacement);
+      }
+      // Sửa lỗi dấu tiếng Việt phổ biến trong OCR
+      const diacriticFixes = [
+        [/NGUYéN/g, 'NGUYỄN'], [/Nguyén/g, 'Nguyễn'],
+        [/TRUÓNG/g, 'TRƯỞNG'], [/Truóng/g, 'Trưởng'],
+        [/HUYÉN/g, 'HUYỆN'], [/Huyén/g, 'Huyện'],
+        [/nãm/g, 'năm'], [/tháng/g, 'tháng'],
+        [/dăng/g, 'đăng'], [/Dăng/g, 'Đăng'],
+      ];
+      for (const [pattern, replacement] of diacriticFixes) {
+        text = text.replace(pattern, replacement);
+      }
+      // Loại bỏ garbage characters (Chinese chars, emoji junk từ OCR)
+      text = text.replace(/[一-鿿㐀-䶿]/g, '');
+      // Dọn dẹp khoảng trắng thừa
+      text = text.replace(/  +/g, ' ').replace(/\n{3,}/g, '\n\n').trim();
+      return text;
+    }
+
     // ---- Main OCR dispatcher ----
     // Priority: Vision API (if key) → PaddleOCR → Tesseract
     async function runOCR(card, imageUrl) {
@@ -6449,7 +6530,7 @@ QUY TẮC:
           try {
             progressBar.style.width = '30%';
             textEl.querySelector('span').textContent = paddleReady ? 'Đang đọc bằng PaddleOCR…' : 'Đang tải PaddleOCR (~6MB lần đầu)…';
-            text = await runPaddleOCR(localUrl);
+            text = postProcessVietnamese(await runPaddleOCR(localUrl));
             progressBar.style.width = '100%';
             if (!usedEngine) usedEngine = 'paddle';
             else usedEngine = 'paddle-fallback';
@@ -6464,7 +6545,7 @@ QUY TẮC:
           try { localUrl = await preprocessForLocalOCR(rotatedUrl); } catch { localUrl = rotatedUrl; }
           progressBar.style.width = '0%';
           textEl.querySelector('span').textContent = 'Đang thử Tesseract…';
-          text = await runTesseractOCR(localUrl, progressBar);
+          text = postProcessVietnamese(await runTesseractOCR(localUrl, progressBar));
           usedEngine = 'tesseract';
         }
 
