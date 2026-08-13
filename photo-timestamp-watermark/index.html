@@ -6202,6 +6202,113 @@ QUY TẮC:
       }));
     }
 
+    // Resize ảnh xuống nhỏ cho pre-flight check (tiết kiệm token)
+    function downsizeImage(imageUrl, maxDim) {
+      return new Promise((resolve) => {
+        const img = new Image();
+        img.crossOrigin = 'anonymous';
+        img.onload = () => {
+          const w = img.naturalWidth, h = img.naturalHeight;
+          const scale = Math.min(maxDim / Math.max(w, h), 1);
+          const c = document.createElement('canvas');
+          c.width = Math.round(w * scale);
+          c.height = Math.round(h * scale);
+          c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+          c.toBlob(blob => {
+            if (!blob) { resolve(imageUrl); return; }
+            resolve(URL.createObjectURL(blob));
+          }, 'image/jpeg', 0.7);
+        };
+        img.onerror = () => resolve(imageUrl);
+        img.src = imageUrl;
+      });
+    }
+
+    // Xoay ảnh theo góc (0, 90, 180, 270)
+    function rotateImage(imageUrl, degrees) {
+      if (!degrees || degrees === 0) return Promise.resolve(imageUrl);
+      return new Promise((resolve) => {
+        const img = new Image();
+        img.crossOrigin = 'anonymous';
+        img.onload = () => {
+          const c = document.createElement('canvas');
+          const ctx = c.getContext('2d');
+          const w = img.naturalWidth, h = img.naturalHeight;
+          if (degrees === 90 || degrees === 270) { c.width = h; c.height = w; }
+          else { c.width = w; c.height = h; }
+          ctx.translate(c.width / 2, c.height / 2);
+          ctx.rotate(degrees * Math.PI / 180);
+          ctx.drawImage(img, -w / 2, -h / 2);
+          c.toBlob(blob => {
+            if (!blob) { resolve(imageUrl); return; }
+            resolve(URL.createObjectURL(blob));
+          }, 'image/jpeg', 0.95);
+        };
+        img.onerror = () => resolve(imageUrl);
+        img.src = imageUrl;
+      });
+    }
+
+    // Auto-detect rotation bằng Vision API (pre-flight nhỏ, nhanh)
+    async function detectRotation(imageUrl, apiKey, provider) {
+      try {
+        const smallUrl = await downsizeImage(imageUrl, 512);
+        const { base64, mimeType } = await blobUrlToBase64(smallUrl);
+        const prompt = 'Look at this document/image. What rotation angle (in degrees) should I apply to make the text readable in normal left-to-right, top-to-bottom orientation? Reply with ONLY one number: 0, 90, 180, or 270. Nothing else.';
+
+        let angle = 0;
+        if (provider === 'gemini') {
+          const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent?key=${apiKey}`;
+          const body = {
+            contents: [{ parts: [{ text: prompt }, { inlineData: { mimeType, data: base64 } }] }],
+            generationConfig: { temperature: 0, maxOutputTokens: 10 }
+          };
+          const resp = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+          if (resp.ok) {
+            const data = await resp.json();
+            const raw = (data.candidates?.[0]?.content?.parts?.[0]?.text || '').trim();
+            const m = raw.match(/\b(0|90|180|270)\b/);
+            if (m) angle = parseInt(m[1]);
+          }
+        } else if (provider === 'groq') {
+          const dataUrl = `data:${mimeType};base64,${base64}`;
+          const body = {
+            model: 'qwen/qwen3.6-27b',
+            messages: [{ role: 'user', content: [
+              { type: 'text', text: prompt },
+              { type: 'image_url', image_url: { url: dataUrl } }
+            ]}],
+            temperature: 0, max_tokens: 10
+          };
+          const resp = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
+            body: JSON.stringify(body)
+          });
+          if (resp.ok) {
+            const data = await resp.json();
+            const raw = stripThinking(data.choices?.[0]?.message?.content || '');
+            const m = raw.match(/\b(0|90|180|270)\b/);
+            if (m) angle = parseInt(m[1]);
+          }
+        }
+        // Ollama: skip pre-flight (too slow locally)
+        return angle;
+      } catch { return 0; }
+    }
+
+    // Strip tất cả thinking/reasoning tags khỏi output
+    function stripThinking(text) {
+      if (!text) return '';
+      // Strip <think>...</think> (Qwen, DeepSeek, etc.)
+      text = text.replace(/<think>[\s\S]*?<\/think>/gi, '');
+      // Strip unclosed <think> (model forgot to close)
+      text = text.replace(/<think>[\s\S]*/gi, '');
+      // Strip markdown thinking blocks (**Image Analysis:**, **Thinking:**, etc.)
+      text = text.replace(/\*\*(Image Analysis|Thinking|Analysis|Phân tích|Suy luận)\*\*:?[\s\S]*?(?=\n[A-ZĐ\d]|\n\n)/gi, '');
+      return text.trim();
+    }
+
     async function runGeminiOCR(imageUrl, apiKey) {
       const { base64, mimeType } = await blobUrlToBase64(imageUrl);
       const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent?key=${apiKey}`;
@@ -6212,7 +6319,7 @@ QUY TẮC:
       const resp = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
       if (!resp.ok) { const err = await resp.json().catch(() => ({})); throw new Error(err.error?.message || `API error ${resp.status}`); }
       const data = await resp.json();
-      return (data.candidates?.[0]?.content?.parts?.[0]?.text || '').trim();
+      return stripThinking(data.candidates?.[0]?.content?.parts?.[0]?.text || '');
     }
 
     async function runGroqOCR(imageUrl, apiKey) {
@@ -6236,10 +6343,7 @@ QUY TẮC:
       });
       if (!resp.ok) { const err = await resp.json().catch(() => ({})); throw new Error(err.error?.message || `Groq API error ${resp.status}`); }
       const data = await resp.json();
-      let text = (data.choices?.[0]?.message?.content || '').trim();
-      // Strip thinking tags if model still outputs them
-      text = text.replace(/<think>[\s\S]*?<\/think>/gi, '').trim();
-      return text;
+      return stripThinking(data.choices?.[0]?.message?.content || '');
     }
 
     // 3) Ollama (local)
@@ -6249,7 +6353,7 @@ QUY TẮC:
       const body = {
         model: 'qwen2.5vl:3b',
         messages: [
-          { role: 'system', content: 'You are a Vietnamese OCR expert specializing in handwritten text. Output ONLY the extracted text. Pay close attention to Vietnamese diacritics. No reasoning, no explanation.' },
+          { role: 'system', content: 'You are a Vietnamese OCR expert. Output ONLY extracted text. No thinking, no reasoning, no explanation, no <think> tags.' },
           { role: 'user', content: OCR_PROMPT, images: [base64] }
         ],
         stream: false,
@@ -6262,9 +6366,7 @@ QUY TẮC:
       });
       if (!resp.ok) { const err = await resp.json().catch(() => ({})); throw new Error(err.error || `Ollama error ${resp.status}`); }
       const data = await resp.json();
-      let text = (data.message?.content || '').trim();
-      text = text.replace(/<think>[\s\S]*?<\/think>/gi, '').trim();
-      return text;
+      return stripThinking(data.message?.content || '');
     }
 
     // 4) Tesseract (last fallback)
@@ -6291,11 +6393,28 @@ QUY TẮC:
         let text = '';
         let usedEngine = '';
 
-        // Auto-rotate ảnh theo EXIF (nếu bị xoay do chụp ngang)
-        progressBar.style.width = '10%';
+        // Step 1: Auto-rotate ảnh theo EXIF
+        progressBar.style.width = '5%';
         textEl.querySelector('span').textContent = 'Đang xử lý ảnh…';
         let rotatedUrl;
         try { rotatedUrl = await autoRotateImage(imageUrl); } catch { rotatedUrl = imageUrl; }
+
+        // Step 2: Detect rotation bằng Vision API (pre-flight nhanh, ảnh 512px)
+        if (ocrConfig.key && ocrConfig.provider !== 'ollama') {
+          try {
+            progressBar.style.width = '15%';
+            textEl.querySelector('span').textContent = 'Đang kiểm tra chiều ảnh…';
+            const angle = await detectRotation(rotatedUrl, ocrConfig.key, ocrConfig.provider);
+            if (angle > 0) {
+              console.log(`Auto-rotate: ${angle}°`);
+              rotatedUrl = await rotateImage(rotatedUrl, angle);
+            }
+          } catch (rotErr) { console.warn('Rotation detect failed:', rotErr); }
+        }
+
+        // Cập nhật preview image nếu đã xoay
+        const cardImg = card.querySelector('.ocr-card-img img');
+        if (cardImg && rotatedUrl !== imageUrl) cardImg.src = rotatedUrl;
 
         // Try Vision API first if configured
         // Vision APIs (Gemini/Groq/Ollama) dùng ẢNH GỐC (chỉ auto-rotate)
