@@ -2936,6 +2936,21 @@ Việt Nam</textarea>
               <input type="range" id="csOpacity" min="0" max="100" value="30" />
               <span id="csOpacityVal">30%</span>
             </div>
+            <div class="cs-opacity-row">
+              <label>
+                <input type="checkbox" id="csLockRatio" checked /> Khoá tỷ lệ
+              </label>
+              <label style="margin-left:auto">
+                <input type="checkbox" id="csMaskMode" /> Mask (crop)
+              </label>
+            </div>
+            <div id="csMaskSize" style="display:none" class="cs-opacity-row">
+              <label>Mask:</label>
+              <input type="number" id="csMaskW" min="10" max="9999" value="100" style="width:55px;padding:2px 4px;border:1px solid var(--border);border-radius:4px;background:var(--glass);color:var(--text);font-size:11px;text-align:center" />
+              <span>×</span>
+              <input type="number" id="csMaskH" min="10" max="9999" value="100" style="width:55px;padding:2px 4px;border:1px solid var(--border);border-radius:4px;background:var(--glass);color:var(--text);font-size:11px;text-align:center" />
+              <span>ô</span>
+            </div>
           </div>
         </div>
 
@@ -6346,6 +6361,14 @@ QUY TẮC:
     let currentColor = '#e74c3c';
     let refImage = null;
     let refOpacity = 0.3;
+    // Image transform (Illustrator-style)
+    let imgX = 0, imgY = 0, imgW = 0, imgH = 0, imgRot = 0;
+    let imgSelected = false;
+    let imgLocked = true; // lock aspect ratio
+    let maskMode = false;
+    let maskW = 100, maskH = 100; // in grid cells
+    let imgDragMode = null; // null | 'move' | 'nw' | 'ne' | 'sw' | 'se' | 'rotate'
+    let imgDragStart = null;
     let stitches = {}; // key: "col,row" → { type, color }
     let isDrawing = false;
     let lastCell = null;
@@ -6500,6 +6523,20 @@ QUY TẮC:
         csRefImg.src = url;
         csImgPreview.style.display = 'block';
         csUpload.style.display = 'none';
+        // Fit image vào canvas giữ tỷ lệ
+        const cw = canvas.width, ch = canvas.height;
+        const iAspect = img.naturalWidth / img.naturalHeight;
+        const cAspect = cw / ch;
+        if (iAspect > cAspect) {
+          imgW = cw * 0.8; imgH = imgW / iAspect;
+        } else {
+          imgH = ch * 0.8; imgW = imgH * iAspect;
+        }
+        imgX = (cw - imgW) / 2;
+        imgY = (ch - imgH) / 2;
+        imgRot = 0;
+        imgSelected = true;
+        imgLocked = true;
         draw();
       };
       img.src = url;
@@ -6507,6 +6544,7 @@ QUY TẮC:
 
     csRemoveImg.addEventListener('click', () => {
       refImage = null;
+      imgSelected = false;
       csImgPreview.style.display = 'none';
       csUpload.style.display = '';
       csFileInput.value = '';
@@ -6518,6 +6556,19 @@ QUY TẮC:
       csOpacityVal.textContent = csOpacity.value + '%';
       draw();
     });
+
+    document.getElementById('csLockRatio').addEventListener('change', e => { imgLocked = e.target.checked; });
+    const csMaskCheck = document.getElementById('csMaskMode');
+    const csMaskSizeEl = document.getElementById('csMaskSize');
+    const csMaskWInput = document.getElementById('csMaskW');
+    const csMaskHInput = document.getElementById('csMaskH');
+    csMaskCheck.addEventListener('change', e => {
+      maskMode = e.target.checked;
+      csMaskSizeEl.style.display = maskMode ? 'flex' : 'none';
+      draw();
+    });
+    csMaskWInput.addEventListener('change', () => { maskW = parseInt(csMaskWInput.value) || 100; draw(); });
+    csMaskHInput.addEventListener('change', () => { maskH = parseInt(csMaskHInput.value) || 100; draw(); });
 
     // --- Tool selection ---
     function updateToolButtons() {
@@ -6589,29 +6640,7 @@ QUY TẮC:
       }
     }
 
-    canvas.addEventListener('pointerdown', e => {
-      e.preventDefault();
-      const cell = getCellFromEvent(e);
-      if (!cell) return;
-      isDrawing = true;
-      lastCell = cell;
-      applyTool(cell.col, cell.row);
-      canvas.setPointerCapture(e.pointerId);
-    });
-
-    canvas.addEventListener('pointermove', e => {
-      if (!isDrawing) return;
-      const cell = getCellFromEvent(e);
-      if (!cell) return;
-      if (lastCell && cell.col === lastCell.col && cell.row === lastCell.row) return;
-      lastCell = cell;
-      if (currentTool !== 'fill' && currentTool !== 'picker') {
-        applyTool(cell.col, cell.row);
-      }
-    });
-
-    canvas.addEventListener('pointerup', () => { isDrawing = false; lastCell = null; });
-    canvas.addEventListener('pointerleave', () => { isDrawing = false; lastCell = null; });
+    // (pointer events moved below draw() for transform handles)
 
     // --- Render ---
     function draw() {
@@ -6622,20 +6651,56 @@ QUY TẮC:
       ctx.fillStyle = '#ffffff';
       ctx.fillRect(0, 0, w, h);
 
-      // Reference image (behind grid)
+      // Reference image — vẽ với transform (vị trí/kích thước/xoay tự do)
       if (refImage) {
         ctx.save();
         ctx.globalAlpha = refOpacity;
-        // Fit image to canvas maintaining aspect ratio
-        const imgAspect = refImage.naturalWidth / refImage.naturalHeight;
-        const canvasAspect = w / h;
-        let dw, dh, dx, dy;
-        if (imgAspect > canvasAspect) {
-          dw = w; dh = w / imgAspect; dx = 0; dy = (h - dh) / 2;
+
+        if (maskMode) {
+          // Mask: chỉ hiện phần ảnh nằm trong mask rectangle (ở giữa canvas)
+          const mPxW = Math.min(maskW, gridCols) * cellPx;
+          const mPxH = Math.min(maskH, gridRows) * cellPx;
+          const mX = (w - mPxW) / 2, mY = (h - mPxH) / 2;
+
+          ctx.save();
+          ctx.beginPath();
+          ctx.rect(mX, mY, mPxW, mPxH);
+          ctx.clip();
+
+          const icx = imgX + imgW / 2, icy = imgY + imgH / 2;
+          ctx.translate(icx, icy);
+          ctx.rotate(imgRot);
+          ctx.drawImage(refImage, -imgW / 2, -imgH / 2, imgW, imgH);
+          ctx.restore();
+
+          // Vùng ngoài mask tối hơn
+          ctx.globalAlpha = 0.5;
+          ctx.fillStyle = '#000';
+          ctx.fillRect(0, 0, w, mY); // top
+          ctx.fillRect(0, mY + mPxH, w, h - mY - mPxH); // bottom
+          ctx.fillRect(0, mY, mX, mPxH); // left
+          ctx.fillRect(mX + mPxW, mY, w - mX - mPxW, mPxH); // right
+          ctx.globalAlpha = 1;
+
+          // Mask border
+          ctx.strokeStyle = '#0096ff';
+          ctx.lineWidth = 2;
+          ctx.setLineDash([8, 4]);
+          ctx.strokeRect(mX, mY, mPxW, mPxH);
+          ctx.setLineDash([]);
+
+          // Kích thước label
+          ctx.fillStyle = '#0096ff';
+          ctx.font = '11px sans-serif';
+          ctx.textAlign = 'center';
+          ctx.fillText(`${Math.min(maskW, gridCols)} × ${Math.min(maskH, gridRows)} ô`, mX + mPxW / 2, mY - 6);
         } else {
-          dh = h; dw = h * imgAspect; dy = 0; dx = (w - dw) / 2;
+          // Vẽ bình thường, không mask
+          const icx = imgX + imgW / 2, icy = imgY + imgH / 2;
+          ctx.translate(icx, icy);
+          ctx.rotate(imgRot);
+          ctx.drawImage(refImage, -imgW / 2, -imgH / 2, imgW, imgH);
         }
-        ctx.drawImage(refImage, dx, dy, dw, dh);
         ctx.restore();
       }
 
@@ -6683,7 +6748,247 @@ QUY TẮC:
       ctx.strokeStyle = 'rgba(0,0,0,0.6)';
       ctx.lineWidth = 2;
       ctx.strokeRect(0, 0, w, h);
+
+      // Transform handles (Illustrator-style)
+      if (refImage && imgSelected) {
+        drawTransformHandles();
+      }
     }
+
+    // --- Transform handles ---
+    const HANDLE_SIZE = 8;
+    const ROTATE_OFFSET = 25;
+
+    function getImgCorners() {
+      // 4 góc + tâm xoay, tính theo rotation
+      const cx = imgX + imgW / 2, cy = imgY + imgH / 2;
+      const cos = Math.cos(imgRot), sin = Math.sin(imgRot);
+      function rot(px, py) {
+        const dx = px - cx, dy = py - cy;
+        return { x: cx + dx * cos - dy * sin, y: cy + dx * sin + dy * cos };
+      }
+      return {
+        nw: rot(imgX, imgY),
+        ne: rot(imgX + imgW, imgY),
+        se: rot(imgX + imgW, imgY + imgH),
+        sw: rot(imgX, imgY + imgH),
+        center: { x: cx, y: cy },
+        rotHandle: rot(cx, imgY - ROTATE_OFFSET),
+      };
+    }
+
+    function drawTransformHandles() {
+      const c = getImgCorners();
+      const pts = [c.nw, c.ne, c.se, c.sw];
+
+      // Bounding box dashed line
+      ctx.save();
+      ctx.strokeStyle = '#0096ff';
+      ctx.lineWidth = 1.5;
+      ctx.setLineDash([6, 4]);
+      ctx.beginPath();
+      ctx.moveTo(pts[0].x, pts[0].y);
+      for (let i = 1; i < 4; i++) ctx.lineTo(pts[i].x, pts[i].y);
+      ctx.closePath();
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      // Rotation line + handle
+      ctx.strokeStyle = '#0096ff';
+      ctx.lineWidth = 1;
+      const topMid = { x: (c.nw.x + c.ne.x) / 2, y: (c.nw.y + c.ne.y) / 2 };
+      ctx.beginPath();
+      ctx.moveTo(topMid.x, topMid.y);
+      ctx.lineTo(c.rotHandle.x, c.rotHandle.y);
+      ctx.stroke();
+
+      // Rotate handle (circle)
+      ctx.fillStyle = '#fff';
+      ctx.strokeStyle = '#0096ff';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(c.rotHandle.x, c.rotHandle.y, 6, 0, Math.PI * 2);
+      ctx.fill(); ctx.stroke();
+      // Arrow icon
+      ctx.fillStyle = '#0096ff';
+      ctx.font = '10px sans-serif';
+      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.fillText('↻', c.rotHandle.x, c.rotHandle.y);
+
+      // Corner handles (squares)
+      pts.forEach(p => {
+        ctx.fillStyle = '#fff';
+        ctx.strokeStyle = '#0096ff';
+        ctx.lineWidth = 2;
+        ctx.fillRect(p.x - HANDLE_SIZE / 2, p.y - HANDLE_SIZE / 2, HANDLE_SIZE, HANDLE_SIZE);
+        ctx.strokeRect(p.x - HANDLE_SIZE / 2, p.y - HANDLE_SIZE / 2, HANDLE_SIZE, HANDLE_SIZE);
+      });
+
+      // Center crosshair
+      ctx.strokeStyle = 'rgba(0,150,255,0.5)';
+      ctx.lineWidth = 1;
+      const cc = c.center;
+      ctx.beginPath();
+      ctx.moveTo(cc.x - 8, cc.y); ctx.lineTo(cc.x + 8, cc.y);
+      ctx.moveTo(cc.x, cc.y - 8); ctx.lineTo(cc.x, cc.y + 8);
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    function hitTestTransform(mx, my) {
+      if (!refImage || !imgSelected) return null;
+      const c = getImgCorners();
+      const hitR = 10;
+      // Rotate handle
+      if (Math.hypot(mx - c.rotHandle.x, my - c.rotHandle.y) < hitR) return 'rotate';
+      // Corner handles
+      if (Math.hypot(mx - c.nw.x, my - c.nw.y) < hitR) return 'nw';
+      if (Math.hypot(mx - c.ne.x, my - c.ne.y) < hitR) return 'ne';
+      if (Math.hypot(mx - c.se.x, my - c.se.y) < hitR) return 'se';
+      if (Math.hypot(mx - c.sw.x, my - c.sw.y) < hitR) return 'sw';
+      // Inside image? (point in rotated rect)
+      const cx = imgX + imgW / 2, cy = imgY + imgH / 2;
+      const cos = Math.cos(-imgRot), sin = Math.sin(-imgRot);
+      const dx = mx - cx, dy = my - cy;
+      const lx = dx * cos - dy * sin + cx;
+      const ly = dx * sin + dy * cos + cy;
+      if (lx >= imgX && lx <= imgX + imgW && ly >= imgY && ly <= imgY + imgH) return 'move';
+      return null;
+    }
+
+    // --- Pointer events: transform handles + stitch drawing ---
+    canvas.addEventListener('pointerdown', function csPointerDown(e) {
+      const rect = canvas.getBoundingClientRect();
+      const mx = (e.clientX - rect.left) / zoom;
+      const my = (e.clientY - rect.top) / zoom;
+
+      // If image is loaded, test transform handles first
+      if (refImage) {
+        const hit = hitTestTransform(mx, my);
+        if (hit) {
+          e.preventDefault();
+          imgDragMode = hit;
+          imgSelected = true;
+          imgDragStart = {
+            mx, my, imgX, imgY, imgW, imgH, imgRot,
+            aspect: imgW / imgH,
+          };
+          canvas.setPointerCapture(e.pointerId);
+          draw();
+          return;
+        }
+        // Clicked outside image → deselect
+        if (imgSelected) {
+          imgSelected = false;
+          draw();
+        }
+      }
+
+      // Normal stitch drawing
+      const cell = getCellFromEvent(e);
+      if (!cell) return;
+      e.preventDefault();
+      isDrawing = true;
+      lastCell = cell;
+      applyTool(cell.col, cell.row);
+      canvas.setPointerCapture(e.pointerId);
+    });
+
+    canvas.addEventListener('pointermove', function csPointerMove(e) {
+      const rect = canvas.getBoundingClientRect();
+      const mx = (e.clientX - rect.left) / zoom;
+      const my = (e.clientY - rect.top) / zoom;
+
+      // Image transform drag
+      if (imgDragMode && imgDragStart) {
+        e.preventDefault();
+        const s = imgDragStart;
+        const dx = mx - s.mx, dy = my - s.my;
+
+        if (imgDragMode === 'move') {
+          imgX = s.imgX + dx;
+          imgY = s.imgY + dy;
+        } else if (imgDragMode === 'rotate') {
+          const cx = s.imgX + s.imgW / 2, cy = s.imgY + s.imgH / 2;
+          const angleBefore = Math.atan2(s.my - cy, s.mx - cx);
+          const angleAfter = Math.atan2(my - cy, mx - cx);
+          imgRot = s.imgRot + (angleAfter - angleBefore);
+          // Snap to 0/90/180/270 within 5°
+          const deg = (imgRot * 180 / Math.PI) % 360;
+          for (const snap of [0, 90, 180, 270, -90, -180, -270]) {
+            if (Math.abs(deg - snap) < 5) { imgRot = snap * Math.PI / 180; break; }
+          }
+        } else {
+          // Corner resize
+          const cx = s.imgX + s.imgW / 2, cy = s.imgY + s.imgH / 2;
+          const cos = Math.cos(-s.imgRot), sin = Math.sin(-s.imgRot);
+          // Transform mouse to local (un-rotated) space
+          const lmx = (mx - cx) * cos - (my - cy) * sin + cx;
+          const lmy = (mx - cx) * sin + (my - cy) * cos + cy;
+          const smx = (s.mx - cx) * cos - (s.my - cy) * sin + cx;
+          const smy = (s.mx - cx) * sin + (s.my - cy) * cos + cy;
+          const ldx = lmx - smx, ldy = lmy - smy;
+
+          let newW = s.imgW, newH = s.imgH, newX = s.imgX, newY = s.imgY;
+
+          if (imgDragMode === 'se') {
+            newW = Math.max(20, s.imgW + ldx); newH = Math.max(20, s.imgH + ldy);
+          } else if (imgDragMode === 'ne') {
+            newW = Math.max(20, s.imgW + ldx); newH = Math.max(20, s.imgH - ldy); newY = s.imgY + ldy;
+          } else if (imgDragMode === 'sw') {
+            newW = Math.max(20, s.imgW - ldx); newH = Math.max(20, s.imgH + ldy); newX = s.imgX + ldx;
+          } else if (imgDragMode === 'nw') {
+            newW = Math.max(20, s.imgW - ldx); newH = Math.max(20, s.imgH - ldy); newX = s.imgX + ldx; newY = s.imgY + ldy;
+          }
+
+          // Lock aspect ratio (Shift or default locked)
+          if (imgLocked || e.shiftKey) {
+            const ratio = s.aspect;
+            if (imgDragMode === 'se' || imgDragMode === 'nw') {
+              newH = newW / ratio;
+              if (imgDragMode === 'nw') newY = s.imgY + s.imgH - newH;
+            } else {
+              newH = newW / ratio;
+              if (imgDragMode === 'ne') newY = s.imgY + s.imgH - newH;
+            }
+          }
+
+          imgX = newX; imgY = newY; imgW = newW; imgH = newH;
+        }
+        draw();
+        return;
+      }
+
+      // Cursor style for transform handles
+      if (refImage && imgSelected && !isDrawing) {
+        const hit = hitTestTransform(mx, my);
+        if (hit === 'move') canvas.style.cursor = 'move';
+        else if (hit === 'rotate') canvas.style.cursor = 'grab';
+        else if (hit === 'nw' || hit === 'se') canvas.style.cursor = 'nwse-resize';
+        else if (hit === 'ne' || hit === 'sw') canvas.style.cursor = 'nesw-resize';
+        else canvas.style.cursor = 'crosshair';
+      }
+
+      // Normal stitch drawing
+      if (!isDrawing) return;
+      const cell = getCellFromEvent(e);
+      if (!cell) return;
+      if (lastCell && cell.col === lastCell.col && cell.row === lastCell.row) return;
+      lastCell = cell;
+      if (currentTool !== 'fill' && currentTool !== 'picker') {
+        applyTool(cell.col, cell.row);
+      }
+    });
+
+    canvas.addEventListener('pointerup', function csPointerUp() {
+      if (imgDragMode) { imgDragMode = null; imgDragStart = null; return; }
+      isDrawing = false; lastCell = null;
+    });
+
+    canvas.addEventListener('pointerleave', () => {
+      if (imgDragMode) return;
+      isDrawing = false; lastCell = null;
+    });
 
     function getContrastColor(hex) {
       const r = parseInt(hex.slice(1,3), 16);
