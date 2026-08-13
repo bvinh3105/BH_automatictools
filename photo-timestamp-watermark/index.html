@@ -6512,36 +6512,9 @@ QUY TẮC:
       }
     });
 
-    // Middle-click or Space+click → pan
-    csCanvasScroll.addEventListener('pointerdown', e => {
-      if (e.button === 1 || (e.button === 0 && spaceHeld)) {
-        e.preventDefault();
-        isPanning = true;
-        panStartX = e.clientX;
-        panStartY = e.clientY;
-        panScrollX = csCanvasScroll.scrollLeft;
-        panScrollY = csCanvasScroll.scrollTop;
-        csCanvasScroll.style.cursor = 'grabbing';
-        csCanvasScroll.setPointerCapture(e.pointerId);
-      }
-    });
-
-    csCanvasScroll.addEventListener('pointermove', e => {
-      if (!isPanning) return;
-      const dx = e.clientX - panStartX;
-      const dy = e.clientY - panStartY;
-      csCanvasScroll.scrollLeft = panScrollX - dx;
-      csCanvasScroll.scrollTop = panScrollY - dy;
-    });
-
-    csCanvasScroll.addEventListener('pointerup', e => {
-      if (!isPanning) return;
-      isPanning = false;
-      csCanvasScroll.style.cursor = spaceHeld ? 'grab' : '';
-    });
-
     // Prevent middle-click auto-scroll browser behavior
     csCanvasScroll.addEventListener('mousedown', e => { if (e.button === 1) e.preventDefault(); });
+    // Pan is handled in canvas pointerdown/move/up below
 
     // Scroll-zoom toward cursor (Ctrl+Scroll or just Scroll)
     csCanvasScroll.addEventListener('wheel', e => {
@@ -6909,29 +6882,51 @@ QUY TẮC:
       ctx.restore();
     }
 
-    function hitTestTransform(mx, my) {
-      if (!refImage || !imgSelected) return null;
-      const c = getImgCorners();
-      const hitR = 10;
-      // Rotate handle
-      if (Math.hypot(mx - c.rotHandle.x, my - c.rotHandle.y) < hitR) return 'rotate';
-      // Corner handles
-      if (Math.hypot(mx - c.nw.x, my - c.nw.y) < hitR) return 'nw';
-      if (Math.hypot(mx - c.ne.x, my - c.ne.y) < hitR) return 'ne';
-      if (Math.hypot(mx - c.se.x, my - c.se.y) < hitR) return 'se';
-      if (Math.hypot(mx - c.sw.x, my - c.sw.y) < hitR) return 'sw';
-      // Inside image? (point in rotated rect)
+    function isInsideImage(mx, my) {
+      if (!refImage) return false;
       const cx = imgX + imgW / 2, cy = imgY + imgH / 2;
       const cos = Math.cos(-imgRot), sin = Math.sin(-imgRot);
       const dx = mx - cx, dy = my - cy;
       const lx = dx * cos - dy * sin + cx;
       const ly = dx * sin + dy * cos + cy;
-      if (lx >= imgX && lx <= imgX + imgW && ly >= imgY && ly <= imgY + imgH) return 'move';
+      return lx >= imgX && lx <= imgX + imgW && ly >= imgY && ly <= imgY + imgH;
+    }
+
+    function hitTestTransform(mx, my) {
+      if (!refImage) return null;
+      const hitR = 12 / zoom; // scale hitbox với zoom
+
+      // Handles chỉ hiện khi đã selected
+      if (imgSelected) {
+        const c = getImgCorners();
+        if (Math.hypot(mx - c.rotHandle.x, my - c.rotHandle.y) < hitR) return 'rotate';
+        if (Math.hypot(mx - c.nw.x, my - c.nw.y) < hitR) return 'nw';
+        if (Math.hypot(mx - c.ne.x, my - c.ne.y) < hitR) return 'ne';
+        if (Math.hypot(mx - c.se.x, my - c.se.y) < hitR) return 'se';
+        if (Math.hypot(mx - c.sw.x, my - c.sw.y) < hitR) return 'sw';
+      }
+
+      // Click vào ảnh → move (hoặc select nếu chưa selected)
+      if (isInsideImage(mx, my)) return 'move';
       return null;
     }
 
     // --- Pointer events: transform handles + stitch drawing ---
     canvas.addEventListener('pointerdown', function csPointerDown(e) {
+      // Middle-click hoặc Space+click → pan (ưu tiên trước mọi thứ)
+      if (e.button === 1 || (e.button === 0 && spaceHeld)) {
+        e.preventDefault();
+        e.stopPropagation();
+        isPanning = true;
+        panStartX = e.clientX;
+        panStartY = e.clientY;
+        panScrollX = csCanvasScroll.scrollLeft;
+        panScrollY = csCanvasScroll.scrollTop;
+        canvas.style.cursor = 'grabbing';
+        canvas.setPointerCapture(e.pointerId);
+        return;
+      }
+
       const rect = canvas.getBoundingClientRect();
       const mx = (e.clientX - rect.left) / zoom;
       const my = (e.clientY - rect.top) / zoom;
@@ -6969,6 +6964,13 @@ QUY TẮC:
     });
 
     canvas.addEventListener('pointermove', function csPointerMove(e) {
+      // Pan đang hoạt động
+      if (isPanning) {
+        csCanvasScroll.scrollLeft = panScrollX - (e.clientX - panStartX);
+        csCanvasScroll.scrollTop = panScrollY - (e.clientY - panStartY);
+        return;
+      }
+
       const rect = canvas.getBoundingClientRect();
       const mx = (e.clientX - rect.left) / zoom;
       const my = (e.clientY - rect.top) / zoom;
@@ -7055,11 +7057,13 @@ QUY TẮC:
     });
 
     canvas.addEventListener('pointerup', function csPointerUp() {
+      if (isPanning) { isPanning = false; canvas.style.cursor = spaceHeld ? 'grab' : 'crosshair'; return; }
       if (imgDragMode) { imgDragMode = null; imgDragStart = null; return; }
       isDrawing = false; lastCell = null;
     });
 
     canvas.addEventListener('pointerleave', () => {
+      if (isPanning) return;
       if (imgDragMode) return;
       isDrawing = false; lastCell = null;
     });
