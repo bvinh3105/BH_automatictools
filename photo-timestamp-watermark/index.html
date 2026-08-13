@@ -1941,6 +1941,20 @@
   .cs-btn-sm { width:28px; height:28px; border-radius:6px; border:1px solid var(--border); background:var(--glass); color:var(--text); font-size:14px; cursor:pointer; display:flex; align-items:center; justify-content:center; }
   .cs-btn-sm:hover { background:var(--accent); color:#fff; }
   .cs-stats { font-size:12px; color:var(--text-dim); }
+  .cs-artboard-list { display:flex; flex-direction:column; gap:3px; margin-bottom:6px; max-height:150px; overflow-y:auto; }
+  .cs-artboard-item {
+    display:flex; align-items:center; gap:6px; padding:5px 8px; border-radius:6px;
+    border:1px solid var(--border); background:transparent; cursor:pointer; font-size:11px;
+    color:var(--text); transition:all .15s; min-height:28px;
+  }
+  .cs-artboard-item.active { background:var(--accent); color:#fff; border-color:var(--accent); }
+  .cs-artboard-item:hover:not(.active) { background:color-mix(in srgb, var(--accent) 10%, transparent); }
+  .cs-artboard-name { flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .cs-artboard-name[contenteditable] { outline:none; border-bottom:1px dashed currentColor; }
+  .cs-artboard-del { opacity:.5; background:none; border:none; color:inherit; cursor:pointer; font-size:12px; padding:0 2px; }
+  .cs-artboard-del:hover { opacity:1; color:#e74c3c; }
+  .cs-artboard-size { font-size:9px; opacity:.6; white-space:nowrap; }
+  .cs-zoom-sep { width:1px; height:18px; background:var(--border); flex-shrink:0; }
   .cs-canvas-wrap { flex:1; display:flex; flex-direction:column; overflow:hidden; position:relative; }
   .cs-zoom-controls { display:flex; align-items:center; gap:6px; padding:8px 12px; border-bottom:1px solid var(--border); background:color-mix(in srgb, var(--glass) 40%, transparent); }
   .cs-zoom-controls span { font-size:12px; color:var(--text-dim); min-width:40px; text-align:center; }
@@ -2946,12 +2960,20 @@ Việt Nam</textarea>
             </div>
             <div id="csMaskSize" style="display:none" class="cs-opacity-row">
               <label>Mask:</label>
-              <input type="number" id="csMaskW" min="10" max="9999" value="100" style="width:55px;padding:2px 4px;border:1px solid var(--border);border-radius:4px;background:var(--glass);color:var(--text);font-size:11px;text-align:center" />
+              <input type="number" id="csMaskW" min="5" max="999" value="100" style="width:55px;padding:2px 4px;border:1px solid var(--border);border-radius:4px;background:var(--glass);color:var(--text);font-size:11px;text-align:center" />
               <span>×</span>
-              <input type="number" id="csMaskH" min="10" max="9999" value="100" style="width:55px;padding:2px 4px;border:1px solid var(--border);border-radius:4px;background:var(--glass);color:var(--text);font-size:11px;text-align:center" />
-              <span>ô</span>
+              <input type="number" id="csMaskH" min="5" max="999" value="100" style="width:55px;padding:2px 4px;border:1px solid var(--border);border-radius:4px;background:var(--glass);color:var(--text);font-size:11px;text-align:center" />
+              <span>mm</span>
             </div>
+            <p class="cs-hint" id="csMaskHint" style="display:none">💡 Nhấp đôi mask trên canvas để kéo điều chỉnh</p>
           </div>
+        </div>
+
+        <!-- Artboards -->
+        <div class="cs-section">
+          <label class="cs-label">Artboard</label>
+          <div class="cs-artboard-list" id="csArtboardList"></div>
+          <button class="cs-btn" id="csAddArtboard" style="font-size:11px;padding:5px">+ Thêm artboard</button>
         </div>
 
         <!-- Canvas size -->
@@ -2986,12 +3008,13 @@ Việt Nam</textarea>
         <div class="cs-section">
           <label class="cs-label">Công cụ</label>
           <div class="cs-tools">
-            <button class="cs-tool active" data-tool="cross" title="Chữ thập ✕">✕</button>
-            <button class="cs-tool" data-tool="half" title="Nửa chữ thập ╱">╱</button>
-            <button class="cs-tool" data-tool="backstitch" title="Đường viền ─">─</button>
-            <button class="cs-tool" data-tool="eraser" title="Tẩy">🧹</button>
-            <button class="cs-tool" data-tool="fill" title="Đổ màu">🪣</button>
-            <button class="cs-tool" data-tool="picker" title="Hút màu">💉</button>
+            <button class="cs-tool" data-tool="select" title="Chọn/Di chuyển (V)">⊹</button>
+            <button class="cs-tool active" data-tool="cross" title="Chữ thập ✕ (X)">✕</button>
+            <button class="cs-tool" data-tool="half" title="Nửa chữ thập ╱ (H)">╱</button>
+            <button class="cs-tool" data-tool="backstitch" title="Đường viền ─ (B)">─</button>
+            <button class="cs-tool" data-tool="eraser" title="Tẩy (E)">🧹</button>
+            <button class="cs-tool" data-tool="fill" title="Đổ màu (F)">🪣</button>
+            <button class="cs-tool" data-tool="picker" title="Hút màu (I)">💉</button>
           </div>
         </div>
 
@@ -3030,6 +3053,11 @@ Việt Nam</textarea>
           <span id="csZoomLevel">100%</span>
           <button class="cs-btn-sm" id="csZoomOut" title="Thu nhỏ">−</button>
           <button class="cs-btn-sm" id="csZoomFit" title="Vừa khung">⊡</button>
+          <div class="cs-zoom-sep"></div>
+          <button class="cs-btn-sm" id="csRotateLeft" title="Xoay trái 15°">↶</button>
+          <span id="csViewRotation">0°</span>
+          <button class="cs-btn-sm" id="csRotateRight" title="Xoay phải 15°">↷</button>
+          <button class="cs-btn-sm" id="csRotateReset" title="Reset xoay">⟲</button>
         </div>
         <div class="cs-canvas-scroll" id="csCanvasScroll">
           <canvas id="csCanvas"></canvas>
@@ -6366,12 +6394,25 @@ QUY TẮC:
     let imgSelected = false;
     let imgLocked = true; // lock aspect ratio
     let maskMode = false;
-    let maskW = 100, maskH = 100; // in grid cells
+    let maskW = 100, maskH = 100; // in mm (for print)
+    let maskX = null, maskY = null; // px on canvas (null = centered)
+    let maskEditMode = false;
+    let maskDragMode = null; // null | 'move' | 'nw' | 'ne' | 'sw' | 'se'
+    let maskDragStart = null;
     let imgDragMode = null; // null | 'move' | 'nw' | 'ne' | 'sw' | 'se' | 'rotate'
     let imgDragStart = null;
     let stitches = {}; // key: "col,row" → { type, color }
     let isDrawing = false;
     let lastCell = null;
+    // View rotation (Illustrator Rotate View)
+    let viewRotation = 0; // degrees
+    // Artboard system
+    let artboards = [];
+    let activeArtboardId = null;
+    // Undo/Redo
+    let undoStack = [];
+    let redoStack = [];
+    let undoLock = false;
 
     // Default palette (common thread colors)
     const DEFAULT_PALETTE = [
@@ -6403,6 +6444,195 @@ QUY TẮC:
     const csStitchCount = document.getElementById('csStitchCount');
     const csZoomLevel = document.getElementById('csZoomLevel');
     const csCanvasScroll = document.getElementById('csCanvasScroll');
+
+    // --- mm ↔ canvas-px conversion (for mask) ---
+    function mmToPx(mm) { return (mm / MM_PER_INCH) * density * cellPx; }
+    function pxToMm(px) { return (px / cellPx / density) * MM_PER_INCH; }
+
+    // --- Coordinate conversion (accounts for view rotation) ---
+    function getCanvasXY(e) {
+      const rect = canvas.getBoundingClientRect();
+      if (viewRotation === 0) {
+        return { mx: (e.clientX - rect.left) / zoom, my: (e.clientY - rect.top) / zoom };
+      }
+      const cx = rect.left + rect.width / 2;
+      const cy = rect.top + rect.height / 2;
+      const dx = e.clientX - cx, dy = e.clientY - cy;
+      const rad = -viewRotation * Math.PI / 180;
+      const cos = Math.cos(rad), sin = Math.sin(rad);
+      const ux = dx * cos - dy * sin;
+      const uy = dx * sin + dy * cos;
+      const canvasW = canvas.width * zoom;
+      const canvasH = canvas.height * zoom;
+      return { mx: (ux + canvasW / 2) / zoom, my: (uy + canvasH / 2) / zoom };
+    }
+
+    // --- Undo/Redo ---
+    function pushUndo() {
+      if (undoLock) return;
+      undoStack.push(JSON.stringify(stitches));
+      if (undoStack.length > 80) undoStack.shift();
+      redoStack = [];
+    }
+    function doUndo() {
+      if (!undoStack.length) return;
+      redoStack.push(JSON.stringify(stitches));
+      stitches = JSON.parse(undoStack.pop());
+      updateStats(); draw();
+    }
+    function doRedo() {
+      if (!redoStack.length) return;
+      undoStack.push(JSON.stringify(stitches));
+      stitches = JSON.parse(redoStack.pop());
+      updateStats(); draw();
+    }
+
+    // --- Artboard system ---
+    function createArtboard(name) {
+      const id = Date.now() + Math.floor(Math.random() * 1000);
+      return {
+        id, name: name || ('Artboard ' + (artboards.length + 1)),
+        paperSize: 'A4', paperW: 210, paperH: 297, density: 14,
+        stitches: {},
+        refImage: null, refImageSrc: null,
+        imgX: 0, imgY: 0, imgW: 0, imgH: 0, imgRot: 0,
+        refOpacity: 0.3, imgLocked: true,
+        maskMode: false, maskW: 100, maskH: 100,
+        maskX: null, maskY: null,
+      };
+    }
+
+    function saveCurrentToArtboard() {
+      const ab = artboards.find(a => a.id === activeArtboardId);
+      if (!ab) return;
+      Object.assign(ab, {
+        paperSize, paperW, paperH, density,
+        stitches: JSON.parse(JSON.stringify(stitches)),
+        refImage, refImageSrc: refImage ? csRefImg.src : null,
+        imgX, imgY, imgW, imgH, imgRot,
+        refOpacity, imgLocked,
+        maskMode, maskW, maskH, maskX, maskY,
+      });
+    }
+
+    function loadArtboard(id) {
+      if (activeArtboardId != null) saveCurrentToArtboard();
+      const ab = artboards.find(a => a.id === id);
+      if (!ab) return;
+      activeArtboardId = id;
+      paperSize = ab.paperSize; paperW = ab.paperW; paperH = ab.paperH;
+      density = ab.density;
+      stitches = JSON.parse(JSON.stringify(ab.stitches));
+
+      // Restore image
+      if (ab.refImage) {
+        refImage = ab.refImage;
+        csRefImg.src = ab.refImageSrc || '';
+        csImgPreview.style.display = 'block';
+        csUpload.style.display = 'none';
+      } else {
+        refImage = null;
+        csImgPreview.style.display = 'none';
+        csUpload.style.display = '';
+      }
+      imgX = ab.imgX; imgY = ab.imgY; imgW = ab.imgW; imgH = ab.imgH; imgRot = ab.imgRot;
+      refOpacity = ab.refOpacity; imgLocked = ab.imgLocked; imgSelected = false;
+      maskMode = ab.maskMode; maskW = ab.maskW; maskH = ab.maskH;
+      maskX = ab.maskX; maskY = ab.maskY; maskEditMode = false;
+
+      // Sync UI controls
+      csOpacity.value = Math.round(refOpacity * 100);
+      csOpacityVal.textContent = csOpacity.value + '%';
+      document.getElementById('csLockRatio').checked = imgLocked;
+      csMaskCheck.checked = maskMode;
+      csMaskSizeEl.style.display = maskMode ? 'flex' : 'none';
+      document.getElementById('csMaskHint').style.display = maskMode ? '' : 'none';
+      csMaskWInput.value = Math.round(maskW);
+      csMaskHInput.value = Math.round(maskH);
+      csDensity.value = density;
+      csDensityVal.textContent = density + ' ct';
+      // Paper size buttons
+      document.querySelectorAll('.cs-radio').forEach(b => {
+        b.classList.toggle('active', b.dataset.size === paperSize);
+      });
+      csCustomSize.style.display = paperSize === 'custom' ? 'flex' : 'none';
+      if (paperSize === 'custom') {
+        csCustomW.value = paperW; csCustomH.value = paperH;
+      }
+
+      undoStack = []; redoStack = [];
+      renderArtboardList();
+      recalcGrid();
+    }
+
+    function deleteArtboard(id) {
+      if (artboards.length <= 1) return;
+      artboards = artboards.filter(a => a.id !== id);
+      if (activeArtboardId === id) {
+        activeArtboardId = null;
+        loadArtboard(artboards[0].id);
+      } else {
+        renderArtboardList();
+      }
+    }
+
+    function renderArtboardList() {
+      const list = document.getElementById('csArtboardList');
+      list.innerHTML = '';
+      artboards.forEach(ab => {
+        const el = document.createElement('div');
+        el.className = 'cs-artboard-item' + (ab.id === activeArtboardId ? ' active' : '');
+        const nameSpan = document.createElement('span');
+        nameSpan.className = 'cs-artboard-name';
+        nameSpan.textContent = ab.name;
+        const sizeSpan = document.createElement('span');
+        sizeSpan.className = 'cs-artboard-size';
+        sizeSpan.textContent = ab.paperSize === 'custom' ? (ab.paperW + '×' + ab.paperH) : ab.paperSize;
+        el.appendChild(nameSpan);
+        el.appendChild(sizeSpan);
+        if (artboards.length > 1) {
+          const del = document.createElement('button');
+          del.className = 'cs-artboard-del';
+          del.textContent = '✕';
+          del.title = 'Xoá';
+          del.addEventListener('click', e => { e.stopPropagation(); deleteArtboard(ab.id); });
+          el.appendChild(del);
+        }
+        el.addEventListener('click', () => { if (ab.id !== activeArtboardId) loadArtboard(ab.id); });
+        el.addEventListener('dblclick', () => {
+          nameSpan.contentEditable = 'true';
+          nameSpan.focus();
+          const sel = window.getSelection();
+          sel.selectAllChildren(nameSpan);
+          const done = () => {
+            nameSpan.contentEditable = 'false';
+            ab.name = nameSpan.textContent.trim() || ab.name;
+            renderArtboardList();
+          };
+          nameSpan.addEventListener('blur', done, { once: true });
+          nameSpan.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); nameSpan.blur(); } });
+        });
+        list.appendChild(el);
+      });
+    }
+
+    document.getElementById('csAddArtboard').addEventListener('click', () => {
+      saveCurrentToArtboard();
+      const ab = createArtboard();
+      artboards.push(ab);
+      loadArtboard(ab.id);
+    });
+
+    // --- View rotation ---
+    function setViewRotation(deg) {
+      viewRotation = ((deg % 360) + 360) % 360;
+      if (Math.abs(viewRotation) < 0.5) viewRotation = 0;
+      canvas.style.transform = viewRotation ? `rotate(${viewRotation}deg)` : '';
+      document.getElementById('csViewRotation').textContent = Math.round(viewRotation) + '°';
+    }
+    document.getElementById('csRotateLeft').addEventListener('click', () => setViewRotation(viewRotation - 15));
+    document.getElementById('csRotateRight').addEventListener('click', () => setViewRotation(viewRotation + 15));
+    document.getElementById('csRotateReset').addEventListener('click', () => setViewRotation(0));
 
     // --- Init palette ---
     DEFAULT_PALETTE.forEach(c => {
@@ -6612,6 +6842,8 @@ QUY TẮC:
     csMaskCheck.addEventListener('change', e => {
       maskMode = e.target.checked;
       csMaskSizeEl.style.display = maskMode ? 'flex' : 'none';
+      document.getElementById('csMaskHint').style.display = maskMode ? '' : 'none';
+      if (maskMode) { maskX = null; maskY = null; maskEditMode = false; } // center on enable
       draw();
     });
     csMaskWInput.addEventListener('change', () => { maskW = parseInt(csMaskWInput.value) || 100; draw(); });
@@ -6630,11 +6862,9 @@ QUY TẮC:
 
     // --- Drawing ---
     function getCellFromEvent(e) {
-      const rect = canvas.getBoundingClientRect();
-      const x = (e.clientX - rect.left) / zoom;
-      const y = (e.clientY - rect.top) / zoom;
-      const col = Math.floor(x / cellPx);
-      const row = Math.floor(y / cellPx);
+      const { mx, my } = getCanvasXY(e);
+      const col = Math.floor(mx / cellPx);
+      const row = Math.floor(my / cellPx);
       if (col < 0 || col >= gridCols || row < 0 || row >= gridRows) return null;
       return { col, row };
     }
@@ -6642,6 +6872,7 @@ QUY TẮC:
     function applyTool(col, row) {
       const key = col + ',' + row;
       if (currentTool === 'eraser') {
+        pushUndo();
         delete stitches[key];
       } else if (currentTool === 'picker') {
         const s = stitches[key];
@@ -6651,8 +6882,10 @@ QUY TẮC:
           document.querySelectorAll('.cs-palette-swatch').forEach(sw => sw.classList.toggle('active', sw.style.background === s.color || sw.style.backgroundColor === s.color));
         }
       } else if (currentTool === 'fill') {
+        pushUndo();
         floodFill(col, row, currentColor);
       } else {
+        pushUndo();
         stitches[key] = { type: currentTool, color: currentColor };
       }
       updateStats();
@@ -6704,10 +6937,12 @@ QUY TẮC:
         ctx.globalAlpha = refOpacity;
 
         if (maskMode) {
-          // Mask: chỉ hiện phần ảnh nằm trong mask rectangle (ở giữa canvas)
-          const mPxW = Math.min(maskW, gridCols) * cellPx;
-          const mPxH = Math.min(maskH, gridRows) * cellPx;
-          const mX = (w - mPxW) / 2, mY = (h - mPxH) / 2;
+          // Mask: mm → canvas pixels
+          const mPxW = Math.min(mmToPx(maskW), w);
+          const mPxH = Math.min(mmToPx(maskH), h);
+          // Mask position (null = centered)
+          const mX = maskX != null ? maskX : (w - mPxW) / 2;
+          const mY = maskY != null ? maskY : (h - mPxH) / 2;
 
           ctx.save();
           ctx.beginPath();
@@ -6730,17 +6965,42 @@ QUY TẮC:
           ctx.globalAlpha = 1;
 
           // Mask border
-          ctx.strokeStyle = '#0096ff';
+          ctx.strokeStyle = maskEditMode ? '#ff6600' : '#0096ff';
           ctx.lineWidth = 2;
           ctx.setLineDash([8, 4]);
           ctx.strokeRect(mX, mY, mPxW, mPxH);
           ctx.setLineDash([]);
 
-          // Kích thước label
-          ctx.fillStyle = '#0096ff';
-          ctx.font = '11px sans-serif';
+          // Kích thước label (mm)
+          ctx.fillStyle = maskEditMode ? '#ff6600' : '#0096ff';
+          ctx.font = '12px sans-serif';
           ctx.textAlign = 'center';
-          ctx.fillText(`${Math.min(maskW, gridCols)} × ${Math.min(maskH, gridRows)} ô`, mX + mPxW / 2, mY - 6);
+          ctx.fillText(`${Math.round(maskW)} × ${Math.round(maskH)} mm`, mX + mPxW / 2, mY - 8);
+
+          // Mask edit handles (khi double-click)
+          if (maskEditMode) {
+            const corners = [
+              { x: mX, y: mY, id: 'nw' },
+              { x: mX + mPxW, y: mY, id: 'ne' },
+              { x: mX + mPxW, y: mY + mPxH, id: 'se' },
+              { x: mX, y: mY + mPxH, id: 'sw' },
+            ];
+            corners.forEach(c => {
+              ctx.fillStyle = '#fff';
+              ctx.strokeStyle = '#ff6600';
+              ctx.lineWidth = 2;
+              ctx.fillRect(c.x - 5, c.y - 5, 10, 10);
+              ctx.strokeRect(c.x - 5, c.y - 5, 10, 10);
+            });
+            // Center move handle
+            const mcx = mX + mPxW / 2, mcy = mY + mPxH / 2;
+            ctx.strokeStyle = 'rgba(255,102,0,0.4)';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(mcx - 10, mcy); ctx.lineTo(mcx + 10, mcy);
+            ctx.moveTo(mcx, mcy - 10); ctx.lineTo(mcx, mcy + 10);
+            ctx.stroke();
+          }
         } else {
           // Vẽ bình thường, không mask
           const icx = imgX + imgW / 2, icy = imgY + imgH / 2;
@@ -6911,7 +7171,53 @@ QUY TẮC:
       return null;
     }
 
-    // --- Pointer events: transform handles + stitch drawing ---
+    // --- Mask hit-test (for interactive editing) ---
+    function getMaskRect() {
+      const w = canvas.width, h = canvas.height;
+      const mPxW = Math.min(mmToPx(maskW), w);
+      const mPxH = Math.min(mmToPx(maskH), h);
+      const mX = maskX != null ? maskX : (w - mPxW) / 2;
+      const mY = maskY != null ? maskY : (h - mPxH) / 2;
+      return { mX, mY, mPxW, mPxH };
+    }
+
+    function hitTestMask(mx, my) {
+      if (!maskMode || !maskEditMode) return null;
+      const { mX, mY, mPxW, mPxH } = getMaskRect();
+      const hitR = 12 / zoom;
+
+      // Corner handles
+      if (Math.hypot(mx - mX, my - mY) < hitR) return 'nw';
+      if (Math.hypot(mx - (mX + mPxW), my - mY) < hitR) return 'ne';
+      if (Math.hypot(mx - (mX + mPxW), my - (mY + mPxH)) < hitR) return 'se';
+      if (Math.hypot(mx - mX, my - (mY + mPxH)) < hitR) return 'sw';
+
+      // Inside mask → move
+      if (mx >= mX && mx <= mX + mPxW && my >= mY && my <= mY + mPxH) return 'move';
+      return null;
+    }
+
+    function isInsideMask(mx, my) {
+      if (!maskMode) return false;
+      const { mX, mY, mPxW, mPxH } = getMaskRect();
+      return mx >= mX - 15 && mx <= mX + mPxW + 15 && my >= mY - 15 && my <= mY + mPxH + 15;
+    }
+
+    // --- Double-click: mask edit toggle ---
+    canvas.addEventListener('dblclick', function csDblClick(e) {
+      if (!maskMode) return;
+      const { mx, my } = getCanvasXY(e);
+      if (isInsideMask(mx, my)) {
+        maskEditMode = !maskEditMode;
+        draw();
+        e.preventDefault();
+      } else if (maskEditMode) {
+        maskEditMode = false;
+        draw();
+      }
+    });
+
+    // --- Pointer events: transform handles + mask edit + stitch drawing ---
     canvas.addEventListener('pointerdown', function csPointerDown(e) {
       // Middle-click hoặc Space+click → pan (ưu tiên trước mọi thứ)
       if (e.button === 1 || (e.button === 0 && spaceHeld)) {
@@ -6927,12 +7233,23 @@ QUY TẮC:
         return;
       }
 
-      const rect = canvas.getBoundingClientRect();
-      const mx = (e.clientX - rect.left) / zoom;
-      const my = (e.clientY - rect.top) / zoom;
+      const { mx, my } = getCanvasXY(e);
 
-      // If image is loaded, test transform handles first
-      if (refImage) {
+      // 1. Mask edit mode: test mask handles first
+      if (maskMode && maskEditMode) {
+        const mhit = hitTestMask(mx, my);
+        if (mhit) {
+          e.preventDefault();
+          const { mX, mY, mPxW, mPxH } = getMaskRect();
+          maskDragMode = mhit;
+          maskDragStart = { mx, my, mX, mY, mPxW, mPxH };
+          canvas.setPointerCapture(e.pointerId);
+          return;
+        }
+      }
+
+      // 2. Image transform handles (select tool or any tool when image is selected)
+      if (refImage && (currentTool === 'select' || imgSelected)) {
         const hit = hitTestTransform(mx, my);
         if (hit) {
           e.preventDefault();
@@ -6947,13 +7264,26 @@ QUY TẮC:
           return;
         }
         // Clicked outside image → deselect
-        if (imgSelected) {
+        if (imgSelected && currentTool === 'select') {
           imgSelected = false;
           draw();
+          return; // select tool doesn't draw stitches
         }
       }
 
-      // Normal stitch drawing
+      // Select tool: if clicked on image, select it
+      if (currentTool === 'select') {
+        if (refImage && isInsideImage(mx, my)) {
+          imgSelected = true;
+          imgDragMode = 'move';
+          imgDragStart = { mx, my, imgX, imgY, imgW, imgH, imgRot, aspect: imgW / imgH };
+          canvas.setPointerCapture(e.pointerId);
+          draw();
+        }
+        return; // select tool never draws stitches
+      }
+
+      // 3. Normal stitch drawing
       const cell = getCellFromEvent(e);
       if (!cell) return;
       e.preventDefault();
@@ -6971,9 +7301,36 @@ QUY TẮC:
         return;
       }
 
-      const rect = canvas.getBoundingClientRect();
-      const mx = (e.clientX - rect.left) / zoom;
-      const my = (e.clientY - rect.top) / zoom;
+      const { mx, my } = getCanvasXY(e);
+
+      // Mask drag
+      if (maskDragMode && maskDragStart) {
+        e.preventDefault();
+        const s = maskDragStart;
+        const dx = mx - s.mx, dy = my - s.my;
+        if (maskDragMode === 'move') {
+          maskX = s.mX + dx;
+          maskY = s.mY + dy;
+        } else {
+          // Corner resize → convert back to mm
+          let newX = s.mX, newY = s.mY, newW = s.mPxW, newH = s.mPxH;
+          if (maskDragMode === 'se') {
+            newW = Math.max(mmToPx(10), s.mPxW + dx); newH = Math.max(mmToPx(10), s.mPxH + dy);
+          } else if (maskDragMode === 'ne') {
+            newW = Math.max(mmToPx(10), s.mPxW + dx); newH = Math.max(mmToPx(10), s.mPxH - dy); newY = s.mY + dy;
+          } else if (maskDragMode === 'sw') {
+            newW = Math.max(mmToPx(10), s.mPxW - dx); newH = Math.max(mmToPx(10), s.mPxH + dy); newX = s.mX + dx;
+          } else if (maskDragMode === 'nw') {
+            newW = Math.max(mmToPx(10), s.mPxW - dx); newH = Math.max(mmToPx(10), s.mPxH - dy); newX = s.mX + dx; newY = s.mY + dy;
+          }
+          maskX = newX; maskY = newY;
+          maskW = Math.round(pxToMm(newW)); maskH = Math.round(pxToMm(newH));
+          // Sync inputs
+          csMaskWInput.value = maskW; csMaskHInput.value = maskH;
+        }
+        draw();
+        return;
+      }
 
       // Image transform drag
       if (imgDragMode && imgDragStart) {
@@ -6998,7 +7355,6 @@ QUY TẮC:
           // Corner resize
           const cx = s.imgX + s.imgW / 2, cy = s.imgY + s.imgH / 2;
           const cos = Math.cos(-s.imgRot), sin = Math.sin(-s.imgRot);
-          // Transform mouse to local (un-rotated) space
           const lmx = (mx - cx) * cos - (my - cy) * sin + cx;
           const lmy = (mx - cx) * sin + (my - cy) * cos + cy;
           const smx = (s.mx - cx) * cos - (s.my - cy) * sin + cx;
@@ -7006,7 +7362,6 @@ QUY TẮC:
           const ldx = lmx - smx, ldy = lmy - smy;
 
           let newW = s.imgW, newH = s.imgH, newX = s.imgX, newY = s.imgY;
-
           if (imgDragMode === 'se') {
             newW = Math.max(20, s.imgW + ldx); newH = Math.max(20, s.imgH + ldy);
           } else if (imgDragMode === 'ne') {
@@ -7017,7 +7372,6 @@ QUY TẮC:
             newW = Math.max(20, s.imgW - ldx); newH = Math.max(20, s.imgH - ldy); newX = s.imgX + ldx; newY = s.imgY + ldy;
           }
 
-          // Lock aspect ratio (Shift or default locked)
           if (imgLocked || e.shiftKey) {
             const ratio = s.aspect;
             if (imgDragMode === 'se' || imgDragMode === 'nw') {
@@ -7028,21 +7382,30 @@ QUY TẮC:
               if (imgDragMode === 'ne') newY = s.imgY + s.imgH - newH;
             }
           }
-
           imgX = newX; imgY = newY; imgW = newW; imgH = newH;
         }
         draw();
         return;
       }
 
-      // Cursor style for transform handles
-      if (refImage && imgSelected && !isDrawing) {
-        const hit = hitTestTransform(mx, my);
-        if (hit === 'move') canvas.style.cursor = 'move';
-        else if (hit === 'rotate') canvas.style.cursor = 'grab';
-        else if (hit === 'nw' || hit === 'se') canvas.style.cursor = 'nwse-resize';
-        else if (hit === 'ne' || hit === 'sw') canvas.style.cursor = 'nesw-resize';
-        else canvas.style.cursor = 'crosshair';
+      // Cursor style
+      if (!isDrawing) {
+        if (maskMode && maskEditMode) {
+          const mhit = hitTestMask(mx, my);
+          if (mhit === 'move') { canvas.style.cursor = 'move'; return; }
+          if (mhit === 'nw' || mhit === 'se') { canvas.style.cursor = 'nwse-resize'; return; }
+          if (mhit === 'ne' || mhit === 'sw') { canvas.style.cursor = 'nesw-resize'; return; }
+        }
+        if (refImage && (currentTool === 'select' || imgSelected)) {
+          const hit = hitTestTransform(mx, my);
+          if (hit === 'move') canvas.style.cursor = 'move';
+          else if (hit === 'rotate') canvas.style.cursor = 'grab';
+          else if (hit === 'nw' || hit === 'se') canvas.style.cursor = 'nwse-resize';
+          else if (hit === 'ne' || hit === 'sw') canvas.style.cursor = 'nesw-resize';
+          else canvas.style.cursor = currentTool === 'select' ? 'default' : 'crosshair';
+          return;
+        }
+        canvas.style.cursor = currentTool === 'select' ? 'default' : 'crosshair';
       }
 
       // Normal stitch drawing
@@ -7057,7 +7420,8 @@ QUY TẮC:
     });
 
     canvas.addEventListener('pointerup', function csPointerUp() {
-      if (isPanning) { isPanning = false; canvas.style.cursor = spaceHeld ? 'grab' : 'crosshair'; return; }
+      if (isPanning) { isPanning = false; canvas.style.cursor = spaceHeld ? 'grab' : (currentTool === 'select' ? 'default' : 'crosshair'); return; }
+      if (maskDragMode) { maskDragMode = null; maskDragStart = null; return; }
       if (imgDragMode) { imgDragMode = null; imgDragStart = null; return; }
       isDrawing = false; lastCell = null;
     });
@@ -7065,6 +7429,7 @@ QUY TẮC:
     canvas.addEventListener('pointerleave', () => {
       if (isPanning) return;
       if (imgDragMode) return;
+      if (maskDragMode) return;
       isDrawing = false; lastCell = null;
     });
 
@@ -7176,24 +7541,39 @@ QUY TẮC:
 
     // --- Keyboard shortcuts ---
     document.addEventListener('keydown', e => {
-      if (document.getElementById('pane-compress').style.display === 'none') return;
-      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+      // Only active when cross-stitch tab visible
+      const csPane = document.getElementById('pane-compress');
+      if (!csPane || (!csPane.classList.contains('active') && csPane.style.display === 'none')) return;
+      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.isContentEditable) return;
 
-      if (e.key === 'x' || e.key === 'X') { currentTool = 'cross'; updateToolButtons(); }
+      if (e.key === 'v' || e.key === 'V') { currentTool = 'select'; updateToolButtons(); }
+      else if (e.key === 'x' || e.key === 'X') { currentTool = 'cross'; updateToolButtons(); }
       else if (e.key === 'e' || e.key === 'E') { currentTool = 'eraser'; updateToolButtons(); }
       else if (e.key === 'f' || e.key === 'F') { currentTool = 'fill'; updateToolButtons(); }
       else if (e.key === 'h' || e.key === 'H') { currentTool = 'half'; updateToolButtons(); }
       else if (e.key === 'b' || e.key === 'B') { currentTool = 'backstitch'; updateToolButtons(); }
       else if (e.key === 'i' || e.key === 'I') { currentTool = 'picker'; updateToolButtons(); }
+      else if (e.key === 'r' || e.key === 'R') { setViewRotation(viewRotation + 15); }
+      else if (e.key === 'Escape') {
+        if (maskEditMode) { maskEditMode = false; draw(); }
+        if (imgSelected) { imgSelected = false; draw(); }
+      }
+      else if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === 'z') {
+        doRedo(); e.preventDefault();
+      }
       else if ((e.ctrlKey || e.metaKey) && e.key === 'z') {
-        // Simple undo — remove last stitch
-        const keys = Object.keys(stitches);
-        if (keys.length) { delete stitches[keys[keys.length - 1]]; updateStats(); draw(); }
-        e.preventDefault();
+        doUndo(); e.preventDefault();
       }
     });
 
     // --- Init ---
+    // Create initial artboard
+    const firstAb = createArtboard('Artboard 1');
+    firstAb.paperSize = paperSize; firstAb.paperW = paperW; firstAb.paperH = paperH;
+    firstAb.density = density;
+    artboards.push(firstAb);
+    activeArtboardId = firstAb.id;
+    renderArtboardList();
     recalcGrid();
     setTimeout(() => document.getElementById('csZoomFit')?.click(), 100);
 
