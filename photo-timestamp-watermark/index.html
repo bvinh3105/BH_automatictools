@@ -2363,6 +2363,7 @@
     justify-content: center;
     overflow: auto;
     padding-right: 16px;
+    position: relative;
   }
   .ocr-pv-img-wrap img {
     max-width: 100%;
@@ -2371,6 +2372,24 @@
     border-radius: 10px;
     box-shadow: 0 12px 40px rgba(0,0,0,0.35);
   }
+  .ocr-pv-rotate {
+    position: absolute;
+    bottom: 12px; left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0,0,0,0.55);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255,255,255,0.15);
+    color: #fff;
+    border-radius: 10px;
+    padding: 8px 18px;
+    font-size: 14px; font-weight: 600;
+    cursor: pointer;
+    display: flex; align-items: center; gap: 6px;
+    transition: background 0.15s;
+    z-index: 3;
+  }
+  .ocr-pv-rotate:hover { background: rgba(0,0,0,0.75); }
   .ocr-pv-text-wrap {
     width: 340px; min-width: 340px; flex-shrink: 0;
     display: flex;
@@ -2979,6 +2998,7 @@ Việt Nam</textarea>
       <div class="ocr-pv-split">
         <div class="ocr-pv-img-wrap">
           <img id="ocrPvImg" alt="">
+          <button class="ocr-pv-rotate" id="ocrPvRotate" title="Xoay 90°">↻ Xoay</button>
         </div>
         <div class="ocr-pv-text-wrap">
           <div class="ocr-pv-text-head">
@@ -6721,12 +6741,30 @@ QUY TẮC:
       ocrPvNext.disabled = ocrPvIndex === cards.length - 1;
     }
 
+    // Preview rotate button — xoay ảnh CSS ngay + xoay card image
+    const ocrPvRotate = document.getElementById('ocrPvRotate');
+    let ocrPvRotAngle = 0;
+    ocrPvRotate.addEventListener('click', () => {
+      ocrPvRotAngle = (ocrPvRotAngle + 90) % 360;
+      ocrPvImg.style.transform = `rotate(${ocrPvRotAngle}deg)`;
+      ocrPvImg.style.transition = 'transform 0.3s ease';
+      // Cũng xoay ảnh thumbnail trong card
+      const cards = [...ocrCards.querySelectorAll('.ocr-card')];
+      if (cards[ocrPvIndex]) {
+        const cardImg = cards[ocrPvIndex].querySelector('.ocr-card-img img');
+        if (cardImg) {
+          cardImg.style.transform = `rotate(${ocrPvRotAngle}deg)`;
+          cardImg.style.transition = 'transform 0.3s ease';
+        }
+      }
+    });
+
     ocrPvClose.addEventListener('click', closeOcrPreview);
     ocrPv.addEventListener('click', e => { if (e.target === ocrPv) closeOcrPreview(); });
-    ocrPvPrev.addEventListener('click', () => { if (ocrPvIndex > 0) { ocrPvIndex--; renderOcrPreview(); }});
+    ocrPvPrev.addEventListener('click', () => { if (ocrPvIndex > 0) { ocrPvIndex--; ocrPvRotAngle = 0; ocrPvImg.style.transform = ''; renderOcrPreview(); }});
     ocrPvNext.addEventListener('click', () => {
       const cards = [...ocrCards.querySelectorAll('.ocr-card')];
-      if (ocrPvIndex < cards.length - 1) { ocrPvIndex++; renderOcrPreview(); }
+      if (ocrPvIndex < cards.length - 1) { ocrPvIndex++; ocrPvRotAngle = 0; ocrPvImg.style.transform = ''; renderOcrPreview(); }
     });
     ocrPvCopy.addEventListener('click', () => {
       const text = ocrPvText.textContent;
