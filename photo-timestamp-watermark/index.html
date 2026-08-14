@@ -5802,15 +5802,19 @@ Việt Nam</textarea>
     if (oldGeminiKey && !ocrConfig.key) {
       ocrConfig = { provider: 'gemini', key: oldGeminiKey };
       localStorage.setItem('ocr_config', JSON.stringify(ocrConfig));
-      localStorage.removeItem('ocr_gemini_key');
     }
+    // Lưu old gemini key vào ocrKeys (dù ocrConfig đang dùng provider khác)
+    if (oldGeminiKey && !ocrKeys.gemini) {
+      ocrKeys.gemini = oldGeminiKey;
+    }
+    if (oldGeminiKey) localStorage.removeItem('ocr_gemini_key');
     // Migrate: lưu key hiện tại vào ocrKeys nếu chưa có
     if (ocrConfig.provider && ocrConfig.key) {
       if (!ocrKeys[ocrConfig.provider]) {
         ocrKeys[ocrConfig.provider] = ocrConfig.key;
-        localStorage.setItem('ocr_keys', JSON.stringify(ocrKeys));
       }
     }
+    localStorage.setItem('ocr_keys', JSON.stringify(ocrKeys));
 
     function updateApiBadge() {
       if (ocrConfig.provider === 'ollama') {
@@ -6593,13 +6597,22 @@ QUY TẮC:
 
         progressEl.style.display = 'none';
 
-        // API lỗi → hiện lỗi rõ ràng, KHÔNG fallback PaddleOCR
+        // API lỗi → hiện lỗi rõ ràng
         if (usedEngine === 'api-error') {
           textEl.className = 'ocr-card-text ocr-error';
-          const providerName = { groq: 'Groq', gemini: 'Gemini', ollama: 'Ollama' }[ocrConfig.provider] || 'API';
+          const pNames = { groq: 'Groq', gemini: 'Gemini', ollama: 'Ollama' };
+          const providerName = pNames[ocrConfig.provider] || 'API';
+          const altProvider = ocrConfig.provider === 'groq' ? 'gemini' : 'groq';
+          const altName = pNames[altProvider];
+          const hasAltKey = ocrKeys[altProvider];
+          let hint = '';
+          if (!hasAltKey && ocrConfig.provider !== 'ollama') {
+            hint = `<div style="font-size:11px;color:#4a9;margin-top:6px">💡 Thêm key ${altName} để tự động fallback khi ${providerName} lỗi: bấm <b>Đổi key</b> → chọn ${altName} → nhập key → <b>Lưu</b> → chọn lại ${providerName} → <b>Lưu</b></div>`;
+          }
           textEl.innerHTML = `<div style="color:#e55;font-size:12px;font-weight:600;margin-bottom:8px">❌ ${providerName} lỗi</div>`
             + `<div style="font-size:11px;color:var(--muted);margin-bottom:8px">${(apiError || '').replace(/</g, '&lt;')}</div>`
-            + `<div style="font-size:11px">Kiểm tra API key hoặc thử lại. Nếu lỗi liên tục, bấm 🔄 để thử lại.</div>`;
+            + `<div style="font-size:11px">Kiểm tra API key hoặc thử lại. Nếu lỗi liên tục, bấm 🔄 để thử lại.</div>`
+            + hint;
           retryBtn.style.display = '';
           if (ocrPv.classList.contains('open')) renderOcrPreview();
           return;
