@@ -6352,17 +6352,24 @@ QUY TẮC:
 
         let angle = 0;
         if (provider === 'gemini') {
-          const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+          const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key=${apiKey}`;
           const body = {
             contents: [{ parts: [{ text: prompt }, { inlineData: { mimeType, data: base64 } }] }],
             generationConfig: { temperature: 0, maxOutputTokens: 10 }
           };
-          const resp = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
-          if (resp.ok) {
-            const data = await resp.json();
-            const raw = (data.candidates?.[0]?.content?.parts?.[0]?.text || '').trim();
-            const m = raw.match(/\b(0|90|180|270)\b/);
-            if (m) angle = parseInt(m[1]);
+          // Thử tối đa 2 lần nếu 429/503
+          for (let _r = 0; _r < 2; _r++) {
+            const resp = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+            if (resp.ok) {
+              const data = await resp.json();
+              const raw = (data.candidates?.[0]?.content?.parts?.[0]?.text || '').trim();
+              const m = raw.match(/\b(0|90|180|270)\b/);
+              if (m) angle = parseInt(m[1]);
+              break;
+            }
+            if ((resp.status === 429 || resp.status === 503) && _r === 0) {
+              await new Promise(r => setTimeout(r, resp.status === 429 ? 3000 : 1500));
+            } else break;
           }
         } else if (provider === 'groq') {
           const dataUrl = `data:${mimeType};base64,${base64}`;
@@ -6403,15 +6410,29 @@ QUY TẮC:
       return text.trim();
     }
 
-    async function runGeminiOCR(imageUrl, apiKey) {
+    async function runGeminiOCR(imageUrl, apiKey, _retries = 2) {
       const { base64, mimeType } = await blobUrlToBase64(imageUrl);
-      const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key=${apiKey}`;
       const body = {
         contents: [{ parts: [{ text: OCR_PROMPT }, { inlineData: { mimeType, data: base64 } }] }],
         generationConfig: { temperature: 0.1, maxOutputTokens: 4096 }
       };
       const resp = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
-      if (!resp.ok) { const err = await resp.json().catch(() => ({})); throw new Error(err.error?.message || `API error ${resp.status}`); }
+      if (!resp.ok) {
+        // Retry tự động khi bị rate-limit (429) hoặc service unavailable (503)
+        if ((resp.status === 429 || resp.status === 503) && _retries > 0) {
+          const delay = resp.status === 429 ? 4000 : 2000;
+          await new Promise(r => setTimeout(r, delay));
+          return runGeminiOCR(imageUrl, apiKey, _retries - 1);
+        }
+        const err = await resp.json().catch(() => ({}));
+        const raw = err.error?.message || '';
+        if (resp.status === 429) throw new Error(`Gemini quá tải (429 Rate Limit). Thử lại sau vài giây.`);
+        if (resp.status === 503) throw new Error(`Gemini tạm ngừng dịch vụ (503). Thử lại sau.`);
+        if (resp.status === 401 || resp.status === 403 || /api key|invalid key/i.test(raw))
+          throw new Error(`API key không hợp lệ. Vui lòng kiểm tra lại key Gemini.`);
+        throw new Error(raw || `Gemini lỗi ${resp.status}`);
+      }
       const data = await resp.json();
       return stripThinking(data.candidates?.[0]?.content?.parts?.[0]?.text || '');
     }
