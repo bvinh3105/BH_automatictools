@@ -1880,7 +1880,301 @@
     display: block;
   }
 
-  /* ===== Cross Stitch Designer ===== */
+  /* ===== Embroidery Designer — Illustrator-style ===== */
+  #pane-compress { overflow:hidden; }
+  #pane-compress > .app { padding:0 !important; }
+
+  .emb-app {
+    display:flex; flex-direction:column;
+    height:calc(100vh - 0px); overflow:hidden;
+    position:relative; background:transparent;
+  }
+
+  /* ── Menubar ── */
+  .emb-menubar {
+    display:flex; align-items:center; height:38px; flex-shrink:0;
+    background:var(--glass-strong); backdrop-filter:blur(20px) saturate(160%);
+    -webkit-backdrop-filter:blur(20px) saturate(160%);
+    border-bottom:1px solid var(--border); padding:0 12px; gap:2px; z-index:10;
+  }
+  .emb-menu-logo {
+    font-size:14px; font-weight:800; color:var(--text); letter-spacing:-.03em;
+    margin-right:8px; display:flex; align-items:center; gap:6px;
+  }
+  .emb-menu-item { position:relative; }
+  .emb-menu-btn {
+    background:transparent; border:none; border-radius:6px; padding:4px 10px;
+    font:inherit; font-size:12.5px; color:var(--muted); cursor:pointer;
+    transition:background .15s, color .15s;
+  }
+  .emb-menu-btn:hover, .emb-menu-btn.open {
+    background:color-mix(in srgb, var(--text) 8%, transparent); color:var(--text);
+  }
+  .emb-menu-dropdown {
+    position:fixed; background:var(--glass-strong);
+    backdrop-filter:blur(30px) saturate(180%); -webkit-backdrop-filter:blur(30px) saturate(180%);
+    border:1px solid var(--border); border-radius:10px; padding:4px;
+    min-width:210px; box-shadow:0 12px 40px rgba(0,0,0,.22), inset 0 1px 0 rgba(255,255,255,.1);
+    z-index:500; display:none;
+  }
+  .emb-menu-dropdown.open { display:block; animation:emb-dd-in .12s ease; }
+  @keyframes emb-dd-in { from { opacity:0; transform:translateY(-4px); } to { opacity:1; transform:none; } }
+  .emb-menu-sep { height:1px; background:var(--divider); margin:3px 6px; }
+  .emb-menu-action {
+    display:flex; align-items:center; justify-content:space-between;
+    padding:7px 10px; font-size:12.5px; color:var(--text); border-radius:6px;
+    cursor:pointer; transition:background .1s; user-select:none; gap:20px;
+  }
+  .emb-menu-action:hover { background:color-mix(in srgb, var(--accent-2) 13%, transparent); }
+  .emb-menu-action kbd { font-size:10px; color:var(--muted); font-family:inherit; white-space:nowrap; }
+  .emb-menu-spacer { flex:1; }
+  .emb-menu-right { display:flex; align-items:center; gap:4px; }
+
+  /* ── Body ── */
+  .emb-body { display:flex; flex:1; min-height:0; overflow:hidden; }
+
+  /* ── Toolbox ── */
+  .emb-toolbox {
+    width:50px; flex-shrink:0;
+    background:var(--glass); backdrop-filter:blur(20px) saturate(160%);
+    -webkit-backdrop-filter:blur(20px) saturate(160%);
+    border-right:1px solid var(--border);
+    display:flex; flex-direction:column; align-items:center;
+    padding:8px 0; gap:2px; overflow-y:auto; scrollbar-width:none; z-index:5;
+  }
+  .emb-toolbox::-webkit-scrollbar { display:none; }
+  .emb-tool-sep { width:28px; height:1px; background:var(--border); margin:4px 0; flex-shrink:0; }
+  .emb-tool-btn {
+    width:36px; height:36px; border-radius:8px; background:transparent;
+    border:1px solid transparent; color:var(--muted); cursor:pointer;
+    display:flex; align-items:center; justify-content:center; font-size:16px;
+    transition:background .15s, color .15s, border-color .15s; flex-shrink:0; position:relative;
+  }
+  .emb-tool-btn:hover { background:color-mix(in srgb, var(--text) 7%, transparent); color:var(--text); }
+  .emb-tool-btn.active {
+    background:color-mix(in srgb, var(--accent-2) 15%, transparent);
+    color:var(--accent-2); border-color:color-mix(in srgb, var(--accent-2) 35%, transparent);
+  }
+  .emb-tool-tooltip {
+    position:absolute; left:calc(100% + 10px); top:50%; transform:translateY(-50%);
+    background:var(--glass-strong); backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px);
+    border:1px solid var(--border); border-radius:8px; padding:5px 10px;
+    white-space:nowrap; font-size:11.5px; color:var(--text);
+    pointer-events:none; opacity:0; transition:opacity .15s; z-index:100;
+    box-shadow:0 4px 16px rgba(0,0,0,.18);
+  }
+  .emb-tool-btn:hover .emb-tool-tooltip { opacity:1; }
+
+  /* ── Canvas Workspace ── */
+  .emb-workspace { flex:1; min-width:0; display:flex; flex-direction:column; overflow:hidden; }
+  .emb-canvas-area {
+    flex:1; overflow:hidden; position:relative;
+    background:color-mix(in srgb, var(--bg) 90%, transparent);
+  }
+  .emb-canvas-area::before {
+    content:''; position:absolute; inset:0; pointer-events:none;
+    background-image:
+      linear-gradient(45deg, var(--border) 25%, transparent 25%),
+      linear-gradient(-45deg, var(--border) 25%, transparent 25%),
+      linear-gradient(45deg, transparent 75%, var(--border) 75%),
+      linear-gradient(-45deg, transparent 75%, var(--border) 75%);
+    background-size:14px 14px;
+    background-position:0 0, 0 7px, 7px -7px, -7px 0;
+    opacity:.2;
+  }
+  .emb-canvas-scroll {
+    position:absolute; inset:0; overflow:auto; cursor:crosshair;
+    scrollbar-width:thin; scrollbar-color:var(--border-strong) transparent;
+  }
+  .emb-canvas-scroll::-webkit-scrollbar { width:6px; height:6px; }
+  .emb-canvas-scroll::-webkit-scrollbar-thumb { background:var(--border-strong); border-radius:6px; }
+  .emb-canvas-inner { position:relative; display:inline-block; padding:40px; }
+  #embCanvas {
+    display:block; image-rendering:pixelated; image-rendering:crisp-edges;
+    box-shadow:0 8px 48px rgba(0,0,0,.28), 0 2px 8px rgba(0,0,0,.16);
+    border-radius:2px; position:relative; z-index:1; cursor:crosshair;
+  }
+  #embOverlay {
+    position:absolute; top:40px; left:40px;
+    pointer-events:none; image-rendering:pixelated; z-index:2;
+  }
+  .emb-canvas-scroll.pan-mode { cursor:grab; }
+  .emb-canvas-scroll.pan-mode:active { cursor:grabbing; }
+
+  /* ── Status Bar ── */
+  .emb-statusbar {
+    height:26px; background:var(--glass); backdrop-filter:blur(20px);
+    -webkit-backdrop-filter:blur(20px); border-top:1px solid var(--border);
+    display:flex; align-items:center; padding:0 12px; gap:14px;
+    font-size:11px; color:var(--muted); flex-shrink:0;
+  }
+  .emb-statusbar b { color:var(--text); font-weight:600; }
+  .emb-stat-sep { width:1px; height:14px; background:var(--border); }
+
+  /* ── Right Panels ── */
+  .emb-panels {
+    width:274px; min-width:274px; flex-shrink:0;
+    display:flex; flex-direction:column;
+    background:var(--glass); backdrop-filter:blur(20px) saturate(160%);
+    -webkit-backdrop-filter:blur(20px) saturate(160%);
+    border-left:1px solid var(--border); overflow:hidden;
+  }
+  .emb-panel-tabs {
+    display:flex; border-bottom:1px solid var(--border); flex-shrink:0;
+    background:color-mix(in srgb, var(--text) 3%, transparent);
+  }
+  .emb-panel-tab {
+    flex:1; padding:8px 4px; font-size:10.5px; font-weight:700;
+    text-transform:uppercase; letter-spacing:.06em;
+    color:var(--muted); background:transparent; border:none;
+    cursor:pointer; transition:color .15s, background .15s;
+    border-bottom:2px solid transparent; margin-bottom:-1px; font:inherit;
+    font-size:10.5px; font-weight:700; text-transform:uppercase; letter-spacing:.06em;
+  }
+  .emb-panel-tab:hover { color:var(--text); }
+  .emb-panel-tab.active {
+    color:var(--accent-2); border-bottom-color:var(--accent-2);
+    background:color-mix(in srgb, var(--accent-2) 6%, transparent);
+  }
+  .emb-panel-body { flex:1; overflow-y:auto; scrollbar-width:thin; scrollbar-color:var(--border-strong) transparent; }
+  .emb-panel-body::-webkit-scrollbar { width:4px; }
+  .emb-panel-body::-webkit-scrollbar-thumb { background:var(--border-strong); border-radius:4px; }
+  .emb-panel-section { display:none; }
+  .emb-panel-section.active { display:block; }
+
+  /* Properties */
+  .emb-prop-group { padding:12px 14px; border-bottom:1px solid var(--divider); }
+  .emb-prop-title {
+    font-size:9.5px; font-weight:800; text-transform:uppercase;
+    letter-spacing:.10em; color:var(--muted); margin-bottom:10px;
+  }
+  .emb-prop-row { display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:8px; }
+  .emb-prop-row:last-child { margin-bottom:0; }
+  .emb-prop-label { font-size:12px; color:var(--muted); flex-shrink:0; }
+  .emb-prop-value { font-size:12.5px; color:var(--text); font-weight:600; }
+  .emb-prop-select {
+    background:var(--input-bg); border:1px solid var(--border); border-radius:8px;
+    color:var(--text); font:inherit; font-size:11.5px; padding:5px 8px;
+    cursor:pointer; flex:1; outline:none;
+  }
+  .emb-prop-select:focus { border-color:var(--accent-2); }
+  .emb-prop-range { width:100%; accent-color:var(--accent-2); }
+  .emb-prop-checkbox { accent-color:var(--accent-2); width:14px; height:14px; cursor:pointer; }
+  .emb-color-preview {
+    width:28px; height:28px; border-radius:7px; border:2px solid var(--border-strong);
+    cursor:pointer; flex-shrink:0; transition:border-color .15s; box-shadow:inset 0 1px 0 rgba(255,255,255,.15);
+  }
+  .emb-color-preview:hover { border-color:var(--accent-2); }
+  .emb-btn-sm {
+    padding:5px 11px; font-size:11.5px; font-weight:600; border-radius:8px;
+    border:1px solid var(--border); background:var(--glass); color:var(--text);
+    cursor:pointer; transition:background .15s, border-color .15s; font:inherit;
+    font-size:11.5px; font-weight:600;
+  }
+  .emb-btn-sm:hover { background:color-mix(in srgb, var(--accent-2) 12%, transparent); border-color:color-mix(in srgb, var(--accent-2) 30%, transparent); }
+  .emb-btn-primary { background:var(--accent-2); color:#fff; border-color:transparent; }
+  .emb-btn-primary:hover { filter:brightness(1.08); }
+
+  /* DMC Panel */
+  .emb-dmc-search {
+    position:sticky; top:0; z-index:2; padding:10px 12px;
+    background:var(--glass-strong); backdrop-filter:blur(16px);
+    -webkit-backdrop-filter:blur(16px); border-bottom:1px solid var(--divider);
+  }
+  .emb-dmc-search input {
+    width:100%; background:var(--input-bg); border:1px solid var(--border);
+    border-radius:8px; color:var(--text); font:inherit; font-size:12px;
+    padding:6px 10px; outline:none; box-sizing:border-box;
+  }
+  .emb-dmc-search input:focus { border-color:var(--accent-2); }
+  .emb-dmc-grid {
+    display:grid; grid-template-columns:repeat(auto-fill, minmax(32px, 1fr));
+    gap:3px; padding:10px 12px;
+  }
+  .emb-dmc-swatch {
+    width:32px; height:32px; border-radius:6px; border:2px solid transparent;
+    cursor:pointer; transition:transform .12s, border-color .12s; flex-shrink:0;
+  }
+  .emb-dmc-swatch:hover { transform:scale(1.18); z-index:2; border-color:var(--text); }
+  .emb-dmc-swatch.active { border-color:var(--accent-2); transform:scale(1.1); box-shadow:0 0 0 2px var(--accent-2); }
+  .emb-dmc-tooltip {
+    position:fixed; background:var(--glass-strong); backdrop-filter:blur(20px);
+    -webkit-backdrop-filter:blur(20px); border:1px solid var(--border);
+    border-radius:8px; padding:5px 10px; font-size:11px; color:var(--text);
+    pointer-events:none; z-index:9999; white-space:nowrap;
+    box-shadow:0 4px 16px rgba(0,0,0,.22); display:none;
+  }
+  .emb-dmc-used { padding:10px 12px; border-top:1px solid var(--divider); }
+  .emb-dmc-used-title {
+    font-size:9.5px; font-weight:800; text-transform:uppercase;
+    letter-spacing:.08em; color:var(--muted); margin-bottom:8px;
+  }
+  .emb-dmc-used-list { display:flex; flex-direction:column; gap:3px; }
+  .emb-dmc-used-item {
+    display:flex; align-items:center; gap:8px; padding:4px 6px;
+    border-radius:6px; cursor:pointer; transition:background .1s;
+  }
+  .emb-dmc-used-item:hover { background:color-mix(in srgb, var(--text) 5%, transparent); }
+  .emb-dmc-used-item.active { background:color-mix(in srgb, var(--accent-2) 12%, transparent); }
+  .emb-dmc-used-dot { width:18px; height:18px; border-radius:4px; flex-shrink:0; border:1px solid rgba(0,0,0,.12); }
+  .emb-dmc-used-info { flex:1; min-width:0; }
+  .emb-dmc-used-code { font-size:11px; font-weight:700; color:var(--text); }
+  .emb-dmc-used-name { font-size:10px; color:var(--muted); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .emb-dmc-used-count { font-size:10px; color:var(--muted); font-variant-numeric:tabular-nums; }
+
+  /* Layers Panel */
+  .emb-layers-list { padding:8px; display:flex; flex-direction:column; gap:3px; }
+  .emb-layer-item {
+    display:flex; align-items:center; gap:7px; padding:7px 8px;
+    border-radius:8px; border:1px solid transparent; cursor:pointer;
+    transition:all .15s; font-size:12.5px; color:var(--text); user-select:none;
+  }
+  .emb-layer-item:hover { background:color-mix(in srgb, var(--text) 5%, transparent); }
+  .emb-layer-item.active {
+    background:color-mix(in srgb, var(--accent-2) 12%, transparent);
+    border-color:color-mix(in srgb, var(--accent-2) 25%, transparent);
+  }
+  .emb-layer-eye {
+    font-size:13px; cursor:pointer; flex-shrink:0; width:20px; height:20px;
+    display:flex; align-items:center; justify-content:center; border-radius:4px;
+    transition:background .1s; opacity:.75;
+  }
+  .emb-layer-eye:hover { background:color-mix(in srgb, var(--accent-2) 15%, transparent); opacity:1; }
+  .emb-layer-eye.hidden { opacity:.25; }
+  .emb-layer-icon { font-size:14px; flex-shrink:0; }
+  .emb-layer-name { flex:1; font-size:12.5px; }
+  .emb-layers-actions {
+    padding:8px 10px; border-top:1px solid var(--divider); display:flex; gap:6px;
+  }
+
+  /* Zoom widget */
+  .emb-zoom-widget {
+    position:absolute; top:12px; right:12px; z-index:10;
+    display:flex; align-items:center; gap:3px;
+    background:var(--glass-strong); backdrop-filter:blur(16px);
+    -webkit-backdrop-filter:blur(16px); border:1px solid var(--border);
+    border-radius:10px; padding:3px 7px;
+    box-shadow:0 2px 10px rgba(0,0,0,.12);
+  }
+  .emb-zoom-btn {
+    width:22px; height:22px; border-radius:5px; background:transparent;
+    border:none; color:var(--text); font-size:15px; cursor:pointer;
+    display:flex; align-items:center; justify-content:center;
+    transition:background .1s; line-height:1;
+  }
+  .emb-zoom-btn:hover { background:color-mix(in srgb, var(--text) 8%, transparent); }
+  .emb-zoom-label {
+    font-size:11.5px; font-weight:700; color:var(--text);
+    font-variant-numeric:tabular-nums; min-width:40px; text-align:center;
+    cursor:pointer; transition:color .1s;
+  }
+  .emb-zoom-label:hover { color:var(--accent-2); }
+
+  @media (max-width:900px) {
+    .emb-panels { display:none; }
+    .emb-toolbox { width:44px; }
+    .emb-tool-btn { width:34px; height:34px; }
+  }
   .cs-layout { display:flex; height:100%; gap:0; overflow:hidden; }
   .cs-toolbar {
     width:240px; min-width:200px; padding:10px 10px; overflow-y:auto;
@@ -3017,11 +3311,252 @@ Việt Nam</textarea>
   </div>
 </div>
 
-<!-- ===== TAB 3: Image Compress (coming soon) ===== -->
+<!-- ===== TAB 3: Embroidery Designer ===== -->
 <div class="tab-pane" id="pane-compress">
-  <div class="app">
-    <!-- Cross Stitch Pattern Designer -->
-    <div class="cs-layout">
+<div class="emb-app" id="embApp">
+
+  <!-- Menubar -->
+  <div class="emb-menubar" id="embMenubar">
+    <div class="emb-menu-logo">🧵 <span>Embroidery</span></div>
+    <div class="emb-menu-item">
+      <button class="emb-menu-btn" data-menu="file">File</button>
+      <div class="emb-menu-dropdown" id="embMenuFile">
+        <div class="emb-menu-action" id="embMenuNew">Tạo mới <kbd>Ctrl+N</kbd></div>
+        <div class="emb-menu-sep"></div>
+        <div class="emb-menu-action" id="embMenuImportImg">Import ảnh…</div>
+        <div class="emb-menu-action" id="embMenuOpenJSON">Mở project (.json)…</div>
+        <div class="emb-menu-sep"></div>
+        <div class="emb-menu-action" id="embMenuSaveJSON">Lưu project (.json) <kbd>Ctrl+S</kbd></div>
+        <div class="emb-menu-action" id="embMenuExportPNG">Xuất PNG…</div>
+        <div class="emb-menu-action" id="embMenuExportPDF">In / Xuất PDF…</div>
+      </div>
+    </div>
+    <div class="emb-menu-item">
+      <button class="emb-menu-btn" data-menu="edit">Edit</button>
+      <div class="emb-menu-dropdown" id="embMenuEdit">
+        <div class="emb-menu-action" id="embMenuUndo">Undo <kbd>Ctrl+Z</kbd></div>
+        <div class="emb-menu-action" id="embMenuRedo">Redo <kbd>Ctrl+Y</kbd></div>
+        <div class="emb-menu-sep"></div>
+        <div class="emb-menu-action" id="embMenuClearAll">Xoá tất cả</div>
+      </div>
+    </div>
+    <div class="emb-menu-item">
+      <button class="emb-menu-btn" data-menu="view">View</button>
+      <div class="emb-menu-dropdown" id="embMenuView">
+        <div class="emb-menu-action" id="embMenuZoomIn">Phóng to <kbd>+</kbd></div>
+        <div class="emb-menu-action" id="embMenuZoomOut">Thu nhỏ <kbd>−</kbd></div>
+        <div class="emb-menu-action" id="embMenuZoomFit">Vừa khung <kbd>0</kbd></div>
+        <div class="emb-menu-action" id="embMenuZoom100">100% <kbd>1</kbd></div>
+        <div class="emb-menu-sep"></div>
+        <div class="emb-menu-action" id="embMenuToggleGrid">Hiện/ẩn lưới <kbd>G</kbd></div>
+        <div class="emb-menu-action" id="embMenuToggleRef">Hiện/ẩn ảnh tham chiếu <kbd>R</kbd></div>
+        <div class="emb-menu-action" id="embMenuToggleSymbols">Xem ký hiệu in <kbd>P</kbd></div>
+      </div>
+    </div>
+    <div class="emb-menu-item">
+      <button class="emb-menu-btn" data-menu="canvas">Canvas</button>
+      <div class="emb-menu-dropdown" id="embMenuCanvas">
+        <div class="emb-menu-action" id="embMenuA4">A4 (210×297mm)</div>
+        <div class="emb-menu-action" id="embMenuA5">A5 (148×210mm)</div>
+        <div class="emb-menu-action" id="embMenuA3">A3 (297×420mm)</div>
+        <div class="emb-menu-sep"></div>
+        <div class="emb-menu-action" id="embMenu14ct">14ct Aida</div>
+        <div class="emb-menu-action" id="embMenu18ct">18ct Aida</div>
+        <div class="emb-menu-action" id="embMenu28ct">28ct Evenweave</div>
+      </div>
+    </div>
+    <div class="emb-menu-spacer"></div>
+    <div class="emb-menu-right">
+      <button class="emb-btn-sm" id="embBtnUndo" title="Undo (Ctrl+Z)">↩</button>
+      <button class="emb-btn-sm" id="embBtnRedo" title="Redo (Ctrl+Y)">↪</button>
+    </div>
+  </div>
+
+  <!-- Body -->
+  <div class="emb-body">
+
+    <!-- Toolbox -->
+    <div class="emb-toolbox" id="embToolbox">
+      <button class="emb-tool-btn" data-tool="select">
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" width="17" height="17"><path d="M4 3l4 13 2.5-5 5-2.5z"/></svg>
+        <div class="emb-tool-tooltip">Chọn / Di chuyển <kbd>V</kbd></div>
+      </button>
+      <div class="emb-tool-sep"></div>
+      <button class="emb-tool-btn active" data-tool="cross">
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" width="17" height="17"><line x1="4" y1="4" x2="16" y2="16"/><line x1="16" y1="4" x2="4" y2="16"/></svg>
+        <div class="emb-tool-tooltip">Cross Stitch ✕ <kbd>X</kbd></div>
+      </button>
+      <button class="emb-tool-btn" data-tool="half">
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" width="17" height="17"><line x1="4" y1="16" x2="16" y2="4"/></svg>
+        <div class="emb-tool-tooltip">Half Stitch ╱ <kbd>H</kbd></div>
+      </button>
+      <button class="emb-tool-btn" data-tool="backstitch">
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="17" height="17"><polyline points="3,13 8,13 8,7 13,7 13,13 18,13"/></svg>
+        <div class="emb-tool-tooltip">Backstitch <kbd>B</kbd></div>
+      </button>
+      <button class="emb-tool-btn" data-tool="french">
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" width="17" height="17"><circle cx="10" cy="11" r="3.5"/><path d="M10 7.5 C8.5 5 11.5 5 10 7.5" stroke-width="1.5"/></svg>
+        <div class="emb-tool-tooltip">French Knot ● <kbd>K</kbd></div>
+      </button>
+      <button class="emb-tool-btn" data-tool="satin">
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" width="17" height="17"><line x1="3" y1="6" x2="17" y2="6"/><line x1="3" y1="9.5" x2="17" y2="9.5"/><line x1="3" y1="13" x2="17" y2="13"/></svg>
+        <div class="emb-tool-tooltip">Satin Stitch ═ <kbd>S</kbd></div>
+      </button>
+      <div class="emb-tool-sep"></div>
+      <button class="emb-tool-btn" data-tool="fill">
+        <svg viewBox="0 0 20 20" fill="currentColor" width="17" height="17"><path d="M14 13c0 1-.5 1.8-1.3 2.5V17h-1.4v-1.5H10V17H8.7v-1.5C7.8 14.8 7.3 14 7.3 13c0-1.8 1.8-4 2.7-6C11 9 14 11.2 14 13z" opacity=".8"/><path d="M3.5 16.5h2v1h-2zm2-2h2v1h-2z" opacity=".5"/></svg>
+        <div class="emb-tool-tooltip">Flood Fill <kbd>F</kbd></div>
+      </button>
+      <button class="emb-tool-btn" data-tool="picker">
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" width="17" height="17"><path d="M13.5 4l2.5 2.5-8 8-3.5 1 1-3.5z"/><line x1="11.5" y1="6" x2="14" y2="8.5"/></svg>
+        <div class="emb-tool-tooltip">Lấy màu <kbd>I</kbd></div>
+      </button>
+      <button class="emb-tool-btn" data-tool="eraser">
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" width="17" height="17"><path d="M4.5 15.5l3-3.5 7.5-7.5 3 3-7.5 7.5H4.5z"/><line x1="13.5" y1="4.5" x2="16" y2="2"/></svg>
+        <div class="emb-tool-tooltip">Tẩy <kbd>E</kbd></div>
+      </button>
+    </div>
+
+    <!-- Canvas Workspace -->
+    <div class="emb-workspace">
+      <div class="emb-canvas-area" id="embCanvasArea">
+        <div class="emb-canvas-scroll" id="embCanvasScroll">
+          <div class="emb-canvas-inner" id="embCanvasInner">
+            <canvas id="embCanvas"></canvas>
+            <canvas id="embOverlay"></canvas>
+          </div>
+        </div>
+        <div class="emb-zoom-widget">
+          <button class="emb-zoom-btn" id="embZoomOutBtn" title="Thu nhỏ (−)">−</button>
+          <span class="emb-zoom-label" id="embZoomLabel" title="Click → 100%">100%</span>
+          <button class="emb-zoom-btn" id="embZoomInBtn" title="Phóng to (+)">+</button>
+          <button class="emb-zoom-btn" id="embZoomFitBtn" title="Vừa khung" style="font-size:10px;width:auto;padding:0 5px">Fit</button>
+        </div>
+        <input type="file" id="embImgInput" accept="image/*" hidden>
+        <input type="file" id="embJsonInput" accept=".json" hidden>
+      </div>
+      <div class="emb-statusbar">
+        <span><b id="embStatTool">Cross Stitch</b></span>
+        <div class="emb-stat-sep"></div>
+        <span>Zoom: <b id="embStatZoom">100%</b></span>
+        <div class="emb-stat-sep"></div>
+        <span>Lưới: <b id="embStatGrid">—</b></span>
+        <div class="emb-stat-sep"></div>
+        <span>Vị trí: <b id="embStatPos">—</b></span>
+        <div class="emb-stat-sep"></div>
+        <span>Mũi: <b id="embStatCount">0</b></span>
+      </div>
+    </div>
+
+    <!-- Right Panels -->
+    <div class="emb-panels">
+      <div class="emb-panel-tabs">
+        <button class="emb-panel-tab active" data-panel="Props">Cài đặt</button>
+        <button class="emb-panel-tab" data-panel="DMC">DMC</button>
+        <button class="emb-panel-tab" data-panel="Layers">Layers</button>
+      </div>
+      <div class="emb-panel-body">
+
+        <!-- Properties -->
+        <div class="emb-panel-section active" id="embPanelProps">
+          <div class="emb-prop-group">
+            <div class="emb-prop-title">Canvas</div>
+            <div class="emb-prop-row">
+              <span class="emb-prop-label">Khổ giấy</span>
+              <select class="emb-prop-select" id="embPropPaper">
+                <option value="A5">A5 (148×210mm)</option>
+                <option value="A4" selected>A4 (210×297mm)</option>
+                <option value="A3">A3 (297×420mm)</option>
+              </select>
+            </div>
+            <div class="emb-prop-row">
+              <span class="emb-prop-label">Count</span>
+              <select class="emb-prop-select" id="embPropCount">
+                <option value="11">11ct Aida</option>
+                <option value="14" selected>14ct Aida</option>
+                <option value="16">16ct Aida</option>
+                <option value="18">18ct Aida</option>
+                <option value="28">28ct Evenweave</option>
+              </select>
+            </div>
+            <div class="emb-prop-row">
+              <span class="emb-prop-label">Kích thước</span>
+              <span class="emb-prop-value" id="embPropSize">—</span>
+            </div>
+          </div>
+          <div class="emb-prop-group">
+            <div class="emb-prop-title">Màu hiện tại</div>
+            <div class="emb-prop-row">
+              <div class="emb-color-preview" id="embColorPreview" style="background:#B5121B"></div>
+              <div style="flex:1">
+                <div style="font-size:12.5px;font-weight:700;color:var(--text)" id="embColorCode">DMC 321</div>
+                <div style="font-size:10.5px;color:var(--muted)" id="embColorName">Red</div>
+              </div>
+              <input type="color" id="embColorPicker" value="#B5121B" style="width:28px;height:28px;border:none;border-radius:6px;cursor:pointer;padding:0;background:none">
+            </div>
+          </div>
+          <div class="emb-prop-group">
+            <div class="emb-prop-title">Lưới</div>
+            <div class="emb-prop-row">
+              <span class="emb-prop-label">Hiện lưới</span>
+              <input type="checkbox" class="emb-prop-checkbox" id="embShowGrid" checked>
+            </div>
+            <div class="emb-prop-row">
+              <span class="emb-prop-label">Ô 10 mũi</span>
+              <input type="checkbox" class="emb-prop-checkbox" id="embShowMajor" checked>
+            </div>
+          </div>
+          <div class="emb-prop-group">
+            <div class="emb-prop-title">Ảnh tham chiếu</div>
+            <div class="emb-prop-row">
+              <button class="emb-btn-sm" id="embPropImport" style="flex:1">📷 Import ảnh</button>
+              <button class="emb-btn-sm" id="embPropAuto">✨ Auto</button>
+            </div>
+            <div class="emb-prop-row" id="embRefOpRow" style="display:none">
+              <span class="emb-prop-label">Mờ</span>
+              <input type="range" class="emb-prop-range" id="embRefOpacity" min="0" max="100" value="35" style="flex:1">
+              <span class="emb-prop-value" id="embRefOpVal">35%</span>
+            </div>
+            <div class="emb-prop-row" id="embRefVisRow" style="display:none">
+              <span class="emb-prop-label">Hiện</span>
+              <input type="checkbox" class="emb-prop-checkbox" id="embRefVisible" checked>
+            </div>
+          </div>
+          <div class="emb-prop-group">
+            <div class="emb-prop-title">Xuất file</div>
+            <div style="display:flex;gap:6px;flex-wrap:wrap">
+              <button class="emb-btn-sm" id="embExportPNG" style="flex:1">PNG</button>
+              <button class="emb-btn-sm" id="embExportPDF" style="flex:1">📄 PDF</button>
+              <button class="emb-btn-sm" id="embSaveJSON" style="flex:1">💾 JSON</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- DMC Colors -->
+        <div class="emb-panel-section" id="embPanelDMC">
+          <div class="emb-dmc-search">
+            <input type="text" id="embDMCSearch" placeholder="Tìm DMC… (mã số hoặc tên màu)">
+          </div>
+          <div class="emb-dmc-grid" id="embDMCGrid"></div>
+          <div class="emb-dmc-used" id="embDMCUsed" style="display:none">
+            <div class="emb-dmc-used-title">Màu đang dùng</div>
+            <div class="emb-dmc-used-list" id="embDMCUsedList"></div>
+          </div>
+        </div>
+
+        <!-- Layers -->
+        <div class="emb-panel-section" id="embPanelLayers">
+          <div class="emb-layers-list" id="embLayersList"></div>
+          <div class="emb-layers-actions">
+            <button class="emb-btn-sm" id="embLayerClear" style="flex:1">🗑 Xoá layer</button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+</div><!-- /pane-compress -->
       <!-- Left toolbar — compact, fits 1 screen -->
       <div class="cs-toolbar">
         <h3 class="cs-title" style="margin-bottom:4px">🧵 Cross Stitch</h3>
@@ -6805,9 +7340,1023 @@ QUY TẮC:
   })();
 
   // ============================================================
-  // ===== TAB 3: CROSS STITCH PATTERN DESIGNER ==================
+  // ===== TAB 3: EMBROIDERY DESIGNER ============================
   // ============================================================
-  (function initCrossStitch() {
+  (function initEmbroidery() {
+    const mainCanvas = document.getElementById('embCanvas');
+    const overlayCanvas = document.getElementById('embOverlay');
+    if (!mainCanvas) return;
+    const mctx = mainCanvas.getContext('2d');
+    const octx = overlayCanvas.getContext('2d');
+
+    // ── Constants ──
+    const CELL_PX = 16;
+    const MAJOR = 10;
+    const PAPER_MM = { A5:[148,210], A4:[210,297], A3:[297,420] };
+    const MM_PER_INCH = 25.4;
+    const MAX_HIST = 50;
+
+    // ── DMC Palette ──
+    const DMC = [
+      {code:'blanc',name:'White',hex:'#FFFFFF'},{code:'ecru',name:'Ecru',hex:'#F5EDD6'},
+      {code:'310',name:'Black',hex:'#030303'},{code:'300',name:'Mahogany VD',hex:'#5E1E0A'},
+      {code:'301',name:'Mahogany MD',hex:'#9E4216'},{code:'304',name:'Xmas Red MD',hex:'#9B0020'},
+      {code:'307',name:'Lemon',hex:'#FFE54C'},{code:'309',name:'Rose DP',hex:'#AE1049'},
+      {code:'311',name:'Navy Blue MD',hex:'#1C3A5C'},{code:'312',name:'Navy Blue LT',hex:'#24547A'},
+      {code:'315',name:'Antique Mauve MD',hex:'#7B4B5A'},{code:'317',name:'Pewter Gray',hex:'#6E7071'},
+      {code:'318',name:'Steel Gray LT',hex:'#A0A8AE'},{code:'319',name:'Pistachio VD',hex:'#1B5C2E'},
+      {code:'320',name:'Pistachio MD',hex:'#4E8053'},{code:'321',name:'Red',hex:'#B5121B'},
+      {code:'322',name:'Navy Blue DK',hex:'#1C5080'},{code:'326',name:'Rose VD',hex:'#8C0028'},
+      {code:'327',name:'Violet DK',hex:'#4E2560'},{code:'333',name:'Blue Violet VD',hex:'#3D3A78'},
+      {code:'334',name:'Baby Blue MD',hex:'#5D8FBE'},{code:'335',name:'Rose',hex:'#D94B73'},
+      {code:'336',name:'Navy Blue',hex:'#17335A'},{code:'340',name:'Blue Violet MD',hex:'#8E8FC7'},
+      {code:'341',name:'Blue Violet LT',hex:'#A8B2D8'},{code:'347',name:'Salmon VD',hex:'#BA2020'},
+      {code:'349',name:'Coral DK',hex:'#C5251A'},{code:'350',name:'Coral MD',hex:'#D93E2B'},
+      {code:'351',name:'Coral',hex:'#E06049'},{code:'352',name:'Coral LT',hex:'#F0876C'},
+      {code:'353',name:'Peach',hex:'#F8B09A'},{code:'355',name:'Terra Cotta DK',hex:'#8C3628'},
+      {code:'356',name:'Terra Cotta MD',hex:'#AC4E38'},{code:'368',name:'Pistachio LT',hex:'#8CBF8C'},
+      {code:'369',name:'Pistachio VL',hex:'#BEDDBA'},{code:'400',name:'Mahogany DK',hex:'#7A2E12'},
+      {code:'402',name:'Mahogany VL',hex:'#E8A070'},{code:'413',name:'Pewter Gray DK',hex:'#4A4E52'},
+      {code:'414',name:'Steel Gray DK',hex:'#7D8488'},{code:'415',name:'Pearl Gray',hex:'#C6CBD0'},
+      {code:'420',name:'Hazel Nut DK',hex:'#886535'},{code:'422',name:'Hazel Nut LT',hex:'#C8A368'},
+      {code:'433',name:'Brown MD',hex:'#7A4B24'},{code:'434',name:'Brown LT',hex:'#9A6A3A'},
+      {code:'435',name:'Brown VL',hex:'#B88850'},{code:'436',name:'Tan',hex:'#C09A6A'},
+      {code:'437',name:'Tan LT',hex:'#D4B48A'},{code:'444',name:'Lemon DK',hex:'#FFD015'},
+      {code:'445',name:'Lemon LT',hex:'#FFFA88'},{code:'469',name:'Avocado',hex:'#6A7A2A'},
+      {code:'470',name:'Avocado LT',hex:'#849A3E'},{code:'471',name:'Avocado VL',hex:'#9EBB5A'},
+      {code:'472',name:'Avocado UL',hex:'#C8DD8A'},{code:'498',name:'Xmas Red DK',hex:'#890016'},
+      {code:'500',name:'Blue Green VD',hex:'#0E3A28'},{code:'501',name:'Blue Green DK',hex:'#215A40'},
+      {code:'502',name:'Blue Green',hex:'#3C7C5C'},{code:'503',name:'Blue Green MD',hex:'#6EA482'},
+      {code:'504',name:'Blue Green VL',hex:'#9EC8B4'},{code:'517',name:'Wedgewood DK',hex:'#2E6882'},
+      {code:'518',name:'Wedgewood LT',hex:'#4E8EA8'},{code:'519',name:'Sky Blue',hex:'#80BAD0'},
+      {code:'550',name:'Violet VD',hex:'#3A104E'},{code:'552',name:'Violet MD',hex:'#6E308A'},
+      {code:'553',name:'Violet',hex:'#8A50A8'},{code:'554',name:'Violet LT',hex:'#BCA0D8'},
+      {code:'561',name:'Jade VD',hex:'#1E6040'},{code:'562',name:'Jade MD',hex:'#3A7A58'},
+      {code:'563',name:'Jade LT',hex:'#72B48E'},{code:'580',name:'Moss Green DK',hex:'#4A6010'},
+      {code:'600',name:'Cranberry VD',hex:'#C0184E'},{code:'601',name:'Cranberry DK',hex:'#CC2A5C'},
+      {code:'602',name:'Cranberry MD',hex:'#D84278'},{code:'603',name:'Cranberry',hex:'#E86090'},
+      {code:'606',name:'Bright Orange-Red',hex:'#E82C18'},{code:'608',name:'Bright Orange',hex:'#F04C18'},
+      {code:'640',name:'Beige Gray VD',hex:'#82786A'},{code:'642',name:'Beige Gray DK',hex:'#9A907E'},
+      {code:'644',name:'Beige Gray MD',hex:'#C0B8A8'},{code:'666',name:'Bright Red',hex:'#D8181E'},
+      {code:'676',name:'Old Gold LT',hex:'#D4B86A'},{code:'680',name:'Old Gold DK',hex:'#9A7A18'},
+      {code:'699',name:'Xmas Green',hex:'#146A28'},{code:'700',name:'Xmas Green BRT',hex:'#1A8230'},
+      {code:'701',name:'Xmas Green LT',hex:'#2E9E44'},{code:'702',name:'Kelly Green',hex:'#3CB250'},
+      {code:'703',name:'Chartreuse',hex:'#68C850'},{code:'712',name:'Cream',hex:'#F8EDD0'},
+      {code:'718',name:'Plum',hex:'#8A2060'},{code:'720',name:'Orange Spice DK',hex:'#C84210'},
+      {code:'721',name:'Orange Spice MD',hex:'#D86020'},{code:'725',name:'Topaz',hex:'#F8C040'},
+      {code:'726',name:'Topaz LT',hex:'#FAD060'},{code:'727',name:'Topaz VL',hex:'#FDEA90'},
+      {code:'729',name:'Old Gold MD',hex:'#C09030'},{code:'738',name:'Tan VL',hex:'#E0C898'},
+      {code:'739',name:'Tan UL',hex:'#EEE0BE'},{code:'740',name:'Tangerine',hex:'#F87008'},
+      {code:'741',name:'Tangerine MD',hex:'#F89020'},{code:'742',name:'Tangerine LT',hex:'#FAB040'},
+      {code:'743',name:'Yellow MD',hex:'#FAC840'},{code:'744',name:'Yellow P',hex:'#FCD85C'},
+      {code:'746',name:'Off White',hex:'#FFFFF0'},{code:'754',name:'Peach LT',hex:'#F8C8B0'},
+      {code:'760',name:'Salmon',hex:'#F09090'},{code:'761',name:'Salmon LT',hex:'#F8B8B8'},
+      {code:'762',name:'Pearl Gray VL',hex:'#E0E4E8'},{code:'775',name:'Baby Blue VL',hex:'#D0E0F0'},
+      {code:'776',name:'Pink MD',hex:'#F8A0B0'},{code:'791',name:'Cornflower VD',hex:'#30306A'},
+      {code:'792',name:'Cornflower DK',hex:'#4A5090'},{code:'793',name:'Cornflower MD',hex:'#6A78B8'},
+      {code:'794',name:'Cornflower LT',hex:'#90A0D0'},{code:'796',name:'Royal Blue DK',hex:'#103878'},
+      {code:'797',name:'Royal Blue',hex:'#1848A0'},{code:'798',name:'Delft DK',hex:'#2A60A8'},
+      {code:'799',name:'Delft MD',hex:'#5080C0'},{code:'800',name:'Delft P',hex:'#90B8E0'},
+      {code:'801',name:'Coffee Brown DK',hex:'#5A3010'},{code:'806',name:'Peacock Blue DK',hex:'#1E7898'},
+      {code:'807',name:'Peacock Blue',hex:'#3898B8'},{code:'814',name:'Garnet DK',hex:'#68001A'},
+      {code:'815',name:'Garnet MD',hex:'#800022'},{code:'816',name:'Garnet',hex:'#9A0028'},
+      {code:'817',name:'Coral Red VD',hex:'#B81810'},{code:'818',name:'Baby Pink',hex:'#FDD8D8'},
+      {code:'820',name:'Royal Blue VD',hex:'#0E2860'},{code:'823',name:'Navy Blue DK',hex:'#0E1E48'},
+      {code:'824',name:'Blue VD',hex:'#1A4882'},{code:'825',name:'Blue DK',hex:'#2060A0'},
+      {code:'826',name:'Blue MD',hex:'#4080B0'},{code:'827',name:'Blue VL',hex:'#B0CCDE'},
+      {code:'838',name:'Beige Brown VD',hex:'#5C4428'},{code:'839',name:'Beige Brown DK',hex:'#705838'},
+      {code:'840',name:'Beige Brown MD',hex:'#8A6E4E'},{code:'841',name:'Beige Brown LT',hex:'#AA9070'},
+      {code:'869',name:'Hazel Nut VD',hex:'#6A4A1A'},{code:'890',name:'Pistachio UD',hex:'#124018'},
+      {code:'891',name:'Carnation DK',hex:'#E83850'},{code:'892',name:'Carnation MD',hex:'#F05860'},
+      {code:'893',name:'Carnation LT',hex:'#F8808A'},{code:'895',name:'Hunter Green VD',hex:'#1A3C18'},
+      {code:'898',name:'Coffee Brown VD',hex:'#3A1A0A'},{code:'899',name:'Rose MD',hex:'#E86888'},
+      {code:'900',name:'Burnt Orange DK',hex:'#C03010'},{code:'902',name:'Garnet VD',hex:'#580010'},
+      {code:'904',name:'Parrot Green VD',hex:'#3A6614'},{code:'905',name:'Parrot Green DK',hex:'#508022'},
+      {code:'906',name:'Parrot Green MD',hex:'#68A030'},{code:'907',name:'Parrot Green LT',hex:'#A0D050'},
+      {code:'909',name:'Emerald VD',hex:'#0E5A28'},{code:'910',name:'Emerald DK',hex:'#187A38'},
+      {code:'911',name:'Emerald MD',hex:'#289850'},{code:'912',name:'Emerald LT',hex:'#40B86A'},
+      {code:'918',name:'Red Copper DK',hex:'#882010'},{code:'919',name:'Red Copper',hex:'#A83018'},
+      {code:'920',name:'Copper MD',hex:'#B04028'},{code:'921',name:'Copper',hex:'#C05830'},
+      {code:'922',name:'Copper LT',hex:'#D07840'},{code:'930',name:'Antique Blue DK',hex:'#385070'},
+      {code:'931',name:'Antique Blue MD',hex:'#5878A0'},{code:'932',name:'Antique Blue LT',hex:'#8AA0C0'},
+      {code:'938',name:'Coffee Brown UD',hex:'#280A00'},{code:'943',name:'Aquamarine MD',hex:'#38A88A'},
+      {code:'945',name:'Tawny',hex:'#F8B880'},{code:'946',name:'Burnt Orange MD',hex:'#D84C10'},
+      {code:'948',name:'Peach VL',hex:'#FDEAE0'},{code:'954',name:'Nile Green',hex:'#90D898'},
+      {code:'956',name:'Geranium',hex:'#F87080'},{code:'958',name:'Sea Green DK',hex:'#18B898'},
+      {code:'961',name:'Dusty Rose DK',hex:'#C87080'},{code:'962',name:'Dusty Rose MD',hex:'#E09090'},
+      {code:'963',name:'Dusty Rose UL',hex:'#FBCACA'},{code:'975',name:'Golden Brown DK',hex:'#7A4810'},
+      {code:'976',name:'Golden Brown MD',hex:'#C08230'},{code:'977',name:'Golden Brown LT',hex:'#D8A050'},
+      {code:'986',name:'Forest Green VD',hex:'#2A4820'},{code:'987',name:'Forest Green DK',hex:'#3E6030'},
+      {code:'988',name:'Forest Green MD',hex:'#5A8048'},{code:'989',name:'Forest Green',hex:'#78A060'},
+      {code:'3031',name:'Mocha Brown VD',hex:'#3A2A10'},{code:'3033',name:'Mocha Brown VL',hex:'#D8C8A8'},
+      {code:'3041',name:'Antique Violet MD',hex:'#8A6888'},{code:'3042',name:'Antique Violet LT',hex:'#B098B0'},
+      {code:'3045',name:'Yellow Beige DK',hex:'#B89048'},{code:'3046',name:'Yellow Beige MD',hex:'#D0AE68'},
+      {code:'3325',name:'Baby Blue LT',hex:'#B8D0E8'},{code:'3326',name:'Rose LT',hex:'#FBB4C0'},
+      {code:'3328',name:'Salmon DK',hex:'#D8504E'},{code:'3340',name:'Apricot MD',hex:'#F07050'},
+      {code:'3345',name:'Hunter Green DK',hex:'#1A4E18'},{code:'3346',name:'Hunter Green',hex:'#2A6828'},
+      {code:'3347',name:'Yellow Green MD',hex:'#5A8840'},{code:'3348',name:'Yellow Green LT',hex:'#A0C078'},
+      {code:'3350',name:'Dusty Rose UD',hex:'#B84868'},{code:'3354',name:'Dusty Rose LT',hex:'#E8A8B0'},
+      {code:'3362',name:'Pine Green DK',hex:'#406028'},{code:'3363',name:'Pine Green MD',hex:'#587840'},
+      {code:'3371',name:'Black Brown',hex:'#180800'},{code:'3607',name:'Plum LT',hex:'#C03878'},
+      {code:'3685',name:'Mauve VD',hex:'#780018'},{code:'3687',name:'Mauve',hex:'#C07880'},
+      {code:'3688',name:'Mauve MD',hex:'#D8A8A8'},{code:'3705',name:'Watermelon DK',hex:'#F84050'},
+      {code:'3712',name:'Salmon MD',hex:'#E87070'},{code:'3721',name:'Shell Pink DK',hex:'#9A3840'},
+      {code:'3726',name:'Antique Mauve DK',hex:'#8A4A5A'},{code:'3731',name:'Dusty Rose VD',hex:'#D04870'},
+      {code:'3750',name:'Antique Blue VD',hex:'#283858'},{code:'3755',name:'Baby Blue',hex:'#7898C8'},
+      {code:'3760',name:'Wedgewood MD',hex:'#3878A0'},{code:'3765',name:'Peacock Blue VD',hex:'#186080'},
+      {code:'3777',name:'Terra Cotta VD',hex:'#800018'},{code:'3799',name:'Pewter Gray VD',hex:'#3A3C3E'},
+      {code:'3801',name:'Xmas Red LT',hex:'#D02040'},{code:'3803',name:'Mauve DK',hex:'#902050'},
+      {code:'3807',name:'Cornflower',hex:'#5870A8'},{code:'3810',name:'Turquoise DK',hex:'#389898'},
+      {code:'3812',name:'Sea Green VD',hex:'#108070'},{code:'3818',name:'Forest Green UVD',hex:'#0E3018'},
+      {code:'3820',name:'Straw DK',hex:'#D8A830'},{code:'3821',name:'Straw',hex:'#F0C840'},
+      {code:'3826',name:'Golden Brown',hex:'#B87828'},{code:'3829',name:'Old Gold VD',hex:'#806010'},
+      {code:'3830',name:'Terra Cotta',hex:'#C05040'},{code:'3831',name:'Raspberry DK',hex:'#9A1A38'},
+      {code:'3834',name:'Grape DK',hex:'#5A2858'},{code:'3835',name:'Grape MD',hex:'#7A4878'},
+      {code:'3836',name:'Grape LT',hex:'#A878A0'},{code:'3837',name:'Lavender UD',hex:'#482870'},
+      {code:'3838',name:'Lavender Blue DK',hex:'#486098'},{code:'3839',name:'Lavender Blue MD',hex:'#6880B0'},
+      {code:'3840',name:'Lavender Blue LT',hex:'#98A8D0'},{code:'3843',name:'Electric Blue',hex:'#0890E0'},
+      {code:'3844',name:'Bright Turquoise DK',hex:'#00A0B8'},{code:'3845',name:'Bright Turquoise MD',hex:'#00B8D0'},
+      {code:'3847',name:'Teal Green DK',hex:'#206858'},{code:'3848',name:'Teal Green MD',hex:'#388070'},
+      {code:'3849',name:'Teal Green LT',hex:'#60A890'},{code:'3851',name:'Bright Green LT',hex:'#38C888'},
+      {code:'3853',name:'Autumn Gold DK',hex:'#E87820'},{code:'3854',name:'Autumn Gold MD',hex:'#F09840'},
+      {code:'3857',name:'Rosewood DK',hex:'#4A0010'},{code:'3858',name:'Rosewood MD',hex:'#8A3028'},
+      {code:'3860',name:'Cocoa DK',hex:'#6A4840'},{code:'3862',name:'Mocha Beige DK',hex:'#7A6040'},
+      {code:'3865',name:'Winter White',hex:'#F8F4EC'},{code:'3866',name:'Mocha Brown UL',hex:'#EEE8DA'},
+    ];
+
+    // ── State ──
+    let paper = 'A4', stitchCt = 14;
+    let gridCols = 0, gridRows = 0;
+    let zoom = 1;
+    // cells[col][row] = { cross, halfTL, halfBR, satin, french }
+    let cells = [];
+    let backstitches = []; // {x1,y1,x2,y2,color}
+    let frenchKnots = []; // {col,row,color}
+    const LAYERS = [
+      {id:'cross', name:'Cross / Satin', icon:'✕', visible:true},
+      {id:'bs',    name:'Backstitch',    icon:'─', visible:true},
+      {id:'sp',    name:'Special (Knots)',icon:'●',visible:true},
+      {id:'ref',   name:'Reference Img', icon:'🖼', visible:true},
+    ];
+    let currentTool = 'cross', currentColor = '#B5121B', currentDMC = null;
+    let refImage = null, refOpacity = 0.35, refVisible = true;
+    let showGrid = true, showMajor = true, showSymbols = false;
+    let history = [], histIdx = -1;
+    let isDrawing = false, drawStart = null, lastCell = null;
+
+    // ── Grid Calculation ──
+    function recalcGrid() {
+      const [w,h] = PAPER_MM[paper] || [210,297];
+      gridCols = Math.floor(w / MM_PER_INCH * stitchCt);
+      gridRows = Math.floor(h / MM_PER_INCH * stitchCt);
+      cells = Array.from({length:gridCols}, () => Array.from({length:gridRows}, () => ({})));
+      backstitches = backstitches.filter(s => s.x1>=0&&s.x1<=gridCols&&s.y1>=0&&s.y1<=gridRows);
+      frenchKnots = frenchKnots.filter(k => k.col>=0&&k.col<gridCols&&k.row>=0&&k.row<gridRows);
+      mainCanvas.width = gridCols * CELL_PX;
+      mainCanvas.height = gridRows * CELL_PX;
+      overlayCanvas.width = mainCanvas.width;
+      overlayCanvas.height = mainCanvas.height;
+      const sz = document.getElementById('embPropSize');
+      if (sz) sz.textContent = `${gridCols} × ${gridRows} ô`;
+      updateStatus();
+    }
+
+    // ── Rendering ──
+    let renderScheduled = false;
+    function schedRender() {
+      if (renderScheduled) return;
+      renderScheduled = true;
+      requestAnimationFrame(() => { renderScheduled = false; render(); });
+    }
+    function render() {
+      mctx.clearRect(0, 0, mainCanvas.width, mainCanvas.height);
+      mctx.fillStyle = '#FFFFFF';
+      mctx.fillRect(0, 0, mainCanvas.width, mainCanvas.height);
+      if (refImage && refVisible && LAYERS[3].visible) {
+        mctx.save(); mctx.globalAlpha = refOpacity;
+        mctx.drawImage(refImage, 0, 0, mainCanvas.width, mainCanvas.height);
+        mctx.globalAlpha = 1; mctx.restore();
+      }
+      if (LAYERS[0].visible) {
+        for (let c=0; c<gridCols; c++)
+          for (let r=0; r<gridRows; r++)
+            drawCell(c, r);
+      }
+      if (LAYERS[1].visible) drawBackstitches(mctx);
+      if (LAYERS[2].visible) drawFrenchKnots(mctx);
+      if (showGrid) drawGrid();
+      updateUsedColors();
+    }
+
+    function drawCell(col, row, ctx) {
+      ctx = ctx || mctx;
+      const cell = cells[col]?.[row]; if (!cell) return;
+      const x = col*CELL_PX, y = row*CELL_PX, p = CELL_PX;
+      const pad = p * 0.1;
+      if (cell.satin) {
+        ctx.fillStyle = cell.satin;
+        ctx.fillRect(x, y, p, p);
+        ctx.strokeStyle = darkenHex(cell.satin, 0.18);
+        ctx.lineWidth = 1; ctx.lineCap = 'round';
+        for (let i=1; i<4; i++) {
+          ctx.beginPath(); ctx.moveTo(x, y+p/4*i); ctx.lineTo(x+p, y+p/4*i); ctx.stroke();
+        }
+      }
+      if (cell.cross) {
+        if (showSymbols) {
+          ctx.fillStyle = cell.cross+'55'; ctx.fillRect(x,y,p,p);
+          ctx.fillStyle='#000'; ctx.font=`${p*.55}px monospace`;
+          ctx.textAlign='center'; ctx.textBaseline='middle';
+          ctx.fillText(getSymbol(cell.cross), x+p/2, y+p/2);
+        } else {
+          ctx.strokeStyle = cell.cross;
+          ctx.lineWidth = Math.max(1, p*.18); ctx.lineCap = 'round';
+          ctx.beginPath();
+          ctx.moveTo(x+pad, y+pad); ctx.lineTo(x+p-pad, y+p-pad);
+          ctx.moveTo(x+p-pad, y+pad); ctx.lineTo(x+pad, y+p-pad);
+          ctx.stroke();
+        }
+      }
+      if (cell.halfTL) {
+        ctx.strokeStyle = cell.halfTL;
+        ctx.lineWidth = Math.max(1, p*.18); ctx.lineCap = 'round';
+        ctx.beginPath(); ctx.moveTo(x+pad, y+p-pad); ctx.lineTo(x+p-pad, y+pad); ctx.stroke();
+      }
+      if (cell.halfBR) {
+        ctx.strokeStyle = cell.halfBR;
+        ctx.lineWidth = Math.max(1, p*.18); ctx.lineCap = 'round';
+        ctx.beginPath(); ctx.moveTo(x+pad, y+pad); ctx.lineTo(x+p-pad, y+p-pad); ctx.stroke();
+      }
+      if (cell.french) {
+        const r = p*.2;
+        ctx.fillStyle = cell.french;
+        ctx.beginPath(); ctx.arc(x+p/2, y+p/2, r, 0, Math.PI*2); ctx.fill();
+        ctx.strokeStyle = darkenHex(cell.french,.3); ctx.lineWidth=.8; ctx.stroke();
+      }
+    }
+
+    function drawBackstitches(ctx) {
+      backstitches.forEach(s => {
+        ctx.strokeStyle = s.color;
+        ctx.lineWidth = Math.max(1.5, CELL_PX*.13); ctx.lineCap='round'; ctx.lineJoin='round';
+        ctx.beginPath();
+        ctx.moveTo(s.x1*CELL_PX, s.y1*CELL_PX);
+        ctx.lineTo(s.x2*CELL_PX, s.y2*CELL_PX);
+        ctx.stroke();
+      });
+    }
+
+    function drawFrenchKnots(ctx) {
+      frenchKnots.forEach(k => {
+        const x=(k.col+.5)*CELL_PX, y=(k.row+.5)*CELL_PX, r=CELL_PX*.24;
+        ctx.fillStyle=k.color; ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2); ctx.fill();
+        ctx.strokeStyle=darkenHex(k.color,.25); ctx.lineWidth=.8; ctx.stroke();
+      });
+    }
+
+    function drawGrid() {
+      const w=mainCanvas.width, h=mainCanvas.height;
+      mctx.strokeStyle='rgba(150,150,150,.22)'; mctx.lineWidth=.5;
+      for (let c=0;c<=gridCols;c++) { mctx.beginPath(); mctx.moveTo(c*CELL_PX,0); mctx.lineTo(c*CELL_PX,h); mctx.stroke(); }
+      for (let r=0;r<=gridRows;r++) { mctx.beginPath(); mctx.moveTo(0,r*CELL_PX); mctx.lineTo(w,r*CELL_PX); mctx.stroke(); }
+      if (showMajor) {
+        mctx.strokeStyle='rgba(80,80,80,.38)'; mctx.lineWidth=1;
+        for (let c=0;c<=gridCols;c+=MAJOR) { mctx.beginPath(); mctx.moveTo(c*CELL_PX,0); mctx.lineTo(c*CELL_PX,h); mctx.stroke(); }
+        for (let r=0;r<=gridRows;r+=MAJOR) { mctx.beginPath(); mctx.moveTo(0,r*CELL_PX); mctx.lineTo(w,r*CELL_PX); mctx.stroke(); }
+      }
+    }
+
+    // ── Helpers ──
+    function hexToRGB(hex) {
+      hex = hex.replace('#','');
+      if (hex.length===3) hex=hex[0]+hex[0]+hex[1]+hex[1]+hex[2]+hex[2];
+      return [parseInt(hex.slice(0,2),16),parseInt(hex.slice(2,4),16),parseInt(hex.slice(4,6),16)];
+    }
+    function darkenHex(hex,amt) {
+      const [r,g,b]=hexToRGB(hex), f=1-amt;
+      return `rgb(${Math.floor(r*f)},${Math.floor(g*f)},${Math.floor(b*f)})`;
+    }
+    const symMap={}, SYMS='■●▲◆★✚✜✽✿◉▣⬡△○□◇♥♠♣♦';
+    let symIdx=0;
+    function getSymbol(hex) { if(!symMap[hex]) symMap[hex]=SYMS[symIdx++%SYMS.length]; return symMap[hex]; }
+
+    function getCellXY(e) {
+      const rect=mainCanvas.getBoundingClientRect();
+      const mx=(e.clientX-rect.left)/rect.width*mainCanvas.width;
+      const my=(e.clientY-rect.top)/rect.height*mainCanvas.height;
+      return {col:Math.floor(mx/CELL_PX), row:Math.floor(my/CELL_PX), px:mx, py:my};
+    }
+    function getIntersect(e) {
+      const rect=mainCanvas.getBoundingClientRect();
+      const mx=(e.clientX-rect.left)/rect.width*mainCanvas.width;
+      const my=(e.clientY-rect.top)/rect.height*mainCanvas.height;
+      return {x:Math.round(mx/CELL_PX), y:Math.round(my/CELL_PX)};
+    }
+    function valid(c,r) { return c>=0&&c<gridCols&&r>=0&&r<gridRows; }
+
+    // ── Tool Dispatch ──
+    function applyTool(e, phase) {
+      if (currentTool==='cross')  toolCross(e,phase);
+      else if (currentTool==='half')  toolHalf(e,phase);
+      else if (currentTool==='backstitch') toolBackstitch(e,phase);
+      else if (currentTool==='french') toolFrench(e,phase);
+      else if (currentTool==='satin')  toolSatin(e,phase);
+      else if (currentTool==='fill')   toolFill(e,phase);
+      else if (currentTool==='picker') toolPicker(e,phase);
+      else if (currentTool==='eraser') toolEraser(e,phase);
+    }
+
+    function toolCross(e,phase) {
+      if (phase==='up') { pushHist(); return; }
+      const {col,row}=getCellXY(e); if (!valid(col,row)) return;
+      if (lastCell&&lastCell.col===col&&lastCell.row===row) return;
+      lastCell={col,row};
+      cells[col][row].cross=currentColor;
+      cells[col][row].satin=null;
+      schedRender();
+    }
+    function toolHalf(e,phase) {
+      if (phase==='up') { pushHist(); return; }
+      const {col,row,px,py}=getCellXY(e); if (!valid(col,row)) return;
+      if (lastCell&&lastCell.col===col&&lastCell.row===row) return;
+      lastCell={col,row};
+      const lx=px-col*CELL_PX, ly=py-row*CELL_PX;
+      if (ly<CELL_PX-lx) cells[col][row].halfTL=currentColor;
+      else cells[col][row].halfBR=currentColor;
+      schedRender();
+    }
+    function toolSatin(e,phase) {
+      if (phase==='up') { pushHist(); return; }
+      const {col,row}=getCellXY(e); if (!valid(col,row)) return;
+      if (lastCell&&lastCell.col===col&&lastCell.row===row) return;
+      lastCell={col,row};
+      cells[col][row].satin=currentColor;
+      cells[col][row].cross=null;
+      schedRender();
+    }
+    function toolFrench(e,phase) {
+      if (phase==='move') return;
+      if (phase==='up') { pushHist(); return; }
+      const {col,row}=getCellXY(e); if (!valid(col,row)) return;
+      frenchKnots=frenchKnots.filter(k=>!(k.col===col&&k.row===row));
+      frenchKnots.push({col,row,color:currentColor});
+      schedRender();
+    }
+    function toolBackstitch(e,phase) {
+      if (phase==='down') { drawStart=getIntersect(e); renderBSOverlay(e); }
+      else if (phase==='move'&&drawStart) { renderBSOverlay(e); }
+      else if (phase==='up'&&drawStart) {
+        const end=getIntersect(e);
+        if (end.x!==drawStart.x||end.y!==drawStart.y) {
+          const dx=Math.sign(end.x-drawStart.x), dy=Math.sign(end.y-drawStart.y);
+          const steps=Math.max(Math.abs(end.x-drawStart.x),Math.abs(end.y-drawStart.y));
+          let ex=drawStart.x, ey=drawStart.y;
+          for(let i=0;i<steps;i++) {
+            const nx=ex+dx, ny=ey+dy;
+            if(nx<0||nx>gridCols||ny<0||ny>gridRows) break;
+            backstitches.push({x1:ex,y1:ey,x2:nx,y2:ny,color:currentColor});
+            ex=nx; ey=ny;
+          }
+          pushHist();
+        }
+        drawStart=null;
+        octx.clearRect(0,0,overlayCanvas.width,overlayCanvas.height);
+      }
+    }
+    function renderBSOverlay(e) {
+      octx.clearRect(0,0,overlayCanvas.width,overlayCanvas.height);
+      if (!drawStart) return;
+      const cur=getIntersect(e);
+      octx.strokeStyle=currentColor; octx.lineWidth=Math.max(1.5,CELL_PX*.14);
+      octx.lineCap='round'; octx.setLineDash([5,4]);
+      octx.beginPath();
+      octx.moveTo(drawStart.x*CELL_PX,drawStart.y*CELL_PX);
+      octx.lineTo(cur.x*CELL_PX,cur.y*CELL_PX);
+      octx.stroke(); octx.setLineDash([]);
+    }
+    function toolFill(e,phase) {
+      if (phase!=='down') return;
+      const {col,row}=getCellXY(e); if (!valid(col,row)) return;
+      const target=cells[col][row].cross||null;
+      if (target===currentColor) return;
+      const q=[{col,row}], vis=new Set([`${col},${row}`]);
+      while(q.length) {
+        const {col:c,row:r}=q.shift();
+        cells[c][r].cross=currentColor; cells[c][r].satin=null;
+        for(const [nc,nr] of [[c-1,r],[c+1,r],[c,r-1],[c,r+1]]) {
+          if(!valid(nc,nr)||vis.has(`${nc},${nr}`)) continue;
+          if((cells[nc][nr].cross||null)!==target) continue;
+          vis.add(`${nc},${nr}`); q.push({col:nc,row:nr});
+        }
+      }
+      pushHist();
+    }
+    function toolPicker(e,phase) {
+      if (phase!=='down') return;
+      const {col,row}=getCellXY(e); if (!valid(col,row)) return;
+      const cell=cells[col][row];
+      const c=cell.cross||cell.satin||cell.halfTL||cell.halfBR||cell.french;
+      if (c) { setColor(c); activateTool('cross'); }
+    }
+    function toolEraser(e,phase) {
+      if (phase==='up') { pushHist(); return; }
+      const {col,row}=getCellXY(e); if (!valid(col,row)) return;
+      if (lastCell&&lastCell.col===col&&lastCell.row===row) return;
+      lastCell={col,row};
+      cells[col][row]={};
+      frenchKnots=frenchKnots.filter(k=>!(k.col===col&&k.row===row));
+      schedRender();
+    }
+
+    // ── Undo/Redo ──
+    function snap() {
+      return {
+        cells: cells.map(col=>col.map(cell=>({...cell}))),
+        bs: JSON.parse(JSON.stringify(backstitches)),
+        fk: JSON.parse(JSON.stringify(frenchKnots)),
+      };
+    }
+    function restore(s) {
+      cells=s.cells.map(col=>col.map(cell=>({...cell})));
+      backstitches=JSON.parse(JSON.stringify(s.bs));
+      frenchKnots=JSON.parse(JSON.stringify(s.fk));
+    }
+    function pushHist() {
+      history=history.slice(0,histIdx+1);
+      history.push(snap());
+      if(history.length>MAX_HIST) history.shift();
+      histIdx=history.length-1;
+      schedRender();
+      updateStatus();
+    }
+    function undo() { if(histIdx<=0) return; histIdx--; restore(history[histIdx]); schedRender(); updateStatus(); }
+    function redo() { if(histIdx>=history.length-1) return; histIdx++; restore(history[histIdx]); schedRender(); updateStatus(); }
+
+    // ── Status ──
+    function updateStatus() {
+      const sg=document.getElementById('embStatGrid');
+      const sc=document.getElementById('embStatCount');
+      const sz=document.getElementById('embStatZoom');
+      if(sg) sg.textContent=`${gridCols}×${gridRows}`;
+      if(sc) {
+        let n=0;
+        for(let c=0;c<gridCols;c++) for(let r=0;r<gridRows;r++) {
+          const cell=cells[c]?.[r];
+          if(cell?.cross||cell?.satin||cell?.halfTL||cell?.halfBR) n++;
+        }
+        n+=frenchKnots.length;
+        sc.textContent=n.toLocaleString();
+      }
+      if(sz) sz.textContent=Math.round(zoom*100)+'%';
+    }
+    function updateCursorPos(e) {
+      const {col,row}=getCellXY(e);
+      const el=document.getElementById('embStatPos');
+      if(el&&valid(col,row)) el.textContent=`C${col+1}, R${row+1}`;
+    }
+
+    // ── Zoom ──
+    function setZoom(z) {
+      zoom=Math.max(.15,Math.min(10,z));
+      const inner=document.getElementById('embCanvasInner');
+      if(inner) {
+        inner.style.transform=`scale(${zoom})`;
+        inner.style.transformOrigin='top left';
+        inner.style.width=(mainCanvas.width*zoom+80)+'px';
+        inner.style.height=(mainCanvas.height*zoom+80)+'px';
+      }
+      document.getElementById('embZoomLabel').textContent=Math.round(zoom*100)+'%';
+      document.getElementById('embStatZoom').textContent=Math.round(zoom*100)+'%';
+    }
+    function fitToView() {
+      const area=document.getElementById('embCanvasArea');
+      if(!area||!mainCanvas.width) return;
+      const zw=(area.clientWidth-80)/mainCanvas.width;
+      const zh=(area.clientHeight-80)/mainCanvas.height;
+      setZoom(Math.min(zw,zh,3));
+      const scroll=document.getElementById('embCanvasScroll');
+      if(scroll) { scroll.scrollLeft=0; scroll.scrollTop=0; }
+    }
+
+    // ── DMC Color Utilities ──
+    function hexToLab(hex) {
+      let [r,g,b]=hexToRGB(hex).map(v=>{ v/=255; return v>.04045?Math.pow((v+.055)/1.055,2.4):v/12.92; });
+      const X=(r*.4124+g*.3576+b*.1805)/.9505;
+      const Y=(r*.2126+g*.7152+b*.0722)/1.0;
+      const Z=(r*.0193+g*.1192+b*.9505)/1.089;
+      const f=v=>v>.008856?Math.cbrt(v):7.787*v+16/116;
+      return [116*f(Y)-16, 500*(f(X)-f(Y)), 200*(f(Y)-f(Z))];
+    }
+    function labDist(a,b) { return Math.sqrt((a[0]-b[0])**2+(a[1]-b[1])**2+(a[2]-b[2])**2); }
+    const _dmcLabCache={};
+    function nearestDMC(hex) {
+      if(!hex) return null;
+      const lab=hexToLab(hex);
+      let best=null, bd=Infinity;
+      for(const d of DMC) {
+        if(!_dmcLabCache[d.hex]) _dmcLabCache[d.hex]=hexToLab(d.hex);
+        const dist=labDist(lab,_dmcLabCache[d.hex]);
+        if(dist<bd){bd=dist;best=d;}
+      }
+      return best;
+    }
+
+    function setColor(hex,dmc) {
+      currentColor=hex;
+      currentDMC=dmc||nearestDMC(hex);
+      const prev=document.getElementById('embColorPreview');
+      const codeEl=document.getElementById('embColorCode');
+      const nameEl=document.getElementById('embColorName');
+      const picker=document.getElementById('embColorPicker');
+      if(prev) prev.style.background=hex;
+      if(codeEl) codeEl.textContent=currentDMC?`DMC ${currentDMC.code}`:'Custom';
+      if(nameEl) nameEl.textContent=currentDMC?.name||hex;
+      if(picker) picker.value=hex;
+      document.querySelectorAll('.emb-dmc-swatch').forEach(s=>{
+        s.classList.toggle('active',s.dataset.hex===hex);
+      });
+    }
+
+    // ── DMC Panel ──
+    function initDMCPanel() {
+      const grid=document.getElementById('embDMCGrid');
+      const search=document.getElementById('embDMCSearch');
+      let tip=document.createElement('div');
+      tip.className='emb-dmc-tooltip'; tip.id='embDMCTooltip';
+      document.body.appendChild(tip);
+
+      function renderGrid(filter='') {
+        grid.innerHTML='';
+        const lf=filter.toLowerCase();
+        DMC.filter(d=>!lf||d.code.toLowerCase().includes(lf)||d.name.toLowerCase().includes(lf))
+          .forEach(d=>{
+            const sw=document.createElement('div');
+            sw.className='emb-dmc-swatch'+(d.hex===currentColor?' active':'');
+            sw.style.background=d.hex;
+            sw.dataset.hex=d.hex;
+            // Black border for light swatches
+            if (d.hex==='#FFFFFF'||d.hex==='#FFFFF0'||d.hex==='#F8F4EC') sw.style.border='2px solid rgba(0,0,0,.2)';
+            sw.addEventListener('click',()=>setColor(d.hex,d));
+            sw.addEventListener('mouseenter',e=>{
+              tip.textContent=`DMC ${d.code} · ${d.name}`;
+              tip.style.display='block';
+              tip.style.left=(e.clientX+12)+'px'; tip.style.top=(e.clientY-8)+'px';
+            });
+            sw.addEventListener('mousemove',e=>{ tip.style.left=(e.clientX+12)+'px'; tip.style.top=(e.clientY-8)+'px'; });
+            sw.addEventListener('mouseleave',()=>tip.style.display='none');
+            grid.appendChild(sw);
+          });
+      }
+      renderGrid();
+      if(search) search.addEventListener('input',()=>renderGrid(search.value));
+    }
+
+    function updateUsedColors() {
+      const usedMap={};
+      for(let c=0;c<gridCols;c++) for(let r=0;r<gridRows;r++) {
+        const cell=cells[c]?.[r]; if(!cell) continue;
+        [cell.cross,cell.satin,cell.halfTL,cell.halfBR,cell.french].filter(Boolean)
+          .forEach(h=>{ usedMap[h]=(usedMap[h]||0)+1; });
+      }
+      backstitches.forEach(s=>{ usedMap[s.color]=(usedMap[s.color]||0)+1; });
+      frenchKnots.forEach(k=>{ usedMap[k.color]=(usedMap[k.color]||0)+1; });
+      const cont=document.getElementById('embDMCUsed');
+      const list=document.getElementById('embDMCUsedList');
+      if(!cont||!list) return;
+      const entries=Object.entries(usedMap);
+      if(!entries.length){cont.style.display='none';return;}
+      cont.style.display='block'; list.innerHTML='';
+      entries.sort((a,b)=>b[1]-a[1]).slice(0,20).forEach(([hex,cnt])=>{
+        const dmc=nearestDMC(hex);
+        const item=document.createElement('div');
+        item.className='emb-dmc-used-item'+(hex===currentColor?' active':'');
+        item.innerHTML=`<div class="emb-dmc-used-dot" style="background:${hex}"></div>
+          <div class="emb-dmc-used-info">
+            <div class="emb-dmc-used-code">DMC ${dmc?.code||'?'}</div>
+            <div class="emb-dmc-used-name">${dmc?.name||''}</div>
+          </div>
+          <div class="emb-dmc-used-count">${cnt}</div>`;
+        item.addEventListener('click',()=>setColor(hex,dmc));
+        list.appendChild(item);
+      });
+    }
+
+    // ── Layers Panel ──
+    function renderLayers() {
+      const list=document.getElementById('embLayersList'); if(!list) return;
+      list.innerHTML='';
+      LAYERS.forEach((layer,i)=>{
+        const item=document.createElement('div');
+        item.className='emb-layer-item';
+        item.innerHTML=`<div class="emb-layer-eye${layer.visible?'':' hidden'}" data-i="${i}">${layer.visible?'👁':'🚫'}</div>
+          <div class="emb-layer-icon">${layer.icon}</div>
+          <div class="emb-layer-name">${layer.name}</div>`;
+        item.querySelector('.emb-layer-eye').addEventListener('click',e=>{
+          e.stopPropagation(); LAYERS[i].visible=!LAYERS[i].visible;
+          renderLayers(); schedRender();
+        });
+        list.appendChild(item);
+      });
+    }
+
+    // ── Import Image ──
+    function importImage(file) {
+      const url=URL.createObjectURL(file);
+      const img=new Image();
+      img.onload=()=>{
+        refImage=img; LAYERS[3].visible=true;
+        document.getElementById('embRefOpRow').style.display='';
+        document.getElementById('embRefVisRow').style.display='';
+        renderLayers(); schedRender(); URL.revokeObjectURL(url);
+      };
+      img.src=url;
+    }
+
+    // ── Auto Pattern ──
+    function autoPattern() {
+      if(!refImage){alert('Vui lòng import ảnh tham chiếu trước.');return;}
+      const n=parseInt(prompt('Số màu chỉ (4–64):','16'))||16;
+      const tc=document.createElement('canvas');
+      tc.width=gridCols; tc.height=gridRows;
+      const tctx=tc.getContext('2d');
+      tctx.drawImage(refImage,0,0,gridCols,gridRows);
+      const imgData=tctx.getImageData(0,0,gridCols,gridRows).data;
+      pushHist();
+      for(let r=0;r<gridRows;r++) {
+        for(let c=0;c<gridCols;c++) {
+          const i=(r*gridCols+c)*4;
+          const alpha=imgData[i+3];
+          if(alpha<50) continue;
+          const brightness=(imgData[i]+imgData[i+1]+imgData[i+2])/3;
+          if(brightness>240) continue;
+          const hex='#'+[imgData[i],imgData[i+1],imgData[i+2]].map(v=>v.toString(16).padStart(2,'0')).join('').toUpperCase();
+          const dmc=nearestDMC(hex);
+          if(dmc) cells[c][r].cross=dmc.hex;
+        }
+      }
+      schedRender();
+    }
+
+    // ── Export ──
+    function exportPNG() {
+      const ec=document.createElement('canvas');
+      ec.width=mainCanvas.width; ec.height=mainCanvas.height;
+      const ectx=ec.getContext('2d');
+      ectx.fillStyle='#FFFFFF'; ectx.fillRect(0,0,ec.width,ec.height);
+      if(LAYERS[0].visible) for(let c=0;c<gridCols;c++) for(let r=0;r<gridRows;r++) drawCell(c,r,ectx);
+      if(LAYERS[1].visible) {
+        backstitches.forEach(s=>{
+          ectx.strokeStyle=s.color; ectx.lineWidth=Math.max(1.5,CELL_PX*.13);
+          ectx.lineCap='round'; ectx.beginPath();
+          ectx.moveTo(s.x1*CELL_PX,s.y1*CELL_PX); ectx.lineTo(s.x2*CELL_PX,s.y2*CELL_PX);
+          ectx.stroke();
+        });
+      }
+      if(LAYERS[2].visible) {
+        frenchKnots.forEach(k=>{
+          const x=(k.col+.5)*CELL_PX,y=(k.row+.5)*CELL_PX,rr=CELL_PX*.24;
+          ectx.fillStyle=k.color; ectx.beginPath(); ectx.arc(x,y,rr,0,Math.PI*2); ectx.fill();
+        });
+      }
+      // Add grid
+      ectx.strokeStyle='rgba(150,150,150,.22)'; ectx.lineWidth=.5;
+      for(let c=0;c<=gridCols;c++){ectx.beginPath();ectx.moveTo(c*CELL_PX,0);ectx.lineTo(c*CELL_PX,ec.height);ectx.stroke();}
+      for(let r=0;r<=gridRows;r++){ectx.beginPath();ectx.moveTo(0,r*CELL_PX);ectx.lineTo(ec.width,r*CELL_PX);ectx.stroke();}
+      ec.toBlob(blob=>{
+        const a=document.createElement('a');
+        a.href=URL.createObjectURL(blob); a.download='embroidery-pattern.png'; a.click();
+      });
+    }
+
+    function exportPDF() {
+      const usedMap={};
+      for(let c=0;c<gridCols;c++) for(let r=0;r<gridRows;r++) {
+        const cell=cells[c]?.[r]; if(!cell) continue;
+        [cell.cross,cell.satin].filter(Boolean).forEach(hex=>{
+          if(!usedMap[hex]){const dmc=nearestDMC(hex);usedMap[hex]={dmc,count:0,sym:getSymbol(hex)};}
+          usedMap[hex].count++;
+        });
+      }
+      // Symbol canvas
+      const sc=document.createElement('canvas');
+      sc.width=mainCanvas.width; sc.height=mainCanvas.height;
+      const sctx=sc.getContext('2d');
+      sctx.fillStyle='#fff'; sctx.fillRect(0,0,sc.width,sc.height);
+      for(let c=0;c<gridCols;c++) for(let r=0;r<gridRows;r++) {
+        const cell=cells[c]?.[r]; if(!cell?.cross&&!cell?.satin) continue;
+        const hex=cell.cross||cell.satin;
+        const x=c*CELL_PX,y=r*CELL_PX;
+        sctx.fillStyle=hex+'44'; sctx.fillRect(x,y,CELL_PX,CELL_PX);
+        sctx.fillStyle='#000'; sctx.font=`${CELL_PX*.55}px monospace`;
+        sctx.textAlign='center'; sctx.textBaseline='middle';
+        sctx.fillText(getSymbol(hex),x+CELL_PX/2,y+CELL_PX/2);
+      }
+      sctx.strokeStyle='rgba(0,0,0,.15)'; sctx.lineWidth=.5;
+      for(let c=0;c<=gridCols;c++){sctx.beginPath();sctx.moveTo(c*CELL_PX,0);sctx.lineTo(c*CELL_PX,sc.height);sctx.stroke();}
+      for(let r=0;r<=gridRows;r++){sctx.beginPath();sctx.moveTo(0,r*CELL_PX);sctx.lineTo(sc.width,r*CELL_PX);sctx.stroke();}
+      sctx.strokeStyle='rgba(0,0,0,.35)'; sctx.lineWidth=1;
+      for(let c=0;c<=gridCols;c+=MAJOR){sctx.beginPath();sctx.moveTo(c*CELL_PX,0);sctx.lineTo(c*CELL_PX,sc.height);sctx.stroke();}
+      for(let r=0;r<=gridRows;r+=MAJOR){sctx.beginPath();sctx.moveTo(0,r*CELL_PX);sctx.lineTo(sc.width,r*CELL_PX);sctx.stroke();}
+      const colorImg=mainCanvas.toDataURL();
+      const symImg=sc.toDataURL();
+      const colorTable=Object.entries(usedMap).map(([hex,info])=>`
+        <tr><td><div style="width:22px;height:22px;background:${hex};border:1px solid #ccc;border-radius:3px;display:inline-block"></div></td>
+        <td style="font-size:16px">${info.sym}</td>
+        <td>DMC ${info.dmc?.code||'?'}</td><td>${info.dmc?.name||''}</td>
+        <td>${info.count.toLocaleString()}</td></tr>`).join('');
+      const [pw,ph]=PAPER_MM[paper];
+      const wInch=pw/25.4,hInch=ph/25.4;
+      const pw2=Math.round(wInch*stitchCt*2.54/10);
+      const printWin=window.open('','_blank');
+      if(!printWin){alert('Cho phép pop-up để xuất PDF.');return;}
+      printWin.document.write(`<!DOCTYPE html><html><head><title>Embroidery Pattern — Thảo Tools</title>
+      <style>body{font-family:Arial,sans-serif;padding:20px;max-width:900px;margin:0 auto}
+      h2{font-size:18px;margin-bottom:6px}h3{font-size:14px;margin:20px 0 8px}
+      .info{font-size:12px;color:#555;margin-bottom:16px}
+      img{max-width:100%;border:1px solid #ddd;display:block;margin-bottom:4px}
+      table{border-collapse:collapse;width:100%;font-size:12px;margin-top:6px}
+      th,td{border:1px solid #ddd;padding:5px 8px;text-align:left}
+      th{background:#f5f5f5;font-weight:700}
+      @media print{@page{margin:10mm}}</style></head>
+      <body><h2>🧵 Embroidery Pattern — Thảo Tools</h2>
+      <div class="info">Kích thước: ${gridCols} × ${gridRows} ô &nbsp;·&nbsp; ${stitchCt}ct &nbsp;·&nbsp; Vải: ${pw}×${ph}mm &nbsp;·&nbsp; ${Object.keys(usedMap).length} màu chỉ</div>
+      <h3>Pattern màu</h3><img src="${colorImg}">
+      <h3>Pattern ký hiệu (in đen trắng)</h3><img src="${symImg}">
+      <h3>Bảng màu chỉ DMC</h3>
+      <table><thead><tr><th>Màu</th><th>Ký hiệu</th><th>Mã DMC</th><th>Tên</th><th>Số mũi</th></tr></thead>
+      <tbody>${colorTable}</tbody></table>
+      <script>window.onload=function(){window.print()}</script>
+      </body></html>`);
+      printWin.document.close();
+    }
+
+    function saveJSON() {
+      const data={
+        version:1, paper, stitchCt, gridCols, gridRows,
+        cells:cells.map(col=>col.map(cell=>{
+          const c={};
+          if(cell.cross)  c.cross=cell.cross;
+          if(cell.satin)  c.satin=cell.satin;
+          if(cell.halfTL) c.halfTL=cell.halfTL;
+          if(cell.halfBR) c.halfBR=cell.halfBR;
+          if(cell.french) c.french=cell.french;
+          return c;
+        })),
+        backstitches, frenchKnots
+      };
+      const blob=new Blob([JSON.stringify(data)],{type:'application/json'});
+      const a=document.createElement('a');
+      a.href=URL.createObjectURL(blob); a.download='embroidery-project.json'; a.click();
+    }
+
+    function loadJSON(file) {
+      const reader=new FileReader();
+      reader.onload=e=>{
+        try {
+          const d=JSON.parse(e.target.result);
+          paper=d.paper||'A4'; stitchCt=d.stitchCt||14;
+          const ps=document.getElementById('embPropPaper');
+          const cs=document.getElementById('embPropCount');
+          if(ps) ps.value=paper; if(cs) cs.value=stitchCt;
+          recalcGrid();
+          if(d.cells) d.cells.forEach((col,c)=>{ col.forEach((cell,r)=>{ if(cells[c]&&cells[c][r]) cells[c][r]={...cell}; }); });
+          backstitches=d.backstitches||[]; frenchKnots=d.frenchKnots||[];
+          pushHist();
+        } catch(err){alert('Lỗi file JSON: '+err.message);}
+      };
+      reader.readAsText(file);
+    }
+
+    // ── Canvas Events ──
+    function initCanvasEvents() {
+      const scroll=document.getElementById('embCanvasScroll');
+      let isPan=false, panStart=null, panScroll=null;
+
+      document.addEventListener('keydown',e=>{
+        if(e.code==='Space'&&e.target.tagName!=='INPUT'&&e.target.tagName!=='TEXTAREA'){
+          isPan=true; if(scroll) scroll.classList.add('pan-mode'); e.preventDefault();
+        }
+      });
+      document.addEventListener('keyup',e=>{
+        if(e.code==='Space'){isPan=false; if(scroll) scroll.classList.remove('pan-mode');}
+      });
+
+      mainCanvas.addEventListener('mousedown',e=>{
+        if(isPan||e.button===1){
+          panStart={x:e.clientX,y:e.clientY};
+          panScroll={x:scroll.scrollLeft,y:scroll.scrollTop};
+          return;
+        }
+        if(e.button!==0) return;
+        isDrawing=true; lastCell=null; applyTool(e,'down');
+      });
+      mainCanvas.addEventListener('mousemove',e=>{
+        if(panStart){
+          scroll.scrollLeft=panScroll.x-(e.clientX-panStart.x);
+          scroll.scrollTop=panScroll.y-(e.clientY-panStart.y);
+          return;
+        }
+        updateCursorPos(e);
+        if(isDrawing) applyTool(e,'move');
+        if(currentTool==='backstitch'&&drawStart) applyTool(e,'move');
+      });
+      window.addEventListener('mouseup',e=>{
+        if(panStart){panStart=null;return;}
+        if(isDrawing){isDrawing=false;lastCell=null;applyTool(e,'up');}
+        else if(drawStart) applyTool(e,'up');
+      });
+
+      scroll?.addEventListener('wheel',e=>{
+        if(e.ctrlKey||e.metaKey){
+          e.preventDefault();
+          const rect=scroll.getBoundingClientRect();
+          const mx=e.clientX-rect.left+scroll.scrollLeft;
+          const my=e.clientY-rect.top+scroll.scrollTop;
+          const prevZoom=zoom;
+          const dz=e.deltaY>0?-.1:.1;
+          setZoom(zoom+dz*zoom);
+          scroll.scrollLeft=mx*(zoom/prevZoom)-(e.clientX-rect.left);
+          scroll.scrollTop=my*(zoom/prevZoom)-(e.clientY-rect.top);
+        }
+      },{passive:false});
+
+      // Touch
+      mainCanvas.addEventListener('touchstart',e=>{
+        if(e.touches.length===1){
+          const t=e.touches[0]; isDrawing=true; lastCell=null;
+          applyTool({clientX:t.clientX,clientY:t.clientY},'down');
+        }
+      },{passive:true});
+      mainCanvas.addEventListener('touchmove',e=>{
+        if(e.touches.length===1){
+          const t=e.touches[0]; applyTool({clientX:t.clientX,clientY:t.clientY},'move');
+        }
+      },{passive:true});
+      mainCanvas.addEventListener('touchend',()=>{
+        isDrawing=false; lastCell=null; applyTool({clientX:0,clientY:0},'up');
+      },{passive:true});
+    }
+
+    // ── Tool Activation ──
+    function activateTool(tool) {
+      currentTool=tool;
+      document.querySelectorAll('.emb-tool-btn[data-tool]').forEach(b=>b.classList.toggle('active',b.dataset.tool===tool));
+      const names={select:'Chọn',cross:'Cross Stitch',half:'Half Stitch',backstitch:'Backstitch',
+        french:'French Knot',satin:'Satin Stitch',fill:'Flood Fill',picker:'Lấy màu',eraser:'Tẩy'};
+      const el=document.getElementById('embStatTool');
+      if(el) el.textContent=names[tool]||tool;
+    }
+
+    // ── Panel Tabs ──
+    function initPanelTabs() {
+      document.querySelectorAll('.emb-panel-tab').forEach(tab=>{
+        tab.addEventListener('click',()=>{
+          document.querySelectorAll('.emb-panel-tab').forEach(t=>t.classList.remove('active'));
+          document.querySelectorAll('.emb-panel-section').forEach(s=>s.classList.remove('active'));
+          tab.classList.add('active');
+          const pid='embPanel'+tab.dataset.panel;
+          document.getElementById(pid)?.classList.add('active');
+        });
+      });
+    }
+
+    // ── Menu ──
+    function initMenu() {
+      document.querySelectorAll('.emb-menu-btn').forEach(btn=>{
+        const menuId='embMenu'+btn.dataset.menu.charAt(0).toUpperCase()+btn.dataset.menu.slice(1);
+        const menu=document.getElementById(menuId); if(!menu) return;
+        btn.addEventListener('click',e=>{
+          e.stopPropagation();
+          const open=menu.classList.contains('open');
+          closeMenus();
+          if(!open){
+            menu.classList.add('open'); btn.classList.add('open');
+            const r=btn.getBoundingClientRect();
+            menu.style.top=r.bottom+'px'; menu.style.left=r.left+'px';
+          }
+        });
+      });
+      document.addEventListener('click',closeMenus);
+      document.querySelectorAll('.emb-menu-dropdown').forEach(m=>m.addEventListener('click',e=>e.stopPropagation()));
+
+      const acts={
+        embMenuNew:()=>{if(confirm('Xoá tất cả và tạo mới?'))clearAll();},
+        embMenuImportImg:()=>document.getElementById('embImgInput')?.click(),
+        embMenuOpenJSON:()=>document.getElementById('embJsonInput')?.click(),
+        embMenuSaveJSON:saveJSON,
+        embMenuExportPNG:exportPNG,
+        embMenuExportPDF:exportPDF,
+        embMenuUndo:undo, embMenuRedo:redo,
+        embMenuClearAll:clearAll,
+        embMenuZoomIn:()=>setZoom(zoom*1.25),
+        embMenuZoomOut:()=>setZoom(zoom/1.25),
+        embMenuZoomFit:fitToView,
+        embMenuZoom100:()=>setZoom(1),
+        embMenuToggleGrid:()=>{showGrid=!showGrid;schedRender();},
+        embMenuToggleRef:()=>{if(refImage){LAYERS[3].visible=!LAYERS[3].visible;renderLayers();schedRender();}},
+        embMenuToggleSymbols:()=>{showSymbols=!showSymbols;schedRender();},
+        embMenuA4:()=>setPaper('A4'),embMenuA5:()=>setPaper('A5'),embMenuA3:()=>setPaper('A3'),
+        embMenu14ct:()=>setCt(14),embMenu18ct:()=>setCt(18),embMenu28ct:()=>setCt(28),
+      };
+      Object.entries(acts).forEach(([id,fn])=>{
+        document.getElementById(id)?.addEventListener('click',()=>{closeMenus();fn();});
+      });
+    }
+    function closeMenus() {
+      document.querySelectorAll('.emb-menu-dropdown').forEach(m=>m.classList.remove('open'));
+      document.querySelectorAll('.emb-menu-btn').forEach(b=>b.classList.remove('open'));
+    }
+    function setPaper(p) { paper=p; document.getElementById('embPropPaper').value=p; recalcGrid(); fitToView(); schedRender(); }
+    function setCt(ct) { stitchCt=ct; document.getElementById('embPropCount').value=ct; recalcGrid(); fitToView(); schedRender(); }
+    function clearAll() {
+      cells=Array.from({length:gridCols},()=>Array.from({length:gridRows},()=>({})));
+      backstitches=[]; frenchKnots=[]; pushHist();
+    }
+
+    // ── Props Panel ──
+    function initProps() {
+      document.getElementById('embPropPaper')?.addEventListener('change',e=>setPaper(e.target.value));
+      document.getElementById('embPropCount')?.addEventListener('change',e=>setCt(parseInt(e.target.value)));
+      document.getElementById('embShowGrid')?.addEventListener('change',e=>{showGrid=e.target.checked;schedRender();});
+      document.getElementById('embShowMajor')?.addEventListener('change',e=>{showMajor=e.target.checked;schedRender();});
+      document.getElementById('embRefOpacity')?.addEventListener('input',e=>{
+        refOpacity=parseInt(e.target.value)/100;
+        document.getElementById('embRefOpVal').textContent=e.target.value+'%';
+        schedRender();
+      });
+      document.getElementById('embRefVisible')?.addEventListener('change',e=>{
+        refVisible=e.target.checked; LAYERS[3].visible=refVisible; renderLayers(); schedRender();
+      });
+      document.getElementById('embColorPicker')?.addEventListener('input',e=>setColor(e.target.value.toUpperCase()));
+      document.getElementById('embColorPreview')?.addEventListener('click',()=>document.getElementById('embColorPicker')?.click());
+      document.getElementById('embPropImport')?.addEventListener('click',()=>document.getElementById('embImgInput')?.click());
+      document.getElementById('embPropAuto')?.addEventListener('click',autoPattern);
+      document.getElementById('embExportPNG')?.addEventListener('click',exportPNG);
+      document.getElementById('embExportPDF')?.addEventListener('click',exportPDF);
+      document.getElementById('embSaveJSON')?.addEventListener('click',saveJSON);
+      document.getElementById('embImgInput')?.addEventListener('change',e=>{if(e.target.files[0])importImage(e.target.files[0]);});
+      document.getElementById('embJsonInput')?.addEventListener('change',e=>{if(e.target.files[0])loadJSON(e.target.files[0]);});
+      document.getElementById('embLayerClear')?.addEventListener('click',()=>{
+        if(confirm('Xoá toàn bộ pattern?')) clearAll();
+      });
+    }
+
+    // ── Zoom Widget ──
+    function initZoom() {
+      document.getElementById('embZoomInBtn')?.addEventListener('click',()=>setZoom(zoom*1.25));
+      document.getElementById('embZoomOutBtn')?.addEventListener('click',()=>setZoom(zoom/1.25));
+      document.getElementById('embZoomFitBtn')?.addEventListener('click',fitToView);
+      document.getElementById('embZoomLabel')?.addEventListener('click',()=>setZoom(1));
+      document.getElementById('embBtnUndo')?.addEventListener('click',undo);
+      document.getElementById('embBtnRedo')?.addEventListener('click',redo);
+    }
+
+    // ── Keyboard ──
+    function initKeyboard() {
+      document.addEventListener('keydown',e=>{
+        if(e.target.tagName==='INPUT'||e.target.tagName==='TEXTAREA') return;
+        if(!document.getElementById('pane-compress')?.classList.contains('active')) return;
+        if(e.ctrlKey||e.metaKey) {
+          if(e.key==='z'){e.preventDefault();e.shiftKey?redo():undo();return;}
+          if(e.key==='y'){e.preventDefault();redo();return;}
+          if(e.key==='s'){e.preventDefault();saveJSON();return;}
+          if(e.key==='n'){e.preventDefault();if(confirm('Tạo mới?'))clearAll();return;}
+          return;
+        }
+        const tk={v:'select',x:'cross',h:'half',b:'backstitch',k:'french',s:'satin',f:'fill',i:'picker',e:'eraser'};
+        if(tk[e.key]){activateTool(tk[e.key]);return;}
+        if(e.key==='+'||e.key==='=')setZoom(zoom*1.2);
+        else if(e.key==='-')setZoom(zoom/1.2);
+        else if(e.key==='0')fitToView();
+        else if(e.key==='1')setZoom(1);
+        else if(e.key==='g'){showGrid=!showGrid;schedRender();}
+        else if(e.key==='r'){if(refImage){LAYERS[3].visible=!LAYERS[3].visible;renderLayers();schedRender();}}
+        else if(e.key==='p'){showSymbols=!showSymbols;schedRender();}
+        else if(e.key==='Escape'){drawStart=null;octx.clearRect(0,0,overlayCanvas.width,overlayCanvas.height);}
+      });
+    }
+
+    // ── Init ──
+    function init() {
+      recalcGrid();
+      document.querySelectorAll('.emb-tool-btn[data-tool]').forEach(b=>{
+        b.addEventListener('click',()=>activateTool(b.dataset.tool));
+      });
+      initPanelTabs();
+      initMenu();
+      initProps();
+      initZoom();
+      initDMCPanel();
+      renderLayers();
+      initCanvasEvents();
+      initKeyboard();
+      pushHist();
+      const initD=DMC.find(d=>d.code==='321');
+      if(initD) setColor(initD.hex,initD);
+      setTimeout(()=>{fitToView();schedRender();},120);
+    }
+    init();
+  })()
     const canvas = document.getElementById('csCanvas');
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
