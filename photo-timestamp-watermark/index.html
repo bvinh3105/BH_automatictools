@@ -2269,8 +2269,30 @@
   .ocr-api-toggle:hover { background: color-mix(in srgb, var(--accent) 10%, transparent); }
   .ocr-api-input-row {
     width: 100%;
-    display: flex; gap: 8px;
-    margin-top: 4px;
+    display: flex; flex-direction: column; gap: 10px;
+    margin-top: 8px;
+  }
+  .ocr-key-row {
+    display: flex; align-items: center; gap: 8px;
+    padding: 8px 10px; border-radius: 10px;
+    background: color-mix(in srgb, var(--text) 3%, transparent);
+    border: 1px solid transparent;
+    transition: border-color 0.2s, background 0.2s;
+  }
+  .ocr-key-row.active-provider {
+    border-color: var(--accent);
+    background: color-mix(in srgb, var(--accent) 6%, transparent);
+  }
+  .ocr-key-row label {
+    font-size: 12px; font-weight: 700; color: var(--text);
+    min-width: 62px; cursor: pointer;
+    display: flex; align-items: center; gap: 5px;
+  }
+  .ocr-key-row input[type="radio"] {
+    accent-color: var(--accent); margin: 0; cursor: pointer;
+  }
+  .ocr-key-row .ocr-key-status {
+    font-size: 10px; flex-shrink: 0; width: 16px; text-align: center;
   }
   .ocr-api-input {
     flex: 1;
@@ -2278,10 +2300,11 @@
     border: 1px solid var(--border);
     border-radius: 8px;
     color: var(--text);
-    padding: 8px 12px;
-    font: inherit; font-size: 12.5px;
+    padding: 7px 10px;
+    font: inherit; font-size: 12px;
     outline: none;
     transition: border-color 0.15s;
+    min-width: 0;
   }
   .ocr-api-input:focus { border-color: var(--accent); }
   .ocr-api-save {
@@ -2289,10 +2312,11 @@
     color: #fff;
     border: none;
     border-radius: 8px;
-    padding: 8px 16px;
+    padding: 7px 14px;
     font: inherit; font-size: 12px; font-weight: 700;
     cursor: pointer;
     transition: opacity 0.15s;
+    flex-shrink: 0;
   }
   .ocr-api-save:hover { opacity: 0.85; }
 
@@ -2903,27 +2927,34 @@ Việt Nam</textarea>
           <span class="ocr-api-icon">🔑</span>
           <div>
             <div class="ocr-api-title">AI Vision API <span class="ocr-api-badge" id="ocrApiBadge">chưa cấu hình</span></div>
-            <div class="ocr-api-desc">Cần API key để đọc chữ viết tay chính xác. Chọn 1 trong 2 provider (đều miễn phí):</div>
+            <div class="ocr-api-desc">Nhập key cho 1 hoặc nhiều provider (đều miễn phí). Provider lỗi sẽ tự chuyển sang cái còn lại:</div>
           </div>
         </div>
         <div class="ocr-api-input-row" id="ocrApiInputRow" style="display:none">
-          <div style="display:flex;flex-direction:column;gap:8px;width:100%">
-            <div style="display:flex;gap:6px;align-items:center">
-              <select id="ocrProvider" style="background:color-mix(in srgb, var(--text) 5%, transparent);border:1px solid var(--border);border-radius:8px;color:var(--text);padding:7px 10px;font:inherit;font-size:12px;cursor:pointer">
-                <option value="gemini">Gemini</option>
-                <option value="groq">Groq (Qwen Vision)</option>
-                <option value="ollama">Local (Ollama)</option>
-              </select>
-              <input type="password" id="ocrApiKey" placeholder="Paste API key..." class="ocr-api-input">
-              <button class="ocr-api-save" id="ocrApiSave">Lưu</button>
-            </div>
-            <div class="ocr-api-desc" style="margin:0">
-              <span id="ocrProviderHelp">
-                Gemini: <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">Lấy key →</a> &nbsp;|&nbsp;
-                Groq: <a href="https://console.groq.com/keys" target="_blank" rel="noopener">Lấy key →</a> &nbsp;|&nbsp;
-                Ollama: <a href="https://ollama.com/download" target="_blank" rel="noopener">Tải Ollama →</a>
-              </span>
-            </div>
+          <!-- Gemini -->
+          <div class="ocr-key-row" id="ocrRowGemini">
+            <label><input type="radio" name="ocrPrimary" value="gemini"> Gemini</label>
+            <input type="password" placeholder="Paste Gemini API key…" class="ocr-api-input" id="ocrKeyGemini">
+            <span class="ocr-key-status" id="ocrStatusGemini"></span>
+            <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener" style="font-size:11px;color:var(--accent);white-space:nowrap;font-weight:600;text-decoration:none">Lấy key →</a>
+          </div>
+          <!-- Groq -->
+          <div class="ocr-key-row" id="ocrRowGroq">
+            <label><input type="radio" name="ocrPrimary" value="groq"> Groq</label>
+            <input type="password" placeholder="Paste Groq API key…" class="ocr-api-input" id="ocrKeyGroq">
+            <span class="ocr-key-status" id="ocrStatusGroq"></span>
+            <a href="https://console.groq.com/keys" target="_blank" rel="noopener" style="font-size:11px;color:var(--accent);white-space:nowrap;font-weight:600;text-decoration:none">Lấy key →</a>
+          </div>
+          <!-- Ollama -->
+          <div class="ocr-key-row" id="ocrRowOllama">
+            <label><input type="radio" name="ocrPrimary" value="ollama"> Ollama</label>
+            <input type="text" placeholder="URL (mặc định: http://localhost:11434)" class="ocr-api-input" id="ocrKeyOllama">
+            <span class="ocr-key-status" id="ocrStatusOllama"></span>
+            <a href="https://ollama.com/download" target="_blank" rel="noopener" style="font-size:11px;color:var(--accent);white-space:nowrap;font-weight:600;text-decoration:none">Tải →</a>
+          </div>
+          <!-- Save -->
+          <div style="display:flex;justify-content:flex-end">
+            <button class="ocr-api-save" id="ocrApiSave">Lưu</button>
           </div>
         </div>
         <button class="ocr-api-toggle" id="ocrApiToggle">Cấu hình</button>
@@ -5787,46 +5818,32 @@ Việt Nam</textarea>
     const ocrFileInput = document.getElementById('ocrFileInput');
     let ocrCount = 0;
 
-    // --- API key management (multi-provider) ---
-    const ocrApiKeyInput = document.getElementById('ocrApiKey');
+    // --- API key management (tách riêng từng provider) ---
     const ocrApiSave = document.getElementById('ocrApiSave');
     const ocrApiToggle = document.getElementById('ocrApiToggle');
     const ocrApiInputRow = document.getElementById('ocrApiInputRow');
     const ocrApiBadge = document.getElementById('ocrApiBadge');
-    const ocrProvider = document.getElementById('ocrProvider');
-    // Load saved config — lưu key theo từng provider để fallback
+    const ocrKeyInputs = { gemini: document.getElementById('ocrKeyGemini'), groq: document.getElementById('ocrKeyGroq'), ollama: document.getElementById('ocrKeyOllama') };
+    const ocrKeyRows = { gemini: document.getElementById('ocrRowGemini'), groq: document.getElementById('ocrRowGroq'), ollama: document.getElementById('ocrRowOllama') };
+    const ocrStatusEls = { gemini: document.getElementById('ocrStatusGemini'), groq: document.getElementById('ocrStatusGroq'), ollama: document.getElementById('ocrStatusOllama') };
+    const ocrRadios = document.querySelectorAll('input[name="ocrPrimary"]');
+
+    // Load saved keys & primary provider
+    let ocrKeys = JSON.parse(localStorage.getItem('ocr_keys') || '{}');
     let ocrConfig = JSON.parse(localStorage.getItem('ocr_config') || 'null') || { provider: '', key: '' };
-    let ocrKeys = JSON.parse(localStorage.getItem('ocr_keys') || '{}'); // { gemini: 'key1', groq: 'key2' }
-    // Migrate old gemini-only key
+    // Migrate old formats
     const oldGeminiKey = localStorage.getItem('ocr_gemini_key');
-    if (oldGeminiKey && !ocrConfig.key) {
-      ocrConfig = { provider: 'gemini', key: oldGeminiKey };
-      localStorage.setItem('ocr_config', JSON.stringify(ocrConfig));
-    }
-    // Lưu old gemini key vào ocrKeys (dù ocrConfig đang dùng provider khác)
-    if (oldGeminiKey && !ocrKeys.gemini) {
-      ocrKeys.gemini = oldGeminiKey;
-    }
-    if (oldGeminiKey) localStorage.removeItem('ocr_gemini_key');
-    // Migrate: lưu key hiện tại vào ocrKeys nếu chưa có
-    if (ocrConfig.provider && ocrConfig.key) {
-      if (!ocrKeys[ocrConfig.provider]) {
-        ocrKeys[ocrConfig.provider] = ocrConfig.key;
-      }
-    }
+    if (oldGeminiKey) { if (!ocrKeys.gemini) ocrKeys.gemini = oldGeminiKey; localStorage.removeItem('ocr_gemini_key'); }
+    if (ocrConfig.provider && ocrConfig.key && !ocrKeys[ocrConfig.provider]) { ocrKeys[ocrConfig.provider] = ocrConfig.key; }
     localStorage.setItem('ocr_keys', JSON.stringify(ocrKeys));
 
     function updateApiBadge() {
-      if (ocrConfig.provider === 'ollama') {
-        ocrApiBadge.textContent = 'Ollama ✓';
-        ocrApiBadge.classList.add('active');
-        ocrApiToggle.textContent = 'Đổi cấu hình';
-      } else if (ocrConfig.key) {
-        const primary = ocrConfig.provider === 'groq' ? 'Groq' : 'Gemini';
-        const altProvider = ocrConfig.provider === 'groq' ? 'gemini' : 'groq';
-        const altName = altProvider === 'groq' ? 'Groq' : 'Gemini';
-        const hasAlt = ocrKeys[altProvider];
-        ocrApiBadge.textContent = primary + ' ✓' + (hasAlt ? ` (+${altName})` : '');
+      const names = { gemini: 'Gemini', groq: 'Groq', ollama: 'Ollama' };
+      const active = [];
+      for (const p of ['gemini', 'groq', 'ollama']) { if (ocrKeys[p]) active.push(names[p]); }
+      if (active.length > 0) {
+        const primary = names[ocrConfig.provider] || active[0];
+        ocrApiBadge.textContent = active.join(' + ') + ' ✓';
         ocrApiBadge.classList.add('active');
         ocrApiToggle.textContent = 'Đổi key';
       } else {
@@ -5835,61 +5852,59 @@ Việt Nam</textarea>
         ocrApiToggle.textContent = 'Cấu hình';
       }
     }
+
+    function updateKeyUI() {
+      for (const p of ['gemini', 'groq', 'ollama']) {
+        const hasKey = !!ocrKeys[p];
+        ocrStatusEls[p].textContent = hasKey ? '✅' : '';
+        ocrKeyRows[p].classList.toggle('active-provider', p === ocrConfig.provider);
+      }
+      // Check radio for current primary
+      ocrRadios.forEach(r => { r.checked = r.value === ocrConfig.provider; });
+    }
+
     updateApiBadge();
 
     ocrApiToggle.addEventListener('click', () => {
       const showing = ocrApiInputRow.style.display !== 'none';
-      ocrApiInputRow.style.display = showing ? 'none' : 'flex';
+      ocrApiInputRow.style.display = showing ? 'none' : '';
       if (!showing) {
-        ocrProvider.value = ocrConfig.provider || 'gemini';
-        ocrApiKeyInput.value = ocrConfig.key || '';
-        updateKeyPlaceholder();
-        ocrApiKeyInput.focus();
-      }
-    });
-    function updateKeyPlaceholder() {
-      const p = ocrProvider.value;
-      if (p === 'ollama') {
-        ocrApiKeyInput.type = 'text';
-        ocrApiKeyInput.placeholder = 'URL (mặc định: http://localhost:11434)';
-      } else {
-        ocrApiKeyInput.type = 'password';
-        ocrApiKeyInput.placeholder = 'Paste API key...';
-      }
-    }
-    ocrProvider.addEventListener('change', () => {
-      updateKeyPlaceholder();
-      // Load saved key cho provider này (nếu có)
-      const p = ocrProvider.value;
-      if (p !== 'ollama' && ocrKeys[p]) {
-        ocrApiKeyInput.value = ocrKeys[p];
-      } else if (p === 'ollama' && ocrKeys.ollama) {
-        ocrApiKeyInput.value = ocrKeys.ollama;
-      } else {
-        ocrApiKeyInput.value = '';
+        // Populate inputs with saved keys
+        for (const p of ['gemini', 'groq', 'ollama']) {
+          ocrKeyInputs[p].value = ocrKeys[p] || '';
+        }
+        updateKeyUI();
       }
     });
 
+    // Highlight active row on radio change
+    ocrRadios.forEach(r => r.addEventListener('change', () => {
+      for (const p of ['gemini', 'groq', 'ollama']) {
+        ocrKeyRows[p].classList.toggle('active-provider', p === r.value);
+      }
+    }));
+
     ocrApiSave.addEventListener('click', () => {
-      const key = ocrApiKeyInput.value.trim();
-      const provider = ocrProvider.value;
-      if (provider === 'ollama') {
-        ocrConfig = { provider, key: key || 'http://localhost:11434' };
-        localStorage.setItem('ocr_config', JSON.stringify(ocrConfig));
-        ocrKeys.ollama = ocrConfig.key;
-      } else if (key) {
-        ocrConfig = { provider, key };
-        localStorage.setItem('ocr_config', JSON.stringify(ocrConfig));
-        ocrKeys[provider] = key; // Lưu key cho provider này
-      } else {
-        ocrConfig = { provider: '', key: '' };
-        localStorage.removeItem('ocr_config');
+      // Save all keys
+      for (const p of ['gemini', 'groq', 'ollama']) {
+        const val = ocrKeyInputs[p].value.trim();
+        if (val) { ocrKeys[p] = val; } else { delete ocrKeys[p]; }
       }
       localStorage.setItem('ocr_keys', JSON.stringify(ocrKeys));
+      // Determine primary: selected radio, or first available
+      const selectedRadio = document.querySelector('input[name="ocrPrimary"]:checked');
+      let primary = selectedRadio ? selectedRadio.value : '';
+      if (primary && !ocrKeys[primary]) primary = ''; // Radio chọn nhưng key trống
+      if (!primary) { for (const p of ['gemini', 'groq', 'ollama']) { if (ocrKeys[p]) { primary = p; break; } } }
+      if (primary) {
+        ocrConfig = { provider: primary, key: ocrKeys[primary] };
+      } else {
+        ocrConfig = { provider: '', key: '' };
+      }
+      localStorage.setItem('ocr_config', JSON.stringify(ocrConfig));
       updateApiBadge();
       ocrApiInputRow.style.display = 'none';
     });
-    ocrApiKeyInput.addEventListener('keydown', e => { if (e.key === 'Enter') ocrApiSave.click(); });
 
     // --- Preview lightbox refs ---
     const ocrPv = document.getElementById('ocrPreview');
