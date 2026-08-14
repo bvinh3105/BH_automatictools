@@ -5794,8 +5794,9 @@ Việt Nam</textarea>
     const ocrApiInputRow = document.getElementById('ocrApiInputRow');
     const ocrApiBadge = document.getElementById('ocrApiBadge');
     const ocrProvider = document.getElementById('ocrProvider');
-    // Load saved config
+    // Load saved config — lưu key theo từng provider để fallback
     let ocrConfig = JSON.parse(localStorage.getItem('ocr_config') || 'null') || { provider: '', key: '' };
+    let ocrKeys = JSON.parse(localStorage.getItem('ocr_keys') || '{}'); // { gemini: 'key1', groq: 'key2' }
     // Migrate old gemini-only key
     const oldGeminiKey = localStorage.getItem('ocr_gemini_key');
     if (oldGeminiKey && !ocrConfig.key) {
@@ -5803,16 +5804,25 @@ Việt Nam</textarea>
       localStorage.setItem('ocr_config', JSON.stringify(ocrConfig));
       localStorage.removeItem('ocr_gemini_key');
     }
+    // Migrate: lưu key hiện tại vào ocrKeys nếu chưa có
+    if (ocrConfig.provider && ocrConfig.key) {
+      if (!ocrKeys[ocrConfig.provider]) {
+        ocrKeys[ocrConfig.provider] = ocrConfig.key;
+        localStorage.setItem('ocr_keys', JSON.stringify(ocrKeys));
+      }
+    }
 
     function updateApiBadge() {
       if (ocrConfig.provider === 'ollama') {
-        const url = ocrConfig.key || 'http://localhost:11434';
         ocrApiBadge.textContent = 'Ollama ✓';
         ocrApiBadge.classList.add('active');
         ocrApiToggle.textContent = 'Đổi cấu hình';
       } else if (ocrConfig.key) {
-        const name = ocrConfig.provider === 'groq' ? 'Groq' : 'Gemini';
-        ocrApiBadge.textContent = name + ' ✓';
+        const primary = ocrConfig.provider === 'groq' ? 'Groq' : 'Gemini';
+        const altProvider = ocrConfig.provider === 'groq' ? 'gemini' : 'groq';
+        const altName = altProvider === 'groq' ? 'Groq' : 'Gemini';
+        const hasAlt = ocrKeys[altProvider];
+        ocrApiBadge.textContent = primary + ' ✓' + (hasAlt ? ` (+${altName})` : '');
         ocrApiBadge.classList.add('active');
         ocrApiToggle.textContent = 'Đổi key';
       } else {
@@ -5843,7 +5853,18 @@ Việt Nam</textarea>
         ocrApiKeyInput.placeholder = 'Paste API key...';
       }
     }
-    ocrProvider.addEventListener('change', updateKeyPlaceholder);
+    ocrProvider.addEventListener('change', () => {
+      updateKeyPlaceholder();
+      // Load saved key cho provider này (nếu có)
+      const p = ocrProvider.value;
+      if (p !== 'ollama' && ocrKeys[p]) {
+        ocrApiKeyInput.value = ocrKeys[p];
+      } else if (p === 'ollama' && ocrKeys.ollama) {
+        ocrApiKeyInput.value = ocrKeys.ollama;
+      } else {
+        ocrApiKeyInput.value = '';
+      }
+    });
 
     ocrApiSave.addEventListener('click', () => {
       const key = ocrApiKeyInput.value.trim();
@@ -5851,13 +5872,16 @@ Việt Nam</textarea>
       if (provider === 'ollama') {
         ocrConfig = { provider, key: key || 'http://localhost:11434' };
         localStorage.setItem('ocr_config', JSON.stringify(ocrConfig));
+        ocrKeys.ollama = ocrConfig.key;
       } else if (key) {
         ocrConfig = { provider, key };
         localStorage.setItem('ocr_config', JSON.stringify(ocrConfig));
+        ocrKeys[provider] = key; // Lưu key cho provider này
       } else {
         ocrConfig = { provider: '', key: '' };
         localStorage.removeItem('ocr_config');
       }
+      localStorage.setItem('ocr_keys', JSON.stringify(ocrKeys));
       updateApiBadge();
       ocrApiInputRow.style.display = 'none';
     });
@@ -6500,30 +6524,49 @@ QUY TẮC:
         const cardImg = card.querySelector('.ocr-card-img img');
         if (cardImg && rotatedUrl !== imageUrl) cardImg.src = rotatedUrl;
 
-        // === Strategy: API có → dùng API ONLY (không fallback PaddleOCR rác) ===
+        // === Strategy: API có → dùng API, lỗi thì fallback sang provider còn lại ===
         // === API không có → PaddleOCR + post-processing → Tesseract ===
         if (hasApi) {
-          // CHỈ dùng Vision API — hiển thị lỗi rõ ràng nếu fail
           const providerNames = { groq: 'Groq (Qwen Vision)', gemini: 'Gemini', ollama: 'Ollama (Local)' };
-          const providerName = providerNames[ocrConfig.provider] || 'API';
-          progressBar.style.width = '60%';
-          textEl.querySelector('span').textContent = `Đang đọc bằng ${providerName}…`;
-          try {
-            if (ocrConfig.provider === 'ollama') {
-              text = await runOllamaOCR(rotatedUrl, ocrConfig.key);
-            } else if (ocrConfig.provider === 'groq') {
-              text = await runGroqOCR(rotatedUrl, ocrConfig.key);
-            } else {
-              text = await runGeminiOCR(rotatedUrl, ocrConfig.key);
+
+          // Xây danh sách provider để thử: primary → fallback (nếu có key)
+          const tryList = [{ provider: ocrConfig.provider, key: ocrConfig.key }];
+          if (ocrConfig.provider !== 'ollama') {
+            const altProvider = ocrConfig.provider === 'groq' ? 'gemini' : 'groq';
+            if (ocrKeys[altProvider]) {
+              tryList.push({ provider: altProvider, key: ocrKeys[altProvider] });
             }
-            progressBar.style.width = '100%';
-            usedEngine = ocrConfig.provider;
-          } catch (apiErr) {
-            apiError = apiErr.message || 'Unknown API error';
-            console.warn(`${providerName} failed:`, apiError);
-            // KHÔNG fallback sang PaddleOCR — hiện lỗi cho user biết
-            text = '';
-            usedEngine = 'api-error';
+          }
+
+          for (let i = 0; i < tryList.length; i++) {
+            const { provider: tryProvider, key: tryKey } = tryList[i];
+            const providerName = providerNames[tryProvider] || 'API';
+            const isFallback = i > 0;
+            progressBar.style.width = isFallback ? '40%' : '60%';
+            textEl.querySelector('span').textContent = isFallback
+              ? `${providerNames[tryList[0].provider]} lỗi → đang thử ${providerName}…`
+              : `Đang đọc bằng ${providerName}…`;
+            try {
+              if (tryProvider === 'ollama') {
+                text = await runOllamaOCR(rotatedUrl, tryKey);
+              } else if (tryProvider === 'groq') {
+                text = await runGroqOCR(rotatedUrl, tryKey);
+              } else {
+                text = await runGeminiOCR(rotatedUrl, tryKey);
+              }
+              progressBar.style.width = '100%';
+              usedEngine = tryProvider;
+              if (isFallback) usedEngine += '-fallback';
+              break; // Thành công → thoát
+            } catch (apiErr) {
+              apiError = apiErr.message || 'Unknown API error';
+              console.warn(`${providerName} failed:`, apiError);
+              if (i === tryList.length - 1) {
+                // Tất cả provider đều lỗi
+                text = '';
+                usedEngine = 'api-error';
+              }
+            }
           }
         } else {
           // Không có API → PaddleOCR (+ post-processing) → Tesseract
@@ -6571,11 +6614,15 @@ QUY TẮC:
         }
 
         textEl.className = 'ocr-card-text';
-        const warnBadge = (usedEngine === 'paddle')
-          ? '<div style="color:#f90;font-size:11px;margin-bottom:6px;font-weight:600">⚠ Đọc bằng PaddleOCR (offline) — kết quả có thể kém chính xác</div>'
-          : (usedEngine === 'tesseract')
-          ? '<div style="color:#f90;font-size:11px;margin-bottom:6px;font-weight:600">⚠ Đọc bằng Tesseract (offline) — kết quả có thể kém chính xác</div>'
-          : '';
+        let warnBadge = '';
+        if (usedEngine === 'paddle') {
+          warnBadge = '<div style="color:#f90;font-size:11px;margin-bottom:6px;font-weight:600">⚠ Đọc bằng PaddleOCR (offline) — kết quả có thể kém chính xác</div>';
+        } else if (usedEngine === 'tesseract') {
+          warnBadge = '<div style="color:#f90;font-size:11px;margin-bottom:6px;font-weight:600">⚠ Đọc bằng Tesseract (offline) — kết quả có thể kém chính xác</div>';
+        } else if (usedEngine.endsWith('-fallback')) {
+          const fbName = { 'groq-fallback': 'Groq', 'gemini-fallback': 'Gemini' }[usedEngine] || usedEngine;
+          warnBadge = `<div style="color:#4a9;font-size:11px;margin-bottom:6px;font-weight:600">🔄 Provider chính lỗi → đã dùng ${fbName} thay thế</div>`;
+        }
         if (warnBadge) {
           textEl.innerHTML = warnBadge + text.replace(/</g, '&lt;').replace(/\n/g, '<br>');
         } else {
