@@ -1949,18 +1949,19 @@
     border:1px solid transparent; color:var(--muted); cursor:pointer;
     display:flex; align-items:center; justify-content:center; font-size:16px;
     transition:background .15s, color .15s, border-color .15s; flex-shrink:0; position:relative;
+    overflow:visible;
   }
+  .emb-tool-btn svg { display:block; flex-shrink:0; pointer-events:none; overflow:visible; }
   .emb-tool-btn:hover { background:color-mix(in srgb, var(--text) 7%, transparent); color:var(--text); }
   .emb-tool-btn.active {
     background:color-mix(in srgb, var(--accent-2) 15%, transparent);
     color:var(--accent-2); border-color:color-mix(in srgb, var(--accent-2) 35%, transparent);
   }
   .emb-tool-tooltip {
-    position:absolute; left:calc(100% + 10px); top:50%; transform:translateY(-50%);
-    background:var(--glass-strong); backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px);
+    position:fixed; background:var(--glass-strong); backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px);
     border:1px solid var(--border); border-radius:8px; padding:5px 10px;
     white-space:nowrap; font-size:11.5px; color:var(--text);
-    pointer-events:none; opacity:0; transition:opacity .15s; z-index:100;
+    pointer-events:none; opacity:0; transition:opacity .15s; z-index:9990;
     box-shadow:0 4px 16px rgba(0,0,0,.18);
   }
   .emb-tool-btn:hover .emb-tool-tooltip { opacity:1; }
@@ -2016,35 +2017,62 @@
   .emb-panels {
     width:274px; min-width:274px; flex-shrink:0;
     display:flex; flex-direction:column;
-    background:var(--glass); backdrop-filter:blur(20px) saturate(160%);
-    -webkit-backdrop-filter:blur(20px) saturate(160%);
-    border-left:1px solid var(--border); overflow:hidden;
+    background:color-mix(in srgb, var(--bg) 92%, var(--text) 8%);
+    border-left:1.5px solid var(--border-strong); overflow:hidden;
+    box-shadow:-2px 0 12px rgba(0,0,0,.06);
+  }
+  /* ── Context Menu ── */
+  .emb-ctx-menu {
+    position:fixed; z-index:9999; min-width:200px;
+    background:color-mix(in srgb, var(--bg) 96%, transparent);
+    border:1px solid var(--border-strong); border-radius:10px;
+    padding:4px; box-shadow:0 8px 32px rgba(0,0,0,.22), inset 0 1px 0 rgba(255,255,255,.1);
+    backdrop-filter:blur(24px) saturate(180%); -webkit-backdrop-filter:blur(24px) saturate(180%);
+    display:none; animation:emb-dd-in .1s ease;
+  }
+  .emb-ctx-menu.open { display:block; }
+  .emb-ctx-item {
+    display:flex; align-items:center; justify-content:space-between; gap:16px;
+    padding:7px 11px; border-radius:6px; font-size:12.5px; color:var(--text);
+    cursor:pointer; transition:background .1s; user-select:none;
+  }
+  .emb-ctx-item:hover { background:color-mix(in srgb, var(--accent-2) 14%, transparent); }
+  .emb-ctx-item.disabled { color:var(--muted); pointer-events:none; }
+  .emb-ctx-item svg { opacity:.7; flex-shrink:0; }
+  .emb-ctx-item kbd { font-size:10px; color:var(--muted); font-family:inherit; }
+  .emb-ctx-sep { height:1px; background:var(--border); margin:3px 6px; }
+  .emb-ctx-header { padding:4px 11px 2px; font-size:9.5px; font-weight:800; text-transform:uppercase; letter-spacing:.1em; color:var(--muted); }
+  /* ── Rect / Mask overlay ── */
+  .emb-mask-overlay {
+    position:absolute; border:2px dashed var(--accent-2); background:color-mix(in srgb,var(--accent-2) 10%,transparent);
+    pointer-events:none; z-index:5; box-sizing:border-box;
+    box-shadow:0 0 0 1px rgba(255,255,255,.3) inset;
   }
   .emb-panel-tabs {
-    display:flex; border-bottom:1px solid var(--border); flex-shrink:0;
-    background:color-mix(in srgb, var(--text) 3%, transparent);
+    display:flex; border-bottom:1.5px solid var(--border-strong); flex-shrink:0;
+    background:color-mix(in srgb, var(--bg) 80%, var(--text) 4%);
   }
   .emb-panel-tab {
-    flex:1; padding:8px 4px; font-size:10.5px; font-weight:700;
-    text-transform:uppercase; letter-spacing:.06em;
+    flex:1; padding:9px 4px; font-size:10.5px; font-weight:800;
+    text-transform:uppercase; letter-spacing:.07em;
     color:var(--muted); background:transparent; border:none;
     cursor:pointer; transition:color .15s, background .15s;
-    border-bottom:2px solid transparent; margin-bottom:-1px; font:inherit;
-    font-size:10.5px; font-weight:700; text-transform:uppercase; letter-spacing:.06em;
+    border-bottom:2.5px solid transparent; margin-bottom:-1.5px; font:inherit;
+    font-size:10.5px; font-weight:800; text-transform:uppercase; letter-spacing:.07em;
   }
-  .emb-panel-tab:hover { color:var(--text); }
+  .emb-panel-tab:hover { color:var(--text); background:color-mix(in srgb,var(--text) 4%,transparent); }
   .emb-panel-tab.active {
     color:var(--accent-2); border-bottom-color:var(--accent-2);
-    background:color-mix(in srgb, var(--accent-2) 6%, transparent);
+    background:color-mix(in srgb, var(--accent-2) 8%, transparent);
   }
-  .emb-panel-body { flex:1; overflow-y:auto; scrollbar-width:thin; scrollbar-color:var(--border-strong) transparent; }
+  .emb-panel-body { flex:1; overflow-y:auto; scrollbar-width:thin; scrollbar-color:var(--border-strong) transparent; background:transparent; }
   .emb-panel-body::-webkit-scrollbar { width:4px; }
   .emb-panel-body::-webkit-scrollbar-thumb { background:var(--border-strong); border-radius:4px; }
   .emb-panel-section { display:none; }
   .emb-panel-section.active { display:block; }
 
   /* Properties */
-  .emb-prop-group { padding:12px 14px; border-bottom:1px solid var(--divider); }
+  .emb-prop-group { padding:12px 14px; border-bottom:1px solid var(--divider); background:color-mix(in srgb, var(--bg) 72%, transparent); }
   .emb-prop-title {
     font-size:9.5px; font-weight:800; text-transform:uppercase;
     letter-spacing:.10em; color:var(--muted); margin-bottom:10px;
@@ -3412,6 +3440,10 @@ Việt Nam</textarea>
         <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" width="17" height="17"><path d="M13.5 4l2.5 2.5-8 8-3.5 1 1-3.5z"/><line x1="11.5" y1="6" x2="14" y2="8.5"/></svg>
         <div class="emb-tool-tooltip">Lấy màu <kbd>I</kbd></div>
       </button>
+      <button class="emb-tool-btn" data-tool="rect">
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="17" height="17"><rect x="3" y="5" width="14" height="10" rx="1"/></svg>
+        <div class="emb-tool-tooltip">Hình chữ nhật / Mask ảnh <kbd>R</kbd></div>
+      </button>
       <button class="emb-tool-btn" data-tool="eraser">
         <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" width="17" height="17"><path d="M4.5 15.5l3-3.5 7.5-7.5 3 3-7.5 7.5H4.5z"/><line x1="13.5" y1="4.5" x2="16" y2="2"/></svg>
         <div class="emb-tool-tooltip">Tẩy <kbd>E</kbd></div>
@@ -3435,6 +3467,8 @@ Việt Nam</textarea>
         </div>
         <input type="file" id="embImgInput" accept="image/*" hidden>
         <input type="file" id="embJsonInput" accept=".json" hidden>
+        <!-- Mask rect overlay (shown when rect tool active) -->
+        <div class="emb-mask-overlay" id="embMaskOverlay" style="display:none"></div>
       </div>
       <div class="emb-statusbar">
         <span><b id="embStatTool">Cross Stitch</b></span>
@@ -3454,6 +3488,7 @@ Việt Nam</textarea>
       <div class="emb-panel-tabs">
         <button class="emb-panel-tab active" data-panel="Props">Cài đặt</button>
         <button class="emb-panel-tab" data-panel="DMC">DMC</button>
+        <button class="emb-panel-tab" data-panel="Artboards">Tấm</button>
         <button class="emb-panel-tab" data-panel="Layers">Layers</button>
       </div>
       <div class="emb-panel-body">
@@ -3546,6 +3581,58 @@ Việt Nam</textarea>
         </div>
 
         <!-- Layers -->
+        <!-- Artboards Panel -->
+        <div class="emb-panel-section" id="embPanelArtboards">
+          <div class="emb-prop-group" style="padding:10px 12px;">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+              <div class="emb-prop-title" style="margin:0">Artboards</div>
+              <button class="emb-btn-sm" id="embAbAdd" style="padding:3px 10px;font-size:11px">+ Thêm</button>
+            </div>
+            <div id="embAbList" style="display:flex;flex-direction:column;gap:4px;max-height:300px;overflow-y:auto;scrollbar-width:thin"></div>
+          </div>
+          <div class="emb-prop-group">
+            <div class="emb-prop-title">Artboard đang chọn</div>
+            <div class="emb-prop-row">
+              <span class="emb-prop-label">Tên</span>
+              <input id="embAbName" class="emb-prop-select" type="text" placeholder="Tên artboard" style="flex:1;padding:4px 8px">
+            </div>
+            <div class="emb-prop-row">
+              <span class="emb-prop-label">Khổ giấy</span>
+              <select class="emb-prop-select" id="embAbPaper">
+                <option value="A5">A5</option>
+                <option value="A4" selected>A4</option>
+                <option value="A3">A3</option>
+              </select>
+            </div>
+            <div class="emb-prop-row">
+              <span class="emb-prop-label">Count</span>
+              <select class="emb-prop-select" id="embAbCount">
+                <option value="11">11ct</option>
+                <option value="14" selected>14ct</option>
+                <option value="16">16ct</option>
+                <option value="18">18ct</option>
+                <option value="28">28ct</option>
+              </select>
+            </div>
+            <div class="emb-prop-row">
+              <span class="emb-prop-label">Vị trí</span>
+              <div style="display:flex;gap:4px;align-items:center">
+                <input id="embAbX" type="number" min="0" class="emb-prop-select" style="width:52px;padding:3px 5px" placeholder="X">
+                <span class="emb-prop-label">×</span>
+                <input id="embAbY" type="number" min="0" class="emb-prop-select" style="width:52px;padding:3px 5px" placeholder="Y">
+              </div>
+            </div>
+            <div style="display:flex;gap:6px;margin-top:4px">
+              <button class="emb-btn-sm emb-btn-primary" id="embAbApply" style="flex:1">Áp dụng</button>
+              <button class="emb-btn-sm" id="embAbDelete" style="flex:1;color:var(--danger)">🗑 Xoá tấm</button>
+            </div>
+          </div>
+          <div class="emb-prop-group" style="padding:8px 12px">
+            <button class="emb-btn-sm" id="embAbFitAll" style="width:100%">🔍 Vừa tất cả artboards</button>
+          </div>
+        </div>
+
+        <!-- Layers Panel -->
         <div class="emb-panel-section" id="embPanelLayers">
           <div class="emb-layers-list" id="embLayersList"></div>
           <div class="emb-layers-actions">
@@ -3558,6 +3645,49 @@ Việt Nam</textarea>
   </div>
 </div>
 </div><!-- /pane-compress -->
+
+<!-- Embroidery Context Menu (global, positioned by JS) -->
+<div class="emb-ctx-menu" id="embCtxMenu">
+  <div class="emb-ctx-header" id="embCtxHeader">Canvas</div>
+  <div class="emb-ctx-sep"></div>
+  <div class="emb-ctx-item" id="embCtxUndo">
+    <span>Undo</span><kbd>Ctrl+Z</kbd>
+  </div>
+  <div class="emb-ctx-item" id="embCtxRedo">
+    <span>Redo</span><kbd>Ctrl+Y</kbd>
+  </div>
+  <div class="emb-ctx-sep"></div>
+  <div class="emb-ctx-item" id="embCtxClearCell">
+    <span>Xoá ô này</span><kbd>Del</kbd>
+  </div>
+  <div class="emb-ctx-item" id="embCtxPickColor">
+    <span>Lấy màu ô này</span><kbd>I</kbd>
+  </div>
+  <div class="emb-ctx-sep"></div>
+  <div class="emb-ctx-item" id="embCtxSelectTool" data-tool="cross">
+    <span>Cross Stitch</span><kbd>X</kbd>
+  </div>
+  <div class="emb-ctx-item" id="embCtxBSTool" data-tool="backstitch">
+    <span>Backstitch</span><kbd>B</kbd>
+  </div>
+  <div class="emb-ctx-item" id="embCtxRectTool" data-tool="rect">
+    <span>Rect / Mask ảnh</span><kbd>R</kbd>
+  </div>
+  <div class="emb-ctx-sep" id="embCtxMaskSep" style="display:none"></div>
+  <div class="emb-ctx-item" id="embCtxApplyMask" style="display:none">
+    <span>✨ Áp mask lên ảnh tham chiếu</span>
+  </div>
+  <div class="emb-ctx-item" id="embCtxClearMask" style="display:none">
+    <span>✕ Xoá vùng mask</span>
+  </div>
+  <div class="emb-ctx-sep"></div>
+  <div class="emb-ctx-item" id="embCtxExportPNG">
+    <span>Xuất PNG</span>
+  </div>
+  <div class="emb-ctx-item" id="embCtxExportPDF">
+    <span>In / Xuất PDF</span>
+  </div>
+</div>
 
 <!-- ===== TAB 4: Format Convert (coming soon) ===== -->
 <div class="tab-pane" id="pane-convert">
@@ -7384,21 +7514,151 @@ QUY TẮC:
     let history = [], histIdx = -1;
     let isDrawing = false, drawStart = null, lastCell = null;
 
-    // ── Grid Calculation ──
-    function recalcGrid() {
-      const [w,h] = PAPER_MM[paper] || [210,297];
-      gridCols = Math.floor(w / MM_PER_INCH * stitchCt);
-      gridRows = Math.floor(h / MM_PER_INCH * stitchCt);
-      cells = Array.from({length:gridCols}, () => Array.from({length:gridRows}, () => ({})));
-      backstitches = backstitches.filter(s => s.x1>=0&&s.x1<=gridCols&&s.y1>=0&&s.y1<=gridRows);
-      frenchKnots = frenchKnots.filter(k => k.col>=0&&k.col<gridCols&&k.row>=0&&k.row<gridRows);
-      mainCanvas.width = gridCols * CELL_PX;
-      mainCanvas.height = gridRows * CELL_PX;
-      overlayCanvas.width = mainCanvas.width;
-      overlayCanvas.height = mainCanvas.height;
-      const sz = document.getElementById('embPropSize');
-      if (sz) sz.textContent = `${gridCols} × ${gridRows} ô`;
+    // ── ARTBOARD ENGINE ──
+    const AB_GAP = 40; // cells gap between artboards
+    let artboards = [];   // array of artboard objects
+    let activeAbIdx = 0;  // index of active artboard
+    let abDrag = null;    // {abIdx, startX, startY, origX, origY} for label drag
+    let abResize = null;  // {abIdx, handle, startX, startY, origCols, origRows}
+
+    function makeAbCells(cols, rows) {
+      return Array.from({length:cols}, () => Array.from({length:rows}, () => ({})));
+    }
+
+    function createArtboard(name, cols, rows, ax, ay) {
+      return {
+        id: Date.now() + Math.random(),
+        name: name || `Artboard ${artboards.length + 1}`,
+        x: ax || 0,          // world x in cell units
+        y: ay || 0,          // world y in cell units
+        cols: cols,
+        rows: rows,
+        paper: paper,
+        stitchCt: stitchCt,
+        cells: makeAbCells(cols, rows),
+        bs: [],
+        fk: [],
+        refImage: null,
+        refOpacity: 0.35,
+        refVisible: true,
+      };
+    }
+
+    function abColsRows(p, ct) {
+      const [w,h] = PAPER_MM[p||'A4'] || [210,297];
+      return {
+        cols: Math.floor(w / MM_PER_INCH * (ct||14)),
+        rows: Math.floor(h / MM_PER_INCH * (ct||14)),
+      };
+    }
+
+    // Point globals at active artboard data
+    function syncGlobals() {
+      const ab = artboards[activeAbIdx];
+      if (!ab) return;
+      cells       = ab.cells;
+      backstitches= ab.bs;
+      frenchKnots = ab.fk;
+      gridCols    = ab.cols;
+      gridRows    = ab.rows;
+      refImage    = ab.refImage;
+      refOpacity  = ab.refOpacity;
+      refVisible  = ab.refVisible;
+    }
+
+    // Save global state back into active artboard
+    function flushGlobals() {
+      const ab = artboards[activeAbIdx];
+      if (!ab) return;
+      ab.cells      = cells;
+      ab.bs         = backstitches;
+      ab.fk         = frenchKnots;
+      ab.refImage   = refImage;
+      ab.refOpacity = refOpacity;
+      ab.refVisible = refVisible;
+    }
+
+    function switchArtboard(idx) {
+      flushGlobals();
+      activeAbIdx = idx;
+      syncGlobals();
+      schedRender();
+      renderArtboardPanel();
       updateStatus();
+    }
+
+    function addArtboard(name) {
+      flushGlobals();
+      const {cols, rows} = abColsRows(paper, stitchCt);
+      // Place to the right of the last artboard
+      let maxX = 0;
+      artboards.forEach(ab => maxX = Math.max(maxX, ab.x + ab.cols));
+      const newAb = createArtboard(name, cols, rows, maxX + AB_GAP, 0);
+      artboards.push(newAb);
+      activeAbIdx = artboards.length - 1;
+      syncGlobals();
+      recalcWorldCanvas();
+      renderArtboardPanel();
+      schedRender();
+    }
+
+    function removeArtboard(idx) {
+      if (artboards.length <= 1) { alert('Phải có ít nhất 1 artboard.'); return; }
+      artboards.splice(idx, 1);
+      if (activeAbIdx >= artboards.length) activeAbIdx = artboards.length - 1;
+      syncGlobals();
+      recalcWorldCanvas();
+      renderArtboardPanel();
+      schedRender();
+    }
+
+    function renameArtboard(idx, name) {
+      if (artboards[idx]) artboards[idx].name = name;
+      renderArtboardPanel();
+      schedRender();
+    }
+
+    // ── Grid / World Canvas ──
+    const WORLD_PAD = 80; // pixel padding around world
+
+    function recalcWorldCanvas() {
+      if (!artboards.length) return;
+      // Compute bounding box of all artboards in cell units
+      let maxCX = 0, maxCY = 0;
+      artboards.forEach(ab => {
+        maxCX = Math.max(maxCX, ab.x + ab.cols);
+        maxCY = Math.max(maxCY, ab.y + ab.rows);
+      });
+      const W = (maxCX * CELL_PX) + WORLD_PAD * 2;
+      const H = (maxCY * CELL_PX) + WORLD_PAD * 2;
+      mainCanvas.width  = W;
+      mainCanvas.height = H;
+      overlayCanvas.width  = W;
+      overlayCanvas.height = H;
+      updateStatus();
+    }
+
+    // Called when paper/stitchCt changes — resizes ACTIVE artboard only
+    function recalcGrid() {
+      const {cols, rows} = abColsRows(paper, stitchCt);
+      const ab = artboards[activeAbIdx];
+      if (!ab) return;
+      // Resize: keep existing stitches that fit, trim rest
+      const newCells = makeAbCells(cols, rows);
+      for (let c = 0; c < Math.min(cols, ab.cols); c++)
+        for (let r = 0; r < Math.min(rows, ab.rows); r++)
+          newCells[c][r] = ab.cells[c]?.[r] || {};
+      ab.cols = cols; ab.rows = rows;
+      ab.cells = newCells;
+      ab.bs = ab.bs.filter(s => s.x1>=0&&s.x1<=cols&&s.y1>=0&&s.y1<=rows);
+      ab.fk = ab.fk.filter(k => k.col>=0&&k.col<cols&&k.row>=0&&k.row<rows);
+      ab.paper = paper; ab.stitchCt = stitchCt;
+      syncGlobals();
+      recalcWorldCanvas();
+      const sz = document.getElementById('embPropSize');
+      if (sz) sz.textContent = `${cols} × ${rows} ô`;
+      pushHist();
+      schedRender();
     }
 
     // ── Rendering ──
@@ -7408,30 +7668,123 @@ QUY TẮC:
       renderScheduled = true;
       requestAnimationFrame(() => { renderScheduled = false; render(); });
     }
+
     function render() {
-      mctx.clearRect(0, 0, mainCanvas.width, mainCanvas.height);
-      mctx.fillStyle = '#FFFFFF';
-      mctx.fillRect(0, 0, mainCanvas.width, mainCanvas.height);
-      if (refImage && refVisible && LAYERS[3].visible) {
-        mctx.save(); mctx.globalAlpha = refOpacity;
-        mctx.drawImage(refImage, 0, 0, mainCanvas.width, mainCanvas.height);
-        mctx.globalAlpha = 1; mctx.restore();
-      }
-      if (LAYERS[0].visible) {
-        for (let c=0; c<gridCols; c++)
-          for (let r=0; r<gridRows; r++)
-            drawCell(c, r);
-      }
-      if (LAYERS[1].visible) drawBackstitches(mctx);
-      if (LAYERS[2].visible) drawFrenchKnots(mctx);
-      if (showGrid) drawGrid();
+      const W = mainCanvas.width, H = mainCanvas.height;
+      mctx.clearRect(0, 0, W, H);
+      // World background
+      mctx.fillStyle = getComputedStyle(document.documentElement)
+        .getPropertyValue('--bg').trim() || '#C8C8C8';
+      mctx.fillRect(0, 0, W, H);
+
+      // Draw each artboard
+      artboards.forEach((ab, i) => {
+        drawArtboard(ab, i === activeAbIdx);
+      });
+
       updateUsedColors();
     }
 
-    function drawCell(col, row, ctx) {
-      ctx = ctx || mctx;
-      const cell = cells[col]?.[row]; if (!cell) return;
-      const x = col*CELL_PX, y = row*CELL_PX, p = CELL_PX;
+    function drawArtboard(ab, isActive) {
+      const ox = WORLD_PAD + ab.x * CELL_PX;
+      const oy = WORLD_PAD + ab.y * CELL_PX;
+      const aw = ab.cols * CELL_PX;
+      const ah = ab.rows * CELL_PX;
+
+      // Shadow
+      mctx.save();
+      mctx.shadowColor = 'rgba(0,0,0,0.22)';
+      mctx.shadowBlur = 16;
+      mctx.shadowOffsetX = 3;
+      mctx.shadowOffsetY = 4;
+      mctx.fillStyle = '#FFFFFF';
+      mctx.fillRect(ox, oy, aw, ah);
+      mctx.restore();
+
+      // White background
+      mctx.fillStyle = '#FFFFFF';
+      mctx.fillRect(ox, oy, aw, ah);
+
+      mctx.save();
+      mctx.beginPath();
+      mctx.rect(ox, oy, aw, ah);
+      mctx.clip();
+
+      // Reference image
+      if (ab.refImage && ab.refVisible && LAYERS[3].visible) {
+        mctx.save(); mctx.globalAlpha = ab.refOpacity;
+        mctx.drawImage(ab.refImage, ox, oy, aw, ah);
+        mctx.globalAlpha = 1; mctx.restore();
+      }
+
+      // Stitches
+      if (LAYERS[0].visible) {
+        for (let c = 0; c < ab.cols; c++)
+          for (let r = 0; r < ab.rows; r++)
+            drawCellAt(ab.cells, c, r, ox, oy);
+      }
+      if (LAYERS[1].visible) drawBackstitchesAt(ab.bs, ox, oy);
+      if (LAYERS[2].visible) drawFrenchKnotsAt(ab.fk, ox, oy);
+      if (showGrid) drawGridAt(ab, ox, oy);
+
+      mctx.restore();
+
+      // Active artboard outline
+      if (isActive) {
+        mctx.strokeStyle = '#78A05C';
+        mctx.lineWidth = 2;
+        mctx.setLineDash([]);
+        mctx.strokeRect(ox - 1, oy - 1, aw + 2, ah + 2);
+      } else {
+        mctx.strokeStyle = 'rgba(0,0,0,0.12)';
+        mctx.lineWidth = 1;
+        mctx.strokeRect(ox, oy, aw, ah);
+      }
+
+      // Artboard label (above)
+      const LABEL_H = 18;
+      mctx.fillStyle = isActive ? '#78A05C' : 'rgba(80,80,80,0.6)';
+      mctx.font = `bold 11px sans-serif`;
+      mctx.textAlign = 'left';
+      mctx.textBaseline = 'bottom';
+      mctx.fillText(ab.name, ox, oy - 4);
+
+      // Resize handles (only on active)
+      if (isActive) drawResizeHandles(ox, oy, aw, ah);
+    }
+
+    const HANDLE_SIZE = 7;
+    function drawResizeHandles(ox, oy, aw, ah) {
+      const handles = getHandlePositions(ox, oy, aw, ah);
+      mctx.fillStyle = '#FFFFFF';
+      mctx.strokeStyle = '#78A05C';
+      mctx.lineWidth = 1.5;
+      handles.forEach(h => {
+        mctx.beginPath();
+        mctx.rect(h.x - HANDLE_SIZE/2, h.y - HANDLE_SIZE/2, HANDLE_SIZE, HANDLE_SIZE);
+        mctx.fill();
+        mctx.stroke();
+      });
+    }
+
+    function getHandlePositions(ox, oy, aw, ah) {
+      const mx = ox + aw/2, my = oy + ah/2;
+      return [
+        {id:'nw', x:ox,    y:oy},    {id:'n',  x:mx,    y:oy},
+        {id:'ne', x:ox+aw, y:oy},    {id:'e',  x:ox+aw, y:my},
+        {id:'se', x:ox+aw, y:oy+ah}, {id:'s',  x:mx,    y:oy+ah},
+        {id:'sw', x:ox,    y:oy+ah}, {id:'w',  x:ox,    y:my},
+      ];
+    }
+    function getHandleCursor(id) {
+      return {nw:'nw-resize',n:'n-resize',ne:'ne-resize',e:'e-resize',
+              se:'se-resize',s:'s-resize',sw:'sw-resize',w:'w-resize'}[id]||'default';
+    }
+
+    function drawCellAt(abCells, col, row, ox, oy) {
+      const ctx = mctx;
+      const cell = abCells[col]?.[row]; if (!cell) return;
+      const x = ox + col*CELL_PX, y = oy + row*CELL_PX, p = CELL_PX;
       const pad = p * 0.1;
       if (cell.satin) {
         ctx.fillStyle = cell.satin;
@@ -7475,35 +7828,64 @@ QUY TẮC:
       }
     }
 
+    // Backward compat shim for export/tool code that calls drawCell(col,row)
+    function drawCell(col, row, ctx) {
+      ctx = ctx || mctx;
+      const ab = artboards[activeAbIdx]; if(!ab) return;
+      const ox = WORLD_PAD + ab.x * CELL_PX;
+      const oy = WORLD_PAD + ab.y * CELL_PX;
+      drawCellAt(ab.cells, col, row, ox, oy);
+    }
+
+    function drawBackstitchesAt(bs, ox, oy) {
+      bs.forEach(s => {
+        mctx.strokeStyle = s.color;
+        mctx.lineWidth = Math.max(1.5, CELL_PX*.13); mctx.lineCap='round'; mctx.lineJoin='round';
+        mctx.beginPath();
+        mctx.moveTo(ox + s.x1*CELL_PX, oy + s.y1*CELL_PX);
+        mctx.lineTo(ox + s.x2*CELL_PX, oy + s.y2*CELL_PX);
+        mctx.stroke();
+      });
+    }
     function drawBackstitches(ctx) {
-      backstitches.forEach(s => {
-        ctx.strokeStyle = s.color;
-        ctx.lineWidth = Math.max(1.5, CELL_PX*.13); ctx.lineCap='round'; ctx.lineJoin='round';
-        ctx.beginPath();
-        ctx.moveTo(s.x1*CELL_PX, s.y1*CELL_PX);
-        ctx.lineTo(s.x2*CELL_PX, s.y2*CELL_PX);
-        ctx.stroke();
-      });
+      const ab = artboards[activeAbIdx]; if(!ab) return;
+      drawBackstitchesAt(ab.bs, WORLD_PAD + ab.x*CELL_PX, WORLD_PAD + ab.y*CELL_PX);
     }
 
+    function drawFrenchKnotsAt(fk, ox, oy) {
+      fk.forEach(k => {
+        const x = ox + (k.col+.5)*CELL_PX, y = oy + (k.row+.5)*CELL_PX, r=CELL_PX*.24;
+        mctx.fillStyle=k.color; mctx.beginPath(); mctx.arc(x,y,r,0,Math.PI*2); mctx.fill();
+        mctx.strokeStyle=darkenHex(k.color,.25); mctx.lineWidth=.8; mctx.stroke();
+      });
+    }
     function drawFrenchKnots(ctx) {
-      frenchKnots.forEach(k => {
-        const x=(k.col+.5)*CELL_PX, y=(k.row+.5)*CELL_PX, r=CELL_PX*.24;
-        ctx.fillStyle=k.color; ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2); ctx.fill();
-        ctx.strokeStyle=darkenHex(k.color,.25); ctx.lineWidth=.8; ctx.stroke();
-      });
+      const ab = artboards[activeAbIdx]; if(!ab) return;
+      drawFrenchKnotsAt(ab.fk, WORLD_PAD + ab.x*CELL_PX, WORLD_PAD + ab.y*CELL_PX);
     }
 
-    function drawGrid() {
-      const w=mainCanvas.width, h=mainCanvas.height;
+    function drawGridAt(ab, ox, oy) {
+      const aw = ab.cols * CELL_PX, ah = ab.rows * CELL_PX;
       mctx.strokeStyle='rgba(150,150,150,.22)'; mctx.lineWidth=.5;
-      for (let c=0;c<=gridCols;c++) { mctx.beginPath(); mctx.moveTo(c*CELL_PX,0); mctx.lineTo(c*CELL_PX,h); mctx.stroke(); }
-      for (let r=0;r<=gridRows;r++) { mctx.beginPath(); mctx.moveTo(0,r*CELL_PX); mctx.lineTo(w,r*CELL_PX); mctx.stroke(); }
+      for (let c=0;c<=ab.cols;c++) {
+        mctx.beginPath(); mctx.moveTo(ox+c*CELL_PX,oy); mctx.lineTo(ox+c*CELL_PX,oy+ah); mctx.stroke();
+      }
+      for (let r=0;r<=ab.rows;r++) {
+        mctx.beginPath(); mctx.moveTo(ox,oy+r*CELL_PX); mctx.lineTo(ox+aw,oy+r*CELL_PX); mctx.stroke();
+      }
       if (showMajor) {
         mctx.strokeStyle='rgba(80,80,80,.38)'; mctx.lineWidth=1;
-        for (let c=0;c<=gridCols;c+=MAJOR) { mctx.beginPath(); mctx.moveTo(c*CELL_PX,0); mctx.lineTo(c*CELL_PX,h); mctx.stroke(); }
-        for (let r=0;r<=gridRows;r+=MAJOR) { mctx.beginPath(); mctx.moveTo(0,r*CELL_PX); mctx.lineTo(w,r*CELL_PX); mctx.stroke(); }
+        for (let c=0;c<=ab.cols;c+=MAJOR) {
+          mctx.beginPath(); mctx.moveTo(ox+c*CELL_PX,oy); mctx.lineTo(ox+c*CELL_PX,oy+ah); mctx.stroke();
+        }
+        for (let r=0;r<=ab.rows;r+=MAJOR) {
+          mctx.beginPath(); mctx.moveTo(ox,oy+r*CELL_PX); mctx.lineTo(ox+aw,oy+r*CELL_PX); mctx.stroke();
+        }
       }
+    }
+    function drawGrid() {
+      const ab = artboards[activeAbIdx]; if(!ab) return;
+      drawGridAt(ab, WORLD_PAD + ab.x*CELL_PX, WORLD_PAD + ab.y*CELL_PX);
     }
 
     // ── Helpers ──
@@ -7520,18 +7902,79 @@ QUY TẮC:
     let symIdx=0;
     function getSymbol(hex) { if(!symMap[hex]) symMap[hex]=SYMS[symIdx++%SYMS.length]; return symMap[hex]; }
 
+    // ── Artboard-aware getCellXY ──
+    function getWorldXY(e) {
+      const rect = mainCanvas.getBoundingClientRect();
+      const sx = mainCanvas.width  / rect.width;
+      const sy = mainCanvas.height / rect.height;
+      return {
+        wx: (e.clientX - rect.left) * sx,
+        wy: (e.clientY - rect.top)  * sy,
+      };
+    }
+
+    function hitTestArtboard(wx, wy) {
+      // Returns {abIdx, col, row} for the artboard under pointer, else null
+      for (let i = artboards.length - 1; i >= 0; i--) {
+        const ab = artboards[i];
+        const ox = WORLD_PAD + ab.x * CELL_PX;
+        const oy = WORLD_PAD + ab.y * CELL_PX;
+        const aw = ab.cols * CELL_PX, ah = ab.rows * CELL_PX;
+        if (wx >= ox && wx < ox+aw && wy >= oy && wy < oy+ah) {
+          return {
+            abIdx: i,
+            col: Math.floor((wx - ox) / CELL_PX),
+            row: Math.floor((wy - oy) / CELL_PX),
+            px:  wx - ox, py: wy - oy,
+          };
+        }
+      }
+      return null;
+    }
+
+    function hitTestLabel(wx, wy) {
+      // Returns abIdx if pointer is in the label zone above an artboard
+      for (let i = artboards.length - 1; i >= 0; i--) {
+        const ab = artboards[i];
+        const ox = WORLD_PAD + ab.x * CELL_PX;
+        const oy = WORLD_PAD + ab.y * CELL_PX;
+        const aw = ab.cols * CELL_PX;
+        // Label zone: full width, 20px above
+        if (wx >= ox && wx < ox+aw && wy >= oy-20 && wy < oy) return i;
+      }
+      return -1;
+    }
+
+    function hitTestHandle(wx, wy) {
+      // Returns {abIdx, handleId} if pointer is near a resize handle of active artboard
+      const ab = artboards[activeAbIdx]; if (!ab) return null;
+      const ox = WORLD_PAD + ab.x * CELL_PX;
+      const oy = WORLD_PAD + ab.y * CELL_PX;
+      const handles = getHandlePositions(ox, oy, ab.cols*CELL_PX, ab.rows*CELL_PX);
+      for (const h of handles) {
+        if (Math.abs(wx - h.x) <= HANDLE_SIZE && Math.abs(wy - h.y) <= HANDLE_SIZE)
+          return {abIdx: activeAbIdx, handleId: h.id};
+      }
+      return null;
+    }
+
     function getCellXY(e) {
-      const rect=mainCanvas.getBoundingClientRect();
-      const mx=(e.clientX-rect.left)/rect.width*mainCanvas.width;
-      const my=(e.clientY-rect.top)/rect.height*mainCanvas.height;
-      return {col:Math.floor(mx/CELL_PX), row:Math.floor(my/CELL_PX), px:mx, py:my};
+      const {wx, wy} = getWorldXY(e);
+      const hit = hitTestArtboard(wx, wy);
+      if (hit) {
+        if (hit.abIdx !== activeAbIdx) switchArtboard(hit.abIdx);
+        return {col: hit.col, row: hit.row, px: hit.px, py: hit.py};
+      }
+      return {col: -1, row: -1, px: wx, py: wy};
     }
+
     function getIntersect(e) {
-      const rect=mainCanvas.getBoundingClientRect();
-      const mx=(e.clientX-rect.left)/rect.width*mainCanvas.width;
-      const my=(e.clientY-rect.top)/rect.height*mainCanvas.height;
-      return {x:Math.round(mx/CELL_PX), y:Math.round(my/CELL_PX)};
+      const {wx, wy} = getWorldXY(e);
+      const hit = hitTestArtboard(wx, wy);
+      if (hit) return {x: Math.round(hit.px/CELL_PX), y: Math.round(hit.py/CELL_PX)};
+      return {x: -1, y: -1};
     }
+
     function valid(c,r) { return c>=0&&c<gridCols&&r>=0&&r<gridRows; }
 
     // ── Tool Dispatch ──
@@ -7544,6 +7987,7 @@ QUY TẮC:
       else if (currentTool==='fill')   toolFill(e,phase);
       else if (currentTool==='picker') toolPicker(e,phase);
       else if (currentTool==='eraser') toolEraser(e,phase);
+      else if (currentTool==='rect')   toolRect(e,phase);
     }
 
     function toolCross(e,phase) {
@@ -8082,9 +8526,18 @@ QUY TẮC:
       currentTool=tool;
       document.querySelectorAll('.emb-tool-btn[data-tool]').forEach(b=>b.classList.toggle('active',b.dataset.tool===tool));
       const names={select:'Chọn',cross:'Cross Stitch',half:'Half Stitch',backstitch:'Backstitch',
-        french:'French Knot',satin:'Satin Stitch',fill:'Flood Fill',picker:'Lấy màu',eraser:'Tẩy'};
+        french:'French Knot',satin:'Satin Stitch',fill:'Flood Fill',picker:'Lấy màu',eraser:'Tẩy',rect:'Rect / Mask'};
       const el=document.getElementById('embStatTool');
       if(el) el.textContent=names[tool]||tool;
+      // Update canvas cursor
+      const cv=document.getElementById('embCanvas');
+      if(cv) {
+        const cursors={select:'default',cross:'crosshair',half:'crosshair',backstitch:'crosshair',
+          french:'crosshair',satin:'crosshair',fill:'cell',picker:'copy',eraser:'not-allowed',rect:'crosshair'};
+        cv.style.cursor=cursors[tool]||'crosshair';
+      }
+      // Clear rect selection when switching away
+      if(tool!=='rect'&&typeof clearRectSelection==='function') clearRectSelection();
     }
 
     // ── Panel Tabs ──
@@ -8203,22 +8656,407 @@ QUY TẮC:
           if(e.key==='n'){e.preventDefault();if(confirm('Tạo mới?'))clearAll();return;}
           return;
         }
-        const tk={v:'select',x:'cross',h:'half',b:'backstitch',k:'french',s:'satin',f:'fill',i:'picker',e:'eraser'};
+        const tk={v:'select',x:'cross',h:'half',b:'backstitch',k:'french',s:'satin',f:'fill',i:'picker',e:'eraser',r:'rect'};
         if(tk[e.key]){activateTool(tk[e.key]);return;}
         if(e.key==='+'||e.key==='=')setZoom(zoom*1.2);
         else if(e.key==='-')setZoom(zoom/1.2);
         else if(e.key==='0')fitToView();
         else if(e.key==='1')setZoom(1);
         else if(e.key==='g'){showGrid=!showGrid;schedRender();}
-        else if(e.key==='r'){if(refImage){LAYERS[3].visible=!LAYERS[3].visible;renderLayers();schedRender();}}
         else if(e.key==='p'){showSymbols=!showSymbols;schedRender();}
-        else if(e.key==='Escape'){drawStart=null;octx.clearRect(0,0,overlayCanvas.width,overlayCanvas.height);}
+        else if(e.key==='Escape'){
+          drawStart=null;
+          octx.clearRect(0,0,overlayCanvas.width,overlayCanvas.height);
+          clearRectSelection();
+        }
+        else if((e.key==='Delete'||e.key==='Backspace')&&rectSel) {
+          e.preventDefault(); applyRectErase();
+        }
+      });
+    }
+
+    // ── Rect / Mask Tool ──
+    let rectSel = null; // {x,y,w,h} in cell coords
+    let rectDraw = null; // drawing in progress {x0,y0}
+
+    function clearRectSelection() {
+      rectSel=null; rectDraw=null;
+      const ov=document.getElementById('embMaskOverlay');
+      if(ov) ov.style.display='none';
+      updateCtxMaskItems();
+      schedRender();
+    }
+
+    function updateRectOverlay() {
+      if(!rectSel) return;
+      const ov=document.getElementById('embMaskOverlay'); if(!ov) return;
+      const inner=document.getElementById('embCanvasInner');
+      const pad=40;
+      ov.style.display='block';
+      ov.style.left=(pad+rectSel.x*CELL_PX*zoom)+'px';
+      ov.style.top=(pad+rectSel.y*CELL_PX*zoom)+'px';
+      ov.style.width=(rectSel.w*CELL_PX*zoom)+'px';
+      ov.style.height=(rectSel.h*CELL_PX*zoom)+'px';
+      // Position relative to inner div
+      ov.style.position='absolute';
+    }
+
+    function toolRect(e,phase) {
+      const {col,row}=getCellXY(e);
+      if(phase==='down') {
+        rectDraw={x0:col,y0:row};
+        rectSel=null;
+        const ov=document.getElementById('embMaskOverlay');
+        if(ov) ov.style.display='none';
+      } else if(phase==='move'&&rectDraw) {
+        const x=Math.min(col,rectDraw.x0), y=Math.min(row,rectDraw.y0);
+        const w=Math.abs(col-rectDraw.x0)+1, h=Math.abs(row-rectDraw.y0)+1;
+        // Draw on overlay
+        octx.clearRect(0,0,overlayCanvas.width,overlayCanvas.height);
+        octx.strokeStyle=currentColor; octx.lineWidth=2; octx.setLineDash([6,4]);
+        octx.fillStyle=currentColor+'20';
+        octx.fillRect(x*CELL_PX,y*CELL_PX,w*CELL_PX,h*CELL_PX);
+        octx.strokeRect(x*CELL_PX+1,y*CELL_PX+1,w*CELL_PX-2,h*CELL_PX-2);
+        octx.setLineDash([]);
+      } else if(phase==='up'&&rectDraw) {
+        const x=Math.min(Math.max(col,0),gridCols-1);
+        const y=Math.min(Math.max(row,0),gridRows-1);
+        const x0=Math.min(rectDraw.x0,x), y0=Math.min(rectDraw.y0,y);
+        const w=Math.abs(x-rectDraw.x0)+1, h=Math.abs(y-rectDraw.y0)+1;
+        rectSel={x:x0,y:y0,w:Math.min(w,gridCols-x0),h:Math.min(h,gridRows-y0)};
+        rectDraw=null;
+        octx.clearRect(0,0,overlayCanvas.width,overlayCanvas.height);
+        updateRectOverlay();
+        updateCtxMaskItems();
+        // Show tip
+        const st=document.getElementById('embStatTool');
+        if(st) st.textContent=`Rect ${rectSel.w}×${rectSel.h} ô — chuột phải để mask`;
+      }
+    }
+
+    function applyRectMask() {
+      if(!rectSel||!refImage) {alert('Cần ảnh tham chiếu và vùng chọn.');return;}
+      // Crop refImage to rectSel area and set as new refImage
+      const tc=document.createElement('canvas');
+      tc.width=mainCanvas.width; tc.height=mainCanvas.height;
+      const tctx=tc.getContext('2d');
+      // Draw only within rect
+      tctx.save();
+      tctx.beginPath();
+      tctx.rect(rectSel.x*CELL_PX,rectSel.y*CELL_PX,rectSel.w*CELL_PX,rectSel.h*CELL_PX);
+      tctx.clip();
+      tctx.drawImage(refImage,0,0,tc.width,tc.height);
+      tctx.restore();
+      const newImg=new Image();
+      newImg.onload=()=>{
+        refImage=newImg;
+        document.getElementById('embRefOpRow').style.display='';
+        document.getElementById('embRefVisRow').style.display='';
+        LAYERS[3].visible=true; renderLayers(); schedRender();
+      };
+      newImg.src=tc.toDataURL();
+      clearRectSelection();
+    }
+
+    function applyRectErase() {
+      if(!rectSel) return;
+      pushHist();
+      for(let c=rectSel.x;c<rectSel.x+rectSel.w&&c<gridCols;c++)
+        for(let r=rectSel.y;r<rectSel.y+rectSel.h&&r<gridRows;r++) {
+          cells[c][r]={};
+          frenchKnots=frenchKnots.filter(k=>!(k.col===c&&k.row===r));
+        }
+      clearRectSelection(); schedRender();
+    }
+
+    function applyRectFill() {
+      if(!rectSel) return;
+      pushHist();
+      for(let c=rectSel.x;c<rectSel.x+rectSel.w&&c<gridCols;c++)
+        for(let r=rectSel.y;r<rectSel.y+rectSel.h&&r<gridRows;r++)
+          cells[c][r].cross=currentColor;
+      clearRectSelection(); schedRender();
+    }
+
+    function updateCtxMaskItems() {
+      const has=!!rectSel;
+      const sep=document.getElementById('embCtxMaskSep');
+      const apply=document.getElementById('embCtxApplyMask');
+      const clear=document.getElementById('embCtxClearMask');
+      if(sep) sep.style.display=has?'':'none';
+      if(apply) apply.style.display=has?'':'none';
+      if(clear) clear.style.display=has?'':'none';
+    }
+
+    // ── Artboard Panel ──
+    function renderArtboardPanel() {
+      const list = document.getElementById('embAbList'); if (!list) return;
+      list.innerHTML = '';
+      artboards.forEach((ab, i) => {
+        const item = document.createElement('div');
+        item.style.cssText = `display:flex;align-items:center;gap:6px;padding:6px 8px;border-radius:7px;cursor:pointer;
+          background:${i===activeAbIdx?'color-mix(in srgb,var(--accent-2) 15%,transparent)':'transparent'};
+          border:1px solid ${i===activeAbIdx?'color-mix(in srgb,var(--accent-2) 35%,transparent)':'transparent'};
+          transition:background .12s;font-size:12px;`;
+        item.innerHTML = `
+          <div style="width:10px;height:10px;border-radius:3px;background:${i===activeAbIdx?'var(--accent-2)':'var(--muted)'};flex-shrink:0"></div>
+          <div style="flex:1;font-weight:${i===activeAbIdx?'700':'500'};color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${ab.name}</div>
+          <div style="font-size:10px;color:var(--muted);flex-shrink:0">${ab.cols}×${ab.rows}</div>`;
+        item.addEventListener('click', () => { switchArtboard(i); syncAbInspector(); });
+        list.appendChild(item);
+      });
+      syncAbInspector();
+    }
+
+    function syncAbInspector() {
+      const ab = artboards[activeAbIdx]; if (!ab) return;
+      const nm = document.getElementById('embAbName');
+      const pp = document.getElementById('embAbPaper');
+      const ct = document.getElementById('embAbCount');
+      const ax = document.getElementById('embAbX');
+      const ay = document.getElementById('embAbY');
+      if (nm) nm.value = ab.name;
+      if (pp) pp.value = ab.paper || 'A4';
+      if (ct) ct.value = String(ab.stitchCt || 14);
+      if (ax) ax.value = ab.x;
+      if (ay) ay.value = ab.y;
+    }
+
+    function initArtboardPanel() {
+      document.getElementById('embAbAdd')?.addEventListener('click', () => {
+        addArtboard();
+        // Switch to artboard panel tab to show the new one
+      });
+
+      document.getElementById('embAbApply')?.addEventListener('click', () => {
+        const ab = artboards[activeAbIdx]; if (!ab) return;
+        const nm  = document.getElementById('embAbName')?.value.trim();
+        const pp  = document.getElementById('embAbPaper')?.value;
+        const ct  = parseInt(document.getElementById('embAbCount')?.value || '14');
+        const ax  = parseInt(document.getElementById('embAbX')?.value || '0');
+        const ay  = parseInt(document.getElementById('embAbY')?.value || '0');
+        if (nm) ab.name = nm;
+        if (!isNaN(ax)) ab.x = Math.max(0, ax);
+        if (!isNaN(ay)) ab.y = Math.max(0, ay);
+        // Resize if paper/ct changed
+        if (pp !== ab.paper || ct !== ab.stitchCt) {
+          paper = pp; stitchCt = ct;
+          recalcGrid(); // resizes active artboard
+        } else {
+          recalcWorldCanvas();
+        }
+        renderArtboardPanel();
+        schedRender();
+      });
+
+      document.getElementById('embAbDelete')?.addEventListener('click', () => {
+        if (confirm(`Xoá artboard "${artboards[activeAbIdx]?.name}"?`))
+          removeArtboard(activeAbIdx);
+      });
+
+      document.getElementById('embAbFitAll')?.addEventListener('click', () => {
+        fitAllArtboards();
+      });
+    }
+
+    function fitAllArtboards() {
+      const area = document.getElementById('embCanvasArea');
+      if (!area || !mainCanvas.width) return;
+      const zw = (area.clientWidth - 40) / mainCanvas.width;
+      const zh = (area.clientHeight - 40) / mainCanvas.height;
+      setZoom(Math.min(zw, zh, 3));
+      const scroll = document.getElementById('embCanvasScroll');
+      if (scroll) { scroll.scrollLeft = 0; scroll.scrollTop = 0; }
+    }
+
+    // ── Canvas Mouse: artboard drag/resize interception ──
+    function initArtboardInteraction() {
+      const scroll = document.getElementById('embCanvasScroll');
+
+      mainCanvas.addEventListener('mousedown', e => {
+        if (e.button !== 0) return;
+        const {wx, wy} = getWorldXY(e);
+
+        // Check resize handle first
+        const hh = hitTestHandle(wx, wy);
+        if (hh) {
+          e.stopImmediatePropagation(); e.preventDefault();
+          const ab = artboards[hh.abIdx];
+          abResize = {abIdx: hh.abIdx, handleId: hh.handleId,
+            startX: e.clientX, startY: e.clientY,
+            origCols: ab.cols, origRows: ab.rows,
+            origX: ab.x, origY: ab.y};
+          return;
+        }
+
+        // Check label drag
+        const li = hitTestLabel(wx, wy);
+        if (li >= 0) {
+          e.stopImmediatePropagation(); e.preventDefault();
+          const ab = artboards[li];
+          abDrag = {abIdx: li, startX: e.clientX, startY: e.clientY,
+                    origX: ab.x, origY: ab.y};
+          if (li !== activeAbIdx) switchArtboard(li);
+          return;
+        }
+      }, true);
+
+      document.addEventListener('mousemove', e => {
+        if (abDrag) {
+          const ab = artboards[abDrag.abIdx]; if (!ab) return;
+          const dx = (e.clientX - abDrag.startX) / zoom / CELL_PX;
+          const dy = (e.clientY - abDrag.startY) / zoom / CELL_PX;
+          ab.x = Math.max(0, Math.round(abDrag.origX + dx));
+          ab.y = Math.max(0, Math.round(abDrag.origY + dy));
+          recalcWorldCanvas();
+          schedRender();
+          return;
+        }
+        if (abResize) {
+          const ab = artboards[abResize.abIdx]; if (!ab) return;
+          const dx = Math.round((e.clientX - abResize.startX) / zoom / CELL_PX);
+          const dy = Math.round((e.clientY - abResize.startY) / zoom / CELL_PX);
+          const MIN = 10;
+          const id = abResize.handleId;
+          if (id.includes('e')) ab.cols = Math.max(MIN, abResize.origCols + dx);
+          if (id.includes('s')) ab.rows = Math.max(MIN, abResize.origRows + dy);
+          if (id.includes('w')) {
+            const nc = Math.max(MIN, abResize.origCols - dx);
+            ab.x = abResize.origX + (abResize.origCols - nc);
+            ab.cols = nc;
+          }
+          if (id.includes('n')) {
+            const nr = Math.max(MIN, abResize.origRows - dy);
+            ab.y = abResize.origY + (abResize.origRows - nr);
+            ab.rows = nr;
+          }
+          // Expand cells if needed
+          if (ab.cols > ab.cells.length) {
+            for (let c = ab.cells.length; c < ab.cols; c++)
+              ab.cells.push(Array.from({length: ab.rows}, () => ({})));
+          }
+          if (ab.rows > (ab.cells[0]?.length||0)) {
+            ab.cells.forEach(col => {
+              while (col.length < ab.rows) col.push({});
+            });
+          }
+          syncGlobals();
+          recalcWorldCanvas();
+          schedRender();
+          return;
+        }
+
+        // Update cursor based on what's under mouse
+        const {wx, wy} = getWorldXY(e);
+        const hh = hitTestHandle(wx, wy);
+        if (hh) { mainCanvas.style.cursor = getHandleCursor(hh.handleId); return; }
+        const li = hitTestLabel(wx, wy);
+        if (li >= 0) { mainCanvas.style.cursor = 'move'; return; }
+        const hit = hitTestArtboard(wx, wy);
+        if (!hit) { mainCanvas.style.cursor = 'default'; return; }
+        // Within artboard — respect current tool cursor
+        const cursors = {select:'default',cross:'crosshair',half:'crosshair',backstitch:'crosshair',
+          french:'crosshair',satin:'crosshair',fill:'cell',picker:'copy',eraser:'not-allowed',rect:'crosshair'};
+        mainCanvas.style.cursor = cursors[currentTool] || 'crosshair';
+      });
+
+      document.addEventListener('mouseup', e => {
+        if (abDrag) { abDrag = null; syncAbInspector(); renderArtboardPanel(); }
+        if (abResize) { abResize = null; syncAbInspector(); renderArtboardPanel(); }
+      });
+    }
+
+    // ── Right-click Context Menu ──
+    function initContextMenu() {
+      const menu=document.getElementById('embCtxMenu'); if(!menu) return;
+      let ctxCell=null;
+
+      function closeCtx() { menu.classList.remove('open'); }
+
+      mainCanvas.addEventListener('contextmenu',e=>{
+        e.preventDefault();
+        ctxCell=getCellXY(e);
+        const {col,row}=ctxCell;
+
+        // Update header
+        const hdr=document.getElementById('embCtxHeader');
+        if(hdr) hdr.textContent=valid(col,row)?`Ô C${col+1}, R${row+1}`:'Canvas';
+
+        // Undo/Redo state
+        document.getElementById('embCtxUndo')?.classList.toggle('disabled',histIdx<=0);
+        document.getElementById('embCtxRedo')?.classList.toggle('disabled',histIdx>=history.length-1);
+
+        // Mask items
+        updateCtxMaskItems();
+
+        // Position
+        const vw=window.innerWidth, vh=window.innerHeight;
+        const mw=menu.offsetWidth||210, mh=menu.offsetHeight||300;
+        let lx=e.clientX, ly=e.clientY;
+        if(lx+mw>vw-8) lx=vw-mw-8;
+        if(ly+mh>vh-8) ly=vh-mh-8;
+        menu.style.left=lx+'px'; menu.style.top=ly+'px';
+        menu.classList.add('open');
+      });
+
+      // Close on outside click
+      document.addEventListener('click',closeCtx,true);
+      document.addEventListener('contextmenu',e=>{
+        if(!mainCanvas.contains(e.target)) closeCtx();
+      });
+
+      // Actions
+      document.getElementById('embCtxUndo')?.addEventListener('click',()=>{closeCtx();undo();});
+      document.getElementById('embCtxRedo')?.addEventListener('click',()=>{closeCtx();redo();});
+      document.getElementById('embCtxClearCell')?.addEventListener('click',()=>{
+        closeCtx();
+        if(!ctxCell) return;
+        const {col,row}=ctxCell; if(!valid(col,row)) return;
+        pushHist(); cells[col][row]={}; frenchKnots=frenchKnots.filter(k=>!(k.col===col&&k.row===row));
+        schedRender();
+      });
+      document.getElementById('embCtxPickColor')?.addEventListener('click',()=>{
+        closeCtx();
+        if(!ctxCell) return;
+        const {col,row}=ctxCell; if(!valid(col,row)) return;
+        const cell=cells[col][row];
+        const c=cell.cross||cell.satin||cell.halfTL||cell.halfBR||cell.french;
+        if(c) setColor(c);
+      });
+      document.getElementById('embCtxApplyMask')?.addEventListener('click',()=>{closeCtx();applyRectMask();});
+      document.getElementById('embCtxClearMask')?.addEventListener('click',()=>{closeCtx();clearRectSelection();});
+      document.getElementById('embCtxExportPNG')?.addEventListener('click',()=>{closeCtx();exportPNG();});
+      document.getElementById('embCtxExportPDF')?.addEventListener('click',()=>{closeCtx();exportPDF();});
+
+      // Tool shortcuts in ctx menu
+      ['embCtxSelectTool','embCtxBSTool','embCtxRectTool'].forEach(id=>{
+        const el=document.getElementById(id); if(!el) return;
+        el.addEventListener('click',()=>{closeCtx(); activateTool(el.dataset.tool);});
+      });
+    }
+
+    // ── Tooltip position fix (use mousemove to place fixed tooltip) ──
+    function initTooltips() {
+      document.querySelectorAll('.emb-tool-btn').forEach(btn=>{
+        const tip=btn.querySelector('.emb-tool-tooltip'); if(!tip) return;
+        btn.addEventListener('mouseenter',e=>{
+          const r=btn.getBoundingClientRect();
+          tip.style.left=(r.right+8)+'px';
+          tip.style.top=(r.top+r.height/2)+'px';
+          tip.style.transform='translateY(-50%)';
+        });
       });
     }
 
     // ── Init ──
     function init() {
-      recalcGrid();
+      // Bootstrap first artboard
+      const {cols, rows} = abColsRows('A4', 14);
+      artboards.push(createArtboard('Artboard 1', cols, rows, 0, 0));
+      activeAbIdx = 0;
+      syncGlobals();
+      recalcWorldCanvas();
+
       document.querySelectorAll('.emb-tool-btn[data-tool]').forEach(b=>{
         b.addEventListener('click',()=>activateTool(b.dataset.tool));
       });
@@ -8229,11 +9067,16 @@ QUY TẮC:
       initDMCPanel();
       renderLayers();
       initCanvasEvents();
+      initArtboardInteraction(); // Must be after initCanvasEvents
       initKeyboard();
+      initContextMenu();
+      initTooltips();
+      initArtboardPanel();
+      renderArtboardPanel();
       pushHist();
       const initD=DMC.find(d=>d.code==='321');
       if(initD) setColor(initD.hex,initD);
-      setTimeout(()=>{fitToView();schedRender();},120);
+      setTimeout(()=>{fitToView();schedRender();},150);
     }
     init();
   })()
