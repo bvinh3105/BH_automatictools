@@ -1911,7 +1911,8 @@
     background:color-mix(in srgb, var(--text) 8%, transparent); color:var(--text);
   }
   .emb-menu-dropdown {
-    position:fixed; background:var(--glass-strong);
+    position:absolute; top:100%; left:0;
+    background:var(--glass-strong);
     backdrop-filter:blur(30px) saturate(180%); -webkit-backdrop-filter:blur(30px) saturate(180%);
     border:1px solid var(--border); border-radius:10px; padding:4px;
     min-width:210px; box-shadow:0 12px 40px rgba(0,0,0,.22), inset 0 1px 0 rgba(255,255,255,.1);
@@ -1964,7 +1965,7 @@
     pointer-events:none; opacity:0; transition:opacity .15s; z-index:9990;
     box-shadow:0 4px 16px rgba(0,0,0,.18);
   }
-  .emb-tool-btn:hover .emb-tool-tooltip { opacity:1; }
+  /* tooltip is moved to body by JS; hover handled via JS mouseenter/leave */
 
   /* ── Canvas Workspace ── */
   .emb-workspace { flex:1; min-width:0; display:flex; flex-direction:column; overflow:hidden; }
@@ -8550,8 +8551,6 @@ QUY TẮC:
           closeMenus();
           if(!open){
             menu.classList.add('open'); btn.classList.add('open');
-            const r=btn.getBoundingClientRect();
-            menu.style.top=r.bottom+'px'; menu.style.left=r.left+'px';
           }
         });
       });
@@ -9021,15 +9020,21 @@ QUY TẮC:
       });
     }
 
-    // ── Tooltip position fix (use mousemove to place fixed tooltip) ──
+    // ── Tooltip: move to body so backdrop-filter parent can't trap fixed position ──
     function initTooltips() {
       document.querySelectorAll('.emb-tool-btn').forEach(btn=>{
         const tip=btn.querySelector('.emb-tool-tooltip'); if(!tip) return;
-        btn.addEventListener('mouseenter',e=>{
+        // Move tooltip out of toolbox into body
+        document.body.appendChild(tip);
+        btn.addEventListener('mouseenter',()=>{
           const r=btn.getBoundingClientRect();
           tip.style.left=(r.right+8)+'px';
           tip.style.top=(r.top+r.height/2)+'px';
           tip.style.transform='translateY(-50%)';
+          tip.style.opacity='1';
+        });
+        btn.addEventListener('mouseleave',()=>{
+          tip.style.opacity='0';
         });
       });
     }
