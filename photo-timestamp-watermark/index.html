@@ -1912,10 +1912,10 @@
   }
   .emb-menu-dropdown {
     position:absolute; top:100%; left:0;
-    background:var(--glass-strong);
+    background:color-mix(in srgb, var(--bg) 92%, var(--text) 8%);
     backdrop-filter:blur(30px) saturate(180%); -webkit-backdrop-filter:blur(30px) saturate(180%);
-    border:1px solid var(--border); border-radius:10px; padding:4px;
-    min-width:210px; box-shadow:0 12px 40px rgba(0,0,0,.22), inset 0 1px 0 rgba(255,255,255,.1);
+    border:1px solid var(--border-strong); border-radius:10px; padding:4px;
+    min-width:210px; box-shadow:0 12px 40px rgba(0,0,0,.28), inset 0 1px 0 rgba(255,255,255,.06);
     z-index:500; display:none;
   }
   .emb-menu-dropdown.open { display:block; animation:emb-dd-in .12s ease; }
@@ -2014,7 +2014,7 @@
   /* ── Context Menu ── */
   .emb-ctx-menu {
     position:fixed; z-index:9999; min-width:200px;
-    background:color-mix(in srgb, var(--bg) 96%, transparent);
+    background:color-mix(in srgb, var(--bg) 92%, var(--text) 8%);
     border:1px solid var(--border-strong); border-radius:10px;
     padding:4px; box-shadow:0 8px 32px rgba(0,0,0,.22), inset 0 1px 0 rgba(255,255,255,.1);
     backdrop-filter:blur(24px) saturate(180%); -webkit-backdrop-filter:blur(24px) saturate(180%);
@@ -4766,7 +4766,8 @@ Việt Nam</textarea>
   }
 
   document.addEventListener('keydown', e => {
-    // Skip if user is typing in an input/textarea
+    // Only handle when Tab 1 (timestamp) is active
+    if (!document.getElementById('pane-timestamp')?.classList.contains('active')) return;
     const tag = document.activeElement?.tagName;
     if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
     if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z' && !e.shiftKey) {
@@ -8100,8 +8101,8 @@ QUY TẮC:
       schedRender();
       updateStatus();
     }
-    function undo() { if(histIdx<=0) return; histIdx--; restore(history[histIdx]); schedRender(); updateStatus(); }
-    function redo() { if(histIdx>=history.length-1) return; histIdx++; restore(history[histIdx]); schedRender(); updateStatus(); }
+    function undo() { if(histIdx<=0) return; histIdx--; restore(history[histIdx]); flushGlobals(); schedRender(); updateStatus(); }
+    function redo() { if(histIdx>=history.length-1) return; histIdx++; restore(history[histIdx]); flushGlobals(); schedRender(); updateStatus(); }
 
     // ── Status ──
     function updateStatus() {
