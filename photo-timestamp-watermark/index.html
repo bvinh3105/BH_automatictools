@@ -1959,11 +1959,11 @@
     color:var(--accent-2); border-color:color-mix(in srgb, var(--accent-2) 35%, transparent);
   }
   .emb-tool-tooltip {
-    position:fixed; background:var(--glass-strong); backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px);
-    border:1px solid var(--border); border-radius:8px; padding:5px 10px;
+    position:fixed; background:color-mix(in srgb, var(--bg) 92%, var(--text) 8%);
+    border:1px solid var(--border-strong); border-radius:8px; padding:5px 10px;
     white-space:nowrap; font-size:11.5px; color:var(--text);
     pointer-events:none; opacity:0; transition:opacity .15s; z-index:9990;
-    box-shadow:0 4px 16px rgba(0,0,0,.18);
+    box-shadow:0 4px 16px rgba(0,0,0,.25);
   }
   /* tooltip is moved to body by JS; hover handled via JS mouseenter/leave */
 
