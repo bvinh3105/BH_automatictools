@@ -8525,8 +8525,7 @@ QUY TẮC:
           french:'crosshair',satin:'crosshair',fill:'cell',picker:'copy',eraser:'not-allowed',rect:'crosshair'};
         cv.style.cursor=cursors[tool]||'crosshair';
       }
-      // Clear rect selection when switching away
-      if(tool!=='rect'&&typeof clearRectSelection==='function') clearRectSelection();
+      // Keep rect selection visible when switching tools — user clears via Escape or context menu
     }
 
     // ── Panel Tabs ──
