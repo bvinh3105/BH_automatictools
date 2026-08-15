@@ -8039,11 +8039,12 @@ QUY TẮC:
       octx.clearRect(0,0,overlayCanvas.width,overlayCanvas.height);
       if (!drawStart) return;
       const cur=getIntersect(e);
+      const {ox,oy}=abOffset();
       octx.strokeStyle=currentColor; octx.lineWidth=Math.max(1.5,CELL_PX*.14);
       octx.lineCap='round'; octx.setLineDash([5,4]);
       octx.beginPath();
-      octx.moveTo(drawStart.x*CELL_PX,drawStart.y*CELL_PX);
-      octx.lineTo(cur.x*CELL_PX,cur.y*CELL_PX);
+      octx.moveTo(ox+drawStart.x*CELL_PX,oy+drawStart.y*CELL_PX);
+      octx.lineTo(ox+cur.x*CELL_PX,oy+cur.y*CELL_PX);
       octx.stroke(); octx.setLineDash([]);
     }
     function toolFill(e,phase) {
@@ -8662,47 +8663,51 @@ QUY TẮC:
     }
 
     // ── Rect / Mask Tool ──
-    let rectSel = null; // {x,y,w,h} in cell coords
+    let rectSel = null; // {x,y,w,h} in cell coords (relative to active artboard)
     let rectDraw = null; // drawing in progress {x0,y0}
+
+    // Get active artboard pixel offset in world canvas
+    function abOffset() {
+      const ab = artboards[activeAbIdx];
+      if (!ab) return {ox:WORLD_PAD, oy:WORLD_PAD};
+      return {ox: WORLD_PAD + ab.x * CELL_PX, oy: WORLD_PAD + ab.y * CELL_PX};
+    }
 
     function clearRectSelection() {
       rectSel=null; rectDraw=null;
-      const ov=document.getElementById('embMaskOverlay');
-      if(ov) ov.style.display='none';
+      octx.clearRect(0,0,overlayCanvas.width,overlayCanvas.height);
       updateCtxMaskItems();
       schedRender();
     }
 
     function updateRectOverlay() {
       if(!rectSel) return;
-      const ov=document.getElementById('embMaskOverlay'); if(!ov) return;
-      const inner=document.getElementById('embCanvasInner');
-      const pad=40;
-      ov.style.display='block';
-      ov.style.left=(pad+rectSel.x*CELL_PX*zoom)+'px';
-      ov.style.top=(pad+rectSel.y*CELL_PX*zoom)+'px';
-      ov.style.width=(rectSel.w*CELL_PX*zoom)+'px';
-      ov.style.height=(rectSel.h*CELL_PX*zoom)+'px';
-      // Position relative to inner div
-      ov.style.position='absolute';
+      const {ox,oy}=abOffset();
+      octx.clearRect(0,0,overlayCanvas.width,overlayCanvas.height);
+      const rx=ox+rectSel.x*CELL_PX, ry=oy+rectSel.y*CELL_PX;
+      const rw=rectSel.w*CELL_PX, rh=rectSel.h*CELL_PX;
+      octx.strokeStyle='#78A05C'; octx.lineWidth=2; octx.setLineDash([6,4]);
+      octx.fillStyle='rgba(120,160,92,0.12)';
+      octx.fillRect(rx,ry,rw,rh);
+      octx.strokeRect(rx+1,ry+1,rw-2,rh-2);
+      octx.setLineDash([]);
     }
 
     function toolRect(e,phase) {
       const {col,row}=getCellXY(e);
+      const {ox,oy}=abOffset();
       if(phase==='down') {
         rectDraw={x0:col,y0:row};
         rectSel=null;
-        const ov=document.getElementById('embMaskOverlay');
-        if(ov) ov.style.display='none';
+        octx.clearRect(0,0,overlayCanvas.width,overlayCanvas.height);
       } else if(phase==='move'&&rectDraw) {
         const x=Math.min(col,rectDraw.x0), y=Math.min(row,rectDraw.y0);
         const w=Math.abs(col-rectDraw.x0)+1, h=Math.abs(row-rectDraw.y0)+1;
-        // Draw on overlay
         octx.clearRect(0,0,overlayCanvas.width,overlayCanvas.height);
         octx.strokeStyle=currentColor; octx.lineWidth=2; octx.setLineDash([6,4]);
         octx.fillStyle=currentColor+'20';
-        octx.fillRect(x*CELL_PX,y*CELL_PX,w*CELL_PX,h*CELL_PX);
-        octx.strokeRect(x*CELL_PX+1,y*CELL_PX+1,w*CELL_PX-2,h*CELL_PX-2);
+        octx.fillRect(ox+x*CELL_PX,oy+y*CELL_PX,w*CELL_PX,h*CELL_PX);
+        octx.strokeRect(ox+x*CELL_PX+1,oy+y*CELL_PX+1,w*CELL_PX-2,h*CELL_PX-2);
         octx.setLineDash([]);
       } else if(phase==='up'&&rectDraw) {
         const x=Math.min(Math.max(col,0),gridCols-1);
@@ -8711,10 +8716,8 @@ QUY TẮC:
         const w=Math.abs(x-rectDraw.x0)+1, h=Math.abs(y-rectDraw.y0)+1;
         rectSel={x:x0,y:y0,w:Math.min(w,gridCols-x0),h:Math.min(h,gridRows-y0)};
         rectDraw=null;
-        octx.clearRect(0,0,overlayCanvas.width,overlayCanvas.height);
         updateRectOverlay();
         updateCtxMaskItems();
-        // Show tip
         const st=document.getElementById('embStatTool');
         if(st) st.textContent=`Rect ${rectSel.w}×${rectSel.h} ô — chuột phải để mask`;
       }
@@ -8722,16 +8725,17 @@ QUY TẮC:
 
     function applyRectMask() {
       if(!rectSel||!refImage) {alert('Cần ảnh tham chiếu và vùng chọn.');return;}
-      // Crop refImage to rectSel area and set as new refImage
+      const ab=artboards[activeAbIdx]; if(!ab) return;
+      const aw=ab.cols*CELL_PX, ah=ab.rows*CELL_PX;
+      // Crop refImage within rect area (artboard-local coords)
       const tc=document.createElement('canvas');
-      tc.width=mainCanvas.width; tc.height=mainCanvas.height;
+      tc.width=aw; tc.height=ah;
       const tctx=tc.getContext('2d');
-      // Draw only within rect
       tctx.save();
       tctx.beginPath();
       tctx.rect(rectSel.x*CELL_PX,rectSel.y*CELL_PX,rectSel.w*CELL_PX,rectSel.h*CELL_PX);
       tctx.clip();
-      tctx.drawImage(refImage,0,0,tc.width,tc.height);
+      tctx.drawImage(refImage,0,0,aw,ah);
       tctx.restore();
       const newImg=new Image();
       newImg.onload=()=>{
