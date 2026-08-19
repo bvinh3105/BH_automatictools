@@ -4857,19 +4857,22 @@ Việt Nam</textarea>
   );
 
   // ---------- Image dimensions & font sync ----------
-  // Preload natural dimensions for all files (non-blocking)
-  function loadImageDimensions() {
-    state.files.forEach(f => {
-      if (f._w) return; // already loaded
-      const img = new Image();
-      img.onload = () => {
-        f._w = img.naturalWidth;
-        f._h = img.naturalHeight;
-        computeRefWidth();
-      };
-      img.src = f.url;
+  // Load natural dimensions for ALL files, returns Promise that resolves
+  // when every image has been measured. Safe to call multiple times.
+  function loadAllDimensions() {
+    const promises = state.files.map(f => {
+      if (f._w) return Promise.resolve();
+      return new Promise(resolve => {
+        const img = new Image();
+        img.onload = () => { f._w = img.naturalWidth; f._h = img.naturalHeight; resolve(); };
+        img.onerror = () => resolve(); // skip broken images
+        img.src = f.url;
+      });
     });
+    return Promise.all(promises).then(() => computeRefWidth());
   }
+  // Fire-and-forget version for addFiles
+  function loadImageDimensions() { loadAllDimensions(); }
   // Compute median width as reference for font sync
   function computeRefWidth() {
     const widths = state.files.map(f => f._w).filter(Boolean);
@@ -4955,6 +4958,9 @@ Việt Nam</textarea>
     const btnProcess = document.getElementById('btnProcess');
     btnProcess.disabled = true;
     showDownloadBtns(false);
+
+    // Ensure all image dimensions are loaded for font sync
+    await loadAllDimensions();
 
     const dateStr = formatDate(document.getElementById('date').value, document.getElementById('dateFormat').value);
     const baseSec = timeToSec(document.getElementById('baseTime').value || '00:00:00');
@@ -5474,6 +5480,7 @@ Việt Nam</textarea>
   }
 
   async function stampOneWithCurrentSettings(index) {
+    await loadAllDimensions(); // ensure refWidth is ready
     const f = state.files[index];
     const dateStr = formatDate(document.getElementById('date').value, document.getElementById('dateFormat').value);
     const baseSec = timeToSec(document.getElementById('baseTime').value || '00:00:00');
@@ -5562,6 +5569,7 @@ Việt Nam</textarea>
   lbApplyAll.addEventListener('click', async () => {
     // Always sync config panel to main panel first
     syncMainFromLbConfig();
+    await loadAllDimensions(); // ensure refWidth is ready
 
     const newSize = lbFontOverride !== null ? lbFontOverride : parseFloat(lbFontSize.value);
     const mainInput = document.getElementById('fontSize');
