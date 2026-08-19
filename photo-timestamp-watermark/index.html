@@ -4960,9 +4960,27 @@ Việt Nam</textarea>
     btnProcess.disabled = true;
     showDownloadBtns(false);
 
-    // Ensure all image dimensions are loaded for font sync
-    await loadAllDimensions();
-    console.log('[PROCESS ALL] refWidth:', state._refWidth, '| files:', state.files.map(f => f.name + '=' + f._w + 'x' + f._h));
+    // Phase 1: measure every image to compute a single reference width
+    const widths = [];
+    for (const f of state.files) {
+      if (!f._w) {
+        const dim = await new Promise(res => {
+          const im = new Image();
+          im.onload = () => res({ w: im.naturalWidth, h: im.naturalHeight });
+          im.onerror = () => res(null);
+          im.src = f.url;
+        });
+        if (dim) { f._w = dim.w; f._h = dim.h; }
+      }
+      if (f._w) widths.push(f._w);
+    }
+    widths.sort((a, b) => a - b);
+    const mid = Math.floor(widths.length / 2);
+    const refW = widths.length
+      ? (widths.length % 2 ? widths[mid] : Math.round((widths[mid - 1] + widths[mid]) / 2))
+      : 0;
+    state._refWidth = refW;
+    console.log('[FONT SYNC] refWidth:', refW, '| widths:', widths);
 
     const dateStr = formatDate(document.getElementById('date').value, document.getElementById('dateFormat').value);
     const baseSec = timeToSec(document.getElementById('baseTime').value || '00:00:00');
@@ -4972,7 +4990,7 @@ Việt Nam</textarea>
       position: state.position,
       fontPercent: parseFloat(document.getElementById('fontSize').value),
       shadow: document.getElementById('shadow').checked,
-      refWidth: state._refWidth || 0,
+      refWidth: refW,
     };
     const times = buildTimestamps(baseSec, imin, imax, state.files.length);
 
@@ -5482,7 +5500,19 @@ Việt Nam</textarea>
   }
 
   async function stampOneWithCurrentSettings(index) {
-    await loadAllDimensions(); // ensure refWidth is ready
+    // Inline dimension scan for font sync
+    for (const ff of state.files) {
+      if (!ff._w) {
+        const dim = await new Promise(res => {
+          const im = new Image();
+          im.onload = () => res({ w: im.naturalWidth, h: im.naturalHeight });
+          im.onerror = () => res(null);
+          im.src = ff.url;
+        });
+        if (dim) { ff._w = dim.w; ff._h = dim.h; }
+      }
+    }
+    computeRefWidth();
     const f = state.files[index];
     const dateStr = formatDate(document.getElementById('date').value, document.getElementById('dateFormat').value);
     const baseSec = timeToSec(document.getElementById('baseTime').value || '00:00:00');
@@ -5571,7 +5601,19 @@ Việt Nam</textarea>
   lbApplyAll.addEventListener('click', async () => {
     // Always sync config panel to main panel first
     syncMainFromLbConfig();
-    await loadAllDimensions(); // ensure refWidth is ready
+    // Inline dimension scan for font sync
+    for (const f of state.files) {
+      if (!f._w) {
+        const dim = await new Promise(res => {
+          const im = new Image();
+          im.onload = () => res({ w: im.naturalWidth, h: im.naturalHeight });
+          im.onerror = () => res(null);
+          im.src = f.url;
+        });
+        if (dim) { f._w = dim.w; f._h = dim.h; }
+      }
+    }
+    computeRefWidth();
 
     const newSize = lbFontOverride !== null ? lbFontOverride : parseFloat(lbFontSize.value);
     const mainInput = document.getElementById('fontSize');
