@@ -6966,7 +6966,7 @@ Việt Nam</textarea>
             // stamp block ~380px wide × ~350px tall on both 1920x1080 and
             // 1080x1920, and even on 720x1280 or 1280x720.
             const fontPx = Math.max(20, Math.round(opts.fontPx));
-            console.log('[STAMP]', fileObj.name, '| WxH:', W + 'x' + H, '| fontPx:', fontPx);
+            console.log('[STAMP]', fileObj.name, '| WxH:', W + 'x' + H, '| fontPx:', fontPx, '| opts.fontPx:', opts.fontPx, '| font:', fontSpec);
             const fontSpec = `300 ${fontPx}px "San Francisco Display Light", "SF Pro Display Light", "SF Pro Display", -apple-system, "Roboto", "Segoe UI Light", "Segoe UI", "Helvetica Neue", Arial, sans-serif`;
             // Ensure Roboto is loaded before drawing (canvas doesn't wait for fonts otherwise)
             if (document.fonts && document.fonts.load) {
