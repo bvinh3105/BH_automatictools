@@ -4898,6 +4898,7 @@ Việt Nam</textarea>
           // Use refWidth (median) for consistent pixel size across all images
           const fontBaseW = opts.refWidth || W;
           const fontPx = Math.max(20, Math.round(fontBaseW * opts.fontPercent / 100));
+          console.log('[FONT SYNC]', fileObj.name, '| imgW:', W, '| refWidth:', opts.refWidth, '| fontBaseW:', fontBaseW, '| fontPx:', fontPx);
           const fontSpec = `300 ${fontPx}px "San Francisco Display Light", "SF Pro Display Light", "SF Pro Display", -apple-system, "Roboto", "Segoe UI Light", "Segoe UI", "Helvetica Neue", Arial, sans-serif`;
           // Ensure Roboto is loaded before drawing (canvas doesn't wait for fonts otherwise)
           if (document.fonts && document.fonts.load) {
@@ -4961,6 +4962,7 @@ Việt Nam</textarea>
 
     // Ensure all image dimensions are loaded for font sync
     await loadAllDimensions();
+    console.log('[PROCESS ALL] refWidth:', state._refWidth, '| files:', state.files.map(f => f.name + '=' + f._w + 'x' + f._h));
 
     const dateStr = formatDate(document.getElementById('date').value, document.getElementById('dateFormat').value);
     const baseSec = timeToSec(document.getElementById('baseTime').value || '00:00:00');
