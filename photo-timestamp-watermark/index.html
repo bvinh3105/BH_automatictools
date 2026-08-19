@@ -1502,6 +1502,20 @@
     color: rgba(255,255,255,0.6);
     pointer-events: none;
   }
+  .lbc-btn-row {
+    margin-top: auto;
+    display: flex;
+    gap: 6px;
+  }
+  .lbc-btn-row .lbc-apply {
+    margin-top: 0;
+    flex: 1;
+  }
+  .lbc-save-one {
+    background: rgba(165,187,146,0.85) !important;
+    color: #1a1f1a !important;
+  }
+  .lbc-save-one:hover { background: rgba(165,187,146,1) !important; }
 
   /* ---- Preview area (right side) ---- */
   .lb-split > .content {
@@ -3108,6 +3122,14 @@ Việt Nam</textarea>
 
       <div class="field">
         <div class="row-inline">
+          <input type="checkbox" id="fontSync" style="width:auto; margin:0" />
+          <label for="fontSync" style="cursor:pointer" data-i18n="fontSync">Đồng bộ cỡ chữ (cùng kích thước pixel cho mọi ảnh)</label>
+        </div>
+        <p class="hint" style="margin: 2px 0 0" data-i18n="fontSyncHint">Khi bật, tất cả ảnh trong folder sẽ có cỡ chữ giống nhau dù kích thước ảnh khác nhau.</p>
+      </div>
+
+      <div class="field">
+        <div class="row-inline">
           <input type="checkbox" id="shadow" checked style="width:auto; margin:0" />
           <label for="shadow" style="cursor:pointer" data-i18n="shadow">Đổ bóng mờ (dễ đọc trên nền sáng)</label>
         </div>
@@ -3198,7 +3220,10 @@ Việt Nam</textarea>
             <span data-i18n="shadow">Đổ bóng mờ</span>
           </label>
         </div>
-        <button class="lbc-apply" id="lbApplyAll" data-i18n="lbApplyAll">Áp dụng tất cả</button>
+        <div class="lbc-btn-row">
+          <button class="lbc-apply lbc-save-one" id="lbSaveOne" data-i18n="lbSaveOne">Lưu ảnh này</button>
+          <button class="lbc-apply" id="lbApplyAll" data-i18n="lbApplyAll">Áp dụng tất cả</button>
+        </div>
       </aside>
 
       <!-- Preview area -->
@@ -3787,7 +3812,10 @@ Việt Nam</textarea>
       lbNext: 'Sau ›',
       lbDownload: 'Tải ảnh này',
       lbFontLabel: 'Cỡ chữ',
+      lbSaveOne: 'Lưu ảnh này',
       lbApplyAll: 'Áp dụng tất cả',
+      fontSync: 'Đồng bộ cỡ chữ (cùng kích thước pixel cho mọi ảnh)',
+      fontSyncHint: 'Khi bật, tất cả ảnh trong folder sẽ có cỡ chữ giống nhau dù kích thước ảnh khác nhau.',
       // Actions bar
       actPhotos: 'ảnh',
       actProcessed: 'đã xử lý',
@@ -3840,7 +3868,10 @@ Việt Nam</textarea>
       lbNext: 'Next ›',
       lbDownload: 'Download this',
       lbFontLabel: 'Font size',
+      lbSaveOne: 'Save this photo',
       lbApplyAll: 'Apply to all',
+      fontSync: 'Sync font size (same pixel size for all photos)',
+      fontSyncHint: 'When enabled, all photos in a folder will have the same font size regardless of image dimensions.',
       actPhotos: 'photos',
       actProcessed: 'processed',
       btnReset: 'Reset results',
@@ -4512,9 +4543,10 @@ Việt Nam</textarea>
 
   // ---------- State ----------
   const state = {
-    files: [],   // {id, file, url, ts, processedBlob, status:'idle'|'processing'|'done'|'error', name, customName?}
+    files: [],   // {id, file, url, ts, processedBlob, status:'idle'|'processing'|'done'|'error', name, customName?, _w?, _h?}
     position: 'tr',
     processing: false,
+    _refWidth: 0, // median width for font sync
   };
   function showDownloadBtns(show) {
     const d = show ? '' : 'none';
@@ -4705,6 +4737,8 @@ Việt Nam</textarea>
     if (added) {
       // Reset any processed state since order changed
       state.files.forEach(f => { if (f.status === 'done') { f.processedBlob = null; f.status = 'idle'; } });
+      // Preload image dimensions for font sync
+      loadImageDimensions();
       // Clear inputs so re-selecting same files works
       fileInput.value = '';
       folderInput.value = '';
@@ -4834,6 +4868,29 @@ Việt Nam</textarea>
     document.getElementById(id).addEventListener('input', renderFiles)
   );
 
+  // ---------- Image dimensions & font sync ----------
+  // Preload natural dimensions for all files (non-blocking)
+  function loadImageDimensions() {
+    state.files.forEach(f => {
+      if (f._w) return; // already loaded
+      const img = new Image();
+      img.onload = () => {
+        f._w = img.naturalWidth;
+        f._h = img.naturalHeight;
+        computeRefWidth();
+      };
+      img.src = f.url;
+    });
+  }
+  // Compute median width as reference for font sync
+  function computeRefWidth() {
+    const widths = state.files.map(f => f._w).filter(Boolean);
+    if (!widths.length) { state._refWidth = 0; return; }
+    widths.sort((a, b) => a - b);
+    const mid = Math.floor(widths.length / 2);
+    state._refWidth = widths.length % 2 ? widths[mid] : Math.round((widths[mid - 1] + widths[mid]) / 2);
+  }
+
   // ---------- Canvas stamping ----------
   async function stampOne(fileObj, dateStr, timeStr, addressLines, opts) {
     return new Promise((resolve, reject) => {
@@ -4847,7 +4904,9 @@ Việt Nam</textarea>
           ctx.drawImage(img, 0, 0);
 
           const W = canvas.width, H = canvas.height;
-          const fontPx = Math.max(20, Math.round(W * opts.fontPercent / 100));
+          // When fontSync is on, use refWidth for consistent pixel size across images
+          const fontBaseW = opts.refWidth || W;
+          const fontPx = Math.max(20, Math.round(fontBaseW * opts.fontPercent / 100));
           const fontSpec = `300 ${fontPx}px "San Francisco Display Light", "SF Pro Display Light", "SF Pro Display", -apple-system, "Roboto", "Segoe UI Light", "Segoe UI", "Helvetica Neue", Arial, sans-serif`;
           // Ensure Roboto is loaded before drawing (canvas doesn't wait for fonts otherwise)
           if (document.fonts && document.fonts.load) {
@@ -4913,10 +4972,12 @@ Việt Nam</textarea>
     const baseSec = timeToSec(document.getElementById('baseTime').value || '00:00:00');
     const [imin, imax] = getIntervals();
     const addressLines = document.getElementById('lines').value.split('\n').filter(l => l.trim());
+    const fontSyncOn = document.getElementById('fontSync').checked;
     const opts = {
       position: state.position,
       fontPercent: parseFloat(document.getElementById('fontSize').value),
       shadow: document.getElementById('shadow').checked,
+      refWidth: fontSyncOn ? state._refWidth : 0,
     };
     const times = buildTimestamps(baseSec, imin, imax, state.files.length);
 
@@ -5190,6 +5251,7 @@ Việt Nam</textarea>
   const lbFontSizeMobile = document.getElementById('lbFontSizeMobile');
   const lbFontSizeValMobile = document.getElementById('lbFontSizeValMobile');
   const lbApplyAll = document.getElementById('lbApplyAll');
+  const lbSaveOne = document.getElementById('lbSaveOne');
   // Lightbox config panel elements
   const lbcDate = document.getElementById('lbcDate');
   const lbcFormat = document.getElementById('lbcFormat');
@@ -5252,7 +5314,9 @@ Việt Nam</textarea>
     const addressLines = document.getElementById('lines').value.split('\n').filter(l => l.trim());
     const timeStr = secToTime(times[lbIndex]);
 
-    const fontPx = Math.max(20, Math.round(W * fontPercent / 100));
+    // When fontSync is on, use refWidth for consistent pixel size
+    const fontBaseW = (document.getElementById('fontSync').checked && state._refWidth) ? state._refWidth : W;
+    const fontPx = Math.max(20, Math.round(fontBaseW * fontPercent / 100));
     const fontSpec = `300 ${fontPx}px "San Francisco Display Light", "SF Pro Display Light", "SF Pro Display", -apple-system, "Roboto", "Segoe UI Light", "Segoe UI", "Helvetica Neue", Arial, sans-serif`;
     lbCtx.font = fontSpec;
     lbCtx.textBaseline = 'top';
@@ -5429,6 +5493,7 @@ Việt Nam</textarea>
     const [imin, imax] = getIntervals();
     const times = buildTimestamps(baseSec, imin, imax, state.files.length);
     const addressLines = document.getElementById('lines').value.split('\n').filter(l => l.trim());
+    const fontSyncOn = document.getElementById('fontSync').checked;
     const opts = {
       position: state.position,
       // Use override if set (lightbox slider), otherwise main input
@@ -5436,6 +5501,7 @@ Việt Nam</textarea>
         ? lbFontOverride
         : parseFloat(document.getElementById('fontSize').value),
       shadow: document.getElementById('shadow').checked,
+      refWidth: fontSyncOn ? state._refWidth : 0,
     };
     return stampOne(f, dateStr, secToTime(times[index]), addressLines, opts);
   }
@@ -5547,10 +5613,12 @@ Việt Nam</textarea>
     const [imin, imax] = getIntervals();
     const times = buildTimestamps(baseSec, imin, imax, state.files.length);
     const addressLines = document.getElementById('lines').value.split('\n').filter(l => l.trim());
+    const fontSyncOn = document.getElementById('fontSync').checked;
     const opts = {
       position: state.position,
       fontPercent: newSize,
       shadow: document.getElementById('shadow').checked,
+      refWidth: fontSyncOn ? state._refWidth : 0,
     };
     const bar = document.getElementById('progressBar');
     let done = 0;
@@ -5579,6 +5647,44 @@ Việt Nam</textarea>
     }
     lbApplyAll.classList.remove('busy');
     lbApplyAll.textContent = originalText;
+    if (lightbox.classList.contains('open')) await renderLightbox();
+  });
+
+  // Save only the current photo with current settings
+  lbSaveOne.addEventListener('click', async () => {
+    const f = state.files[lbIndex];
+    if (!f) return;
+    // Sync config panel to main
+    syncMainFromLbConfig();
+    const newSize = lbFontOverride !== null ? lbFontOverride : parseFloat(lbFontSize.value);
+    // Update main font slider to match
+    const mainInput = document.getElementById('fontSize');
+    mainInput.value = newSize;
+    mainInput.dispatchEvent(new Event('input', { bubbles: true }));
+
+    lbSaveOne.classList.add('busy');
+    const originalText = lbSaveOne.textContent;
+    lbSaveOne.textContent = 'Đang lưu…';
+
+    try {
+      const blob = await stampOneWithCurrentSettings(lbIndex);
+      f.processedBlob = blob;
+      f.status = 'done';
+    } catch (err) {
+      console.error(err);
+      f.status = 'error';
+    }
+
+    lbFontOverride = null;
+    renderFiles();
+    // Update progress/download buttons
+    document.getElementById('statDone').textContent = state.files.filter(x => x.status === 'done').length;
+    if (state.files.every(x => x.status === 'done' || x.status === 'error')) {
+      showDownloadBtns(true);
+    }
+
+    lbSaveOne.classList.remove('busy');
+    lbSaveOne.textContent = originalText;
     if (lightbox.classList.contains('open')) await renderLightbox();
   });
 
