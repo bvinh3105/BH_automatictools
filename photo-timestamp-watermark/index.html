@@ -1502,20 +1502,6 @@
     color: rgba(255,255,255,0.6);
     pointer-events: none;
   }
-  .lbc-btn-row {
-    margin-top: auto;
-    display: flex;
-    flex-direction: column;
-    gap: 5px;
-  }
-  .lbc-btn-row .lbc-apply {
-    margin-top: 0;
-  }
-  .lbc-save-one {
-    background: rgba(165,187,146,0.85) !important;
-    color: #1a1f1a !important;
-  }
-  .lbc-save-one:hover { background: rgba(165,187,146,1) !important; }
 
   /* ---- Preview area (right side) ---- */
   .lb-split > .content {
@@ -3116,8 +3102,8 @@ Việt Nam</textarea>
       </div>
 
       <div class="field">
-        <div class="split"><label for="fontSize" data-i18n="fontSize">Cỡ chữ (px — cùng kích thước cho mọi ảnh)</label><span class="r val" id="fontSizeLabel">100 px</span></div>
-        <input type="range" id="fontSize" min="30" max="300" step="1" value="100" />
+        <div class="split"><label for="fontSize" data-i18n="fontSize">Cỡ chữ (% chiều rộng ảnh)</label><span class="r val" id="fontSizeLabel">2.6%</span></div>
+        <input type="range" id="fontSize" min="1.5" max="5" step="0.1" value="2.6" />
       </div>
 
       <div class="field">
@@ -3203,8 +3189,8 @@ Việt Nam</textarea>
           </div>
         </div>
         <div class="lbc-group">
-          <div class="lbc-row-label"><label data-i18n="lbFontLabel">Cỡ chữ (px)</label><span class="lbc-val" id="lbFontSizeVal">100 px</span></div>
-          <input type="range" id="lbFontSize" min="30" max="300" step="1" value="100" class="lb-slider" />
+          <div class="lbc-row-label"><label data-i18n="lbFontLabel">Cỡ chữ</label><span class="lbc-val" id="lbFontSizeVal">2.6%</span></div>
+          <input type="range" id="lbFontSize" min="1.5" max="5" step="0.1" value="2.6" class="lb-slider" />
         </div>
         <div class="lbc-group">
           <label class="lbc-check">
@@ -3212,10 +3198,7 @@ Việt Nam</textarea>
             <span data-i18n="shadow">Đổ bóng mờ</span>
           </label>
         </div>
-        <div class="lbc-btn-row">
-          <button class="lbc-apply lbc-save-one" id="lbSaveOne" data-i18n="lbSaveOne">Lưu ảnh này</button>
-          <button class="lbc-apply" id="lbApplyAll" data-i18n="lbApplyAll">Áp dụng tất cả</button>
-        </div>
+        <button class="lbc-apply" id="lbApplyAll" data-i18n="lbApplyAll">Áp dụng tất cả</button>
       </aside>
 
       <!-- Preview area -->
@@ -3228,9 +3211,9 @@ Việt Nam</textarea>
 
     <!-- Mobile-only font adjust (hidden on desktop where config panel exists) -->
     <div class="lb-adjust lb-adjust-mobile" id="lbAdjust">
-      <span class="lb-adjust-label" data-i18n="lbFontLabel">Cỡ chữ (px)</span>
-      <input type="range" id="lbFontSizeMobile" min="30" max="300" step="1" value="100" class="lb-slider" />
-      <span class="lb-adjust-value" id="lbFontSizeValMobile">100 px</span>
+      <span class="lb-adjust-label" data-i18n="lbFontLabel">Cỡ chữ</span>
+      <input type="range" id="lbFontSizeMobile" min="1.5" max="5" step="0.1" value="2.6" class="lb-slider" />
+      <span class="lb-adjust-value" id="lbFontSizeValMobile">2.6%</span>
     </div>
 
     <div class="lbbar">
@@ -3784,7 +3767,7 @@ Việt Nam</textarea>
       posTR: '↗ Trên phải',
       posBL: '↙ Dưới trái',
       posBR: '↘ Dưới phải',
-      fontSize: 'Cỡ chữ (px — cùng kích thước cho mọi ảnh)',
+      fontSize: 'Cỡ chữ (% chiều rộng ảnh)',
       shadow: 'Đổ bóng mờ (dễ đọc trên nền sáng)',
       previewLabel: 'Preview dòng đầu',
       // Files panel
@@ -3804,7 +3787,6 @@ Việt Nam</textarea>
       lbNext: 'Sau ›',
       lbDownload: 'Tải ảnh này',
       lbFontLabel: 'Cỡ chữ',
-      lbSaveOne: 'Lưu ảnh này',
       lbApplyAll: 'Áp dụng tất cả',
       // Actions bar
       actPhotos: 'ảnh',
@@ -3840,7 +3822,7 @@ Việt Nam</textarea>
       posTR: '↗ Top right',
       posBL: '↙ Bottom left',
       posBR: '↘ Bottom right',
-      fontSize: 'Font size (px — same size on every image)',
+      fontSize: 'Font size (% of image width)',
       shadow: 'Drop shadow (easier to read on light backgrounds)',
       previewLabel: 'First line preview',
       photos: 'Photos',
@@ -3858,7 +3840,6 @@ Việt Nam</textarea>
       lbNext: 'Next ›',
       lbDownload: 'Download this',
       lbFontLabel: 'Font size',
-      lbSaveOne: 'Save this photo',
       lbApplyAll: 'Apply to all',
       actPhotos: 'photos',
       actProcessed: 'processed',
@@ -4530,9 +4511,8 @@ Việt Nam</textarea>
   }
 
   // ---------- State ----------
-  console.log('%c[BH_automatictools] Tab 1 build 2026-08-19-v5 (ABSOLUTE PIXEL font — identical stamp size on every image)', 'color:#A5BB92;font-weight:bold');
   const state = {
-    files: [],   // {id, file, url, ts, processedBlob, status:'idle'|'processing'|'done'|'error', name, customName?, _w?, _h?}
+    files: [],   // {id, file, url, ts, processedBlob, status:'idle'|'processing'|'done'|'error', name, customName?}
     position: 'tr',
     processing: false,
   };
@@ -4558,7 +4538,7 @@ Việt Nam</textarea>
   const fontSizeEl = document.getElementById('fontSize');
   const fontSizeLabel = document.getElementById('fontSizeLabel');
   fontSizeEl.addEventListener('input', () => {
-    fontSizeLabel.textContent = fontSizeEl.value + ' px';
+    fontSizeLabel.textContent = fontSizeEl.value + '%';
   });
 
   // ---------- Preview ----------
@@ -4867,14 +4847,7 @@ Việt Nam</textarea>
           ctx.drawImage(img, 0, 0);
 
           const W = canvas.width, H = canvas.height;
-          // Absolute-pixel font: every image (landscape, portrait, small, large)
-          // gets the EXACT same fontPx from the slider. Margins scale from
-          // fontPx too, so the whole stamp block has identical pixel dimensions
-          // on every image regardless of aspect ratio. Example: fontPx=100 →
-          // stamp block ~380px wide × ~350px tall on both 1920x1080 and
-          // 1080x1920, and even on 720x1280 or 1280x720.
-          const fontPx = Math.max(20, Math.round(opts.fontPx));
-          console.log('[STAMP]', fileObj.name, '| WxH:', W + 'x' + H, '| fontPx:', fontPx);
+          const fontPx = Math.max(20, Math.round(W * opts.fontPercent / 100));
           const fontSpec = `300 ${fontPx}px "San Francisco Display Light", "SF Pro Display Light", "SF Pro Display", -apple-system, "Roboto", "Segoe UI Light", "Segoe UI", "Helvetica Neue", Arial, sans-serif`;
           // Ensure Roboto is loaded before drawing (canvas doesn't wait for fonts otherwise)
           if (document.fonts && document.fonts.load) {
@@ -4884,8 +4857,8 @@ Việt Nam</textarea>
           ctx.textBaseline = 'top';
 
           const lines = [`${dateStr} at ${timeStr}`, ...addressLines];
-          const marginX = Math.round(fontPx * 1.1);   // ~110px when fontPx=100
-          const marginY = Math.round(fontPx * 0.85);  // ~85px  when fontPx=100
+          const marginX = Math.round(W * 0.028);
+          const marginY = Math.round(H * 0.022);
           const lineH = Math.round(fontPx * 1.15);
           const totalH = lineH * lines.length;
 
@@ -4942,7 +4915,7 @@ Việt Nam</textarea>
     const addressLines = document.getElementById('lines').value.split('\n').filter(l => l.trim());
     const opts = {
       position: state.position,
-      fontPx: parseFloat(document.getElementById('fontSize').value),
+      fontPercent: parseFloat(document.getElementById('fontSize').value),
       shadow: document.getElementById('shadow').checked,
     };
     const times = buildTimestamps(baseSec, imin, imax, state.files.length);
@@ -5217,7 +5190,6 @@ Việt Nam</textarea>
   const lbFontSizeMobile = document.getElementById('lbFontSizeMobile');
   const lbFontSizeValMobile = document.getElementById('lbFontSizeValMobile');
   const lbApplyAll = document.getElementById('lbApplyAll');
-  const lbSaveOne = document.getElementById('lbSaveOne');
   // Lightbox config panel elements
   const lbcDate = document.getElementById('lbcDate');
   const lbcFormat = document.getElementById('lbcFormat');
@@ -5262,7 +5234,7 @@ Việt Nam</textarea>
 
   // Draw current photo + text overlay directly to <canvas>.
   // Fast enough to run on every slider tick (no blob encoding, no reload).
-  function drawLbCanvas(fontPxIn) {
+  function drawLbCanvas(fontPercent) {
     const f = state.files[lbIndex];
     if (!f || !lbSourceImg || lbSourceFileId !== f.id) return;
     const W = lbSourceImg.naturalWidth;
@@ -5280,15 +5252,14 @@ Việt Nam</textarea>
     const addressLines = document.getElementById('lines').value.split('\n').filter(l => l.trim());
     const timeStr = secToTime(times[lbIndex]);
 
-    // Absolute-pixel font: identical stamp block dimensions on every image
-    const fontPx = Math.max(20, Math.round(fontPxIn));
+    const fontPx = Math.max(20, Math.round(W * fontPercent / 100));
     const fontSpec = `300 ${fontPx}px "San Francisco Display Light", "SF Pro Display Light", "SF Pro Display", -apple-system, "Roboto", "Segoe UI Light", "Segoe UI", "Helvetica Neue", Arial, sans-serif`;
     lbCtx.font = fontSpec;
     lbCtx.textBaseline = 'top';
 
     const lines = [`${dateStr} at ${timeStr}`, ...addressLines];
-    const marginX = Math.round(fontPx * 1.1);
-    const marginY = Math.round(fontPx * 0.85);
+    const marginX = Math.round(W * 0.028);
+    const marginY = Math.round(H * 0.022);
     const lineH = Math.round(fontPx * 1.15);
     const totalH = lineH * lines.length;
 
@@ -5335,13 +5306,13 @@ Việt Nam</textarea>
     // Position buttons
     lbcPos.querySelectorAll('button').forEach(b =>
       b.classList.toggle('active', b.dataset.pos === state.position));
-    // Font size slider (pixels)
-    const cur = parseFloat(document.getElementById('fontSize').value) || 100;
+    // Font size slider
+    const cur = parseFloat(document.getElementById('fontSize').value) || 2.6;
     lbFontSize.value = cur;
-    lbFontSizeVal.textContent = Math.round(cur) + ' px';
+    lbFontSizeVal.textContent = cur.toFixed(1) + '%';
     if (lbFontSizeMobile) {
       lbFontSizeMobile.value = cur;
-      lbFontSizeValMobile.textContent = Math.round(cur) + ' px';
+      lbFontSizeValMobile.textContent = cur.toFixed(1) + '%';
     }
   }
 
@@ -5376,10 +5347,10 @@ Việt Nam</textarea>
     // Preload source image + font in background so first slider drag is instant
     const f = state.files[lbIndex];
     if (f) {
-      const cur = parseFloat(lbFontSize.value) || 100;
+      const cur = parseFloat(lbFontSize.value) || 2.6;
       loadLbSourceImage(f).catch(() => {});
       if (document.fonts && document.fonts.load) {
-        const fontPx = Math.max(20, Math.round(cur));
+        const fontPx = Math.max(20, Math.round((f.width || 1500) * cur / 100));
         const spec = `300 ${fontPx}px "San Francisco Display Light", "SF Pro Display Light", "SF Pro Display", -apple-system, sans-serif`;
         document.fonts.load(spec).catch(() => {});
       }
@@ -5461,7 +5432,7 @@ Việt Nam</textarea>
     const opts = {
       position: state.position,
       // Use override if set (lightbox slider), otherwise main input
-      fontPx: lbFontOverride !== null
+      fontPercent: lbFontOverride !== null
         ? lbFontOverride
         : parseFloat(document.getElementById('fontSize').value),
       shadow: document.getElementById('shadow').checked,
@@ -5498,8 +5469,8 @@ Việt Nam</textarea>
   // Shared handler: when either font slider changes, sync both + live preview
   function onLbFontSliderInput(sourceSlider) {
     const v = parseFloat(sourceSlider.value);
-    lbFontSizeVal.textContent = Math.round(v) + ' px';
-    if (lbFontSizeMobile) lbFontSizeValMobile.textContent = Math.round(v) + ' px';
+    lbFontSizeVal.textContent = v.toFixed(1) + '%';
+    if (lbFontSizeMobile) lbFontSizeValMobile.textContent = v.toFixed(1) + '%';
     // Keep both sliders in sync
     if (sourceSlider !== lbFontSize) lbFontSize.value = v;
     if (lbFontSizeMobile && sourceSlider !== lbFontSizeMobile) lbFontSizeMobile.value = v;
@@ -5578,7 +5549,7 @@ Việt Nam</textarea>
     const addressLines = document.getElementById('lines').value.split('\n').filter(l => l.trim());
     const opts = {
       position: state.position,
-      fontPx: newSize,
+      fontPercent: newSize,
       shadow: document.getElementById('shadow').checked,
     };
     const bar = document.getElementById('progressBar');
@@ -5608,44 +5579,6 @@ Việt Nam</textarea>
     }
     lbApplyAll.classList.remove('busy');
     lbApplyAll.textContent = originalText;
-    if (lightbox.classList.contains('open')) await renderLightbox();
-  });
-
-  // Save only the current photo with current settings
-  lbSaveOne.addEventListener('click', async () => {
-    const f = state.files[lbIndex];
-    if (!f) return;
-    // Sync config panel to main
-    syncMainFromLbConfig();
-    const newSize = lbFontOverride !== null ? lbFontOverride : parseFloat(lbFontSize.value);
-    // Update main font slider to match
-    const mainInput = document.getElementById('fontSize');
-    mainInput.value = newSize;
-    mainInput.dispatchEvent(new Event('input', { bubbles: true }));
-
-    lbSaveOne.classList.add('busy');
-    const originalText = lbSaveOne.textContent;
-    lbSaveOne.textContent = 'Đang lưu…';
-
-    try {
-      const blob = await stampOneWithCurrentSettings(lbIndex);
-      f.processedBlob = blob;
-      f.status = 'done';
-    } catch (err) {
-      console.error(err);
-      f.status = 'error';
-    }
-
-    lbFontOverride = null;
-    renderFiles();
-    // Update progress/download buttons
-    document.getElementById('statDone').textContent = state.files.filter(x => x.status === 'done').length;
-    if (state.files.every(x => x.status === 'done' || x.status === 'error')) {
-      showDownloadBtns(true);
-    }
-
-    lbSaveOne.classList.remove('busy');
-    lbSaveOne.textContent = originalText;
     if (lightbox.classList.contains('open')) await renderLightbox();
   });
 
