@@ -3116,8 +3116,8 @@ Việt Nam</textarea>
       </div>
 
       <div class="field">
-        <div class="split"><label for="fontSize" data-i18n="fontSize">Cỡ chữ (% chiều rộng ảnh)</label><span class="r val" id="fontSizeLabel">2.6%</span></div>
-        <input type="range" id="fontSize" min="1.5" max="5" step="0.1" value="2.6" />
+        <div class="split"><label for="fontSize" data-i18n="fontSize">Cỡ chữ (px — cùng kích thước cho mọi ảnh)</label><span class="r val" id="fontSizeLabel">100 px</span></div>
+        <input type="range" id="fontSize" min="30" max="300" step="1" value="100" />
       </div>
 
       <div class="field">
@@ -3203,8 +3203,8 @@ Việt Nam</textarea>
           </div>
         </div>
         <div class="lbc-group">
-          <div class="lbc-row-label"><label data-i18n="lbFontLabel">Cỡ chữ</label><span class="lbc-val" id="lbFontSizeVal">2.6%</span></div>
-          <input type="range" id="lbFontSize" min="1.5" max="5" step="0.1" value="2.6" class="lb-slider" />
+          <div class="lbc-row-label"><label data-i18n="lbFontLabel">Cỡ chữ (px)</label><span class="lbc-val" id="lbFontSizeVal">100 px</span></div>
+          <input type="range" id="lbFontSize" min="30" max="300" step="1" value="100" class="lb-slider" />
         </div>
         <div class="lbc-group">
           <label class="lbc-check">
@@ -3228,9 +3228,9 @@ Việt Nam</textarea>
 
     <!-- Mobile-only font adjust (hidden on desktop where config panel exists) -->
     <div class="lb-adjust lb-adjust-mobile" id="lbAdjust">
-      <span class="lb-adjust-label" data-i18n="lbFontLabel">Cỡ chữ</span>
-      <input type="range" id="lbFontSizeMobile" min="1.5" max="5" step="0.1" value="2.6" class="lb-slider" />
-      <span class="lb-adjust-value" id="lbFontSizeValMobile">2.6%</span>
+      <span class="lb-adjust-label" data-i18n="lbFontLabel">Cỡ chữ (px)</span>
+      <input type="range" id="lbFontSizeMobile" min="30" max="300" step="1" value="100" class="lb-slider" />
+      <span class="lb-adjust-value" id="lbFontSizeValMobile">100 px</span>
     </div>
 
     <div class="lbbar">
@@ -3784,7 +3784,7 @@ Việt Nam</textarea>
       posTR: '↗ Trên phải',
       posBL: '↙ Dưới trái',
       posBR: '↘ Dưới phải',
-      fontSize: 'Cỡ chữ (% chiều rộng ảnh)',
+      fontSize: 'Cỡ chữ (px — cùng kích thước cho mọi ảnh)',
       shadow: 'Đổ bóng mờ (dễ đọc trên nền sáng)',
       previewLabel: 'Preview dòng đầu',
       // Files panel
@@ -3840,7 +3840,7 @@ Việt Nam</textarea>
       posTR: '↗ Top right',
       posBL: '↙ Bottom left',
       posBR: '↘ Bottom right',
-      fontSize: 'Font size (% of image width)',
+      fontSize: 'Font size (px — same size on every image)',
       shadow: 'Drop shadow (easier to read on light backgrounds)',
       previewLabel: 'First line preview',
       photos: 'Photos',
@@ -4530,7 +4530,7 @@ Việt Nam</textarea>
   }
 
   // ---------- State ----------
-  console.log('%c[BH_automatictools] Tab 1 build 2026-08-19-v4 (font sync via %-of-width; matches fit-to-width viewers)', 'color:#A5BB92;font-weight:bold');
+  console.log('%c[BH_automatictools] Tab 1 build 2026-08-19-v5 (ABSOLUTE PIXEL font — identical stamp size on every image)', 'color:#A5BB92;font-weight:bold');
   const state = {
     files: [],   // {id, file, url, ts, processedBlob, status:'idle'|'processing'|'done'|'error', name, customName?, _w?, _h?}
     position: 'tr',
@@ -4558,7 +4558,7 @@ Việt Nam</textarea>
   const fontSizeEl = document.getElementById('fontSize');
   const fontSizeLabel = document.getElementById('fontSizeLabel');
   fontSizeEl.addEventListener('input', () => {
-    fontSizeLabel.textContent = fontSizeEl.value + '%';
+    fontSizeLabel.textContent = fontSizeEl.value + ' px';
   });
 
   // ---------- Preview ----------
@@ -4867,12 +4867,13 @@ Việt Nam</textarea>
           ctx.drawImage(img, 0, 0);
 
           const W = canvas.width, H = canvas.height;
-          // Font sync via % of width: every image in the batch uses the same
-          // fontPercent, so on fit-to-width viewers (Zalo, Facebook, Messenger,
-          // phone galleries) all watermarks display at the SAME visual size —
-          // portrait and landscape both fit to container width, and text scales
-          // with the same ratio.
-          const fontPx = Math.max(20, Math.round(W * opts.fontPercent / 100));
+          // Absolute-pixel font: every image (landscape, portrait, small, large)
+          // gets the EXACT same fontPx from the slider. Margins scale from
+          // fontPx too, so the whole stamp block has identical pixel dimensions
+          // on every image regardless of aspect ratio. Example: fontPx=100 →
+          // stamp block ~380px wide × ~350px tall on both 1920x1080 and
+          // 1080x1920, and even on 720x1280 or 1280x720.
+          const fontPx = Math.max(20, Math.round(opts.fontPx));
           console.log('[STAMP]', fileObj.name, '| WxH:', W + 'x' + H, '| fontPx:', fontPx);
           const fontSpec = `300 ${fontPx}px "San Francisco Display Light", "SF Pro Display Light", "SF Pro Display", -apple-system, "Roboto", "Segoe UI Light", "Segoe UI", "Helvetica Neue", Arial, sans-serif`;
           // Ensure Roboto is loaded before drawing (canvas doesn't wait for fonts otherwise)
@@ -4883,8 +4884,8 @@ Việt Nam</textarea>
           ctx.textBaseline = 'top';
 
           const lines = [`${dateStr} at ${timeStr}`, ...addressLines];
-          const marginX = Math.round(W * 0.028);
-          const marginY = Math.round(H * 0.022);
+          const marginX = Math.round(fontPx * 1.1);   // ~110px when fontPx=100
+          const marginY = Math.round(fontPx * 0.85);  // ~85px  when fontPx=100
           const lineH = Math.round(fontPx * 1.15);
           const totalH = lineH * lines.length;
 
@@ -4941,7 +4942,7 @@ Việt Nam</textarea>
     const addressLines = document.getElementById('lines').value.split('\n').filter(l => l.trim());
     const opts = {
       position: state.position,
-      fontPercent: parseFloat(document.getElementById('fontSize').value),
+      fontPx: parseFloat(document.getElementById('fontSize').value),
       shadow: document.getElementById('shadow').checked,
     };
     const times = buildTimestamps(baseSec, imin, imax, state.files.length);
@@ -5261,7 +5262,7 @@ Việt Nam</textarea>
 
   // Draw current photo + text overlay directly to <canvas>.
   // Fast enough to run on every slider tick (no blob encoding, no reload).
-  function drawLbCanvas(fontPercent) {
+  function drawLbCanvas(fontPxIn) {
     const f = state.files[lbIndex];
     if (!f || !lbSourceImg || lbSourceFileId !== f.id) return;
     const W = lbSourceImg.naturalWidth;
@@ -5279,15 +5280,15 @@ Việt Nam</textarea>
     const addressLines = document.getElementById('lines').value.split('\n').filter(l => l.trim());
     const timeStr = secToTime(times[lbIndex]);
 
-    // Font sync via % of width — matches fit-to-width viewers
-    const fontPx = Math.max(20, Math.round(W * fontPercent / 100));
+    // Absolute-pixel font: identical stamp block dimensions on every image
+    const fontPx = Math.max(20, Math.round(fontPxIn));
     const fontSpec = `300 ${fontPx}px "San Francisco Display Light", "SF Pro Display Light", "SF Pro Display", -apple-system, "Roboto", "Segoe UI Light", "Segoe UI", "Helvetica Neue", Arial, sans-serif`;
     lbCtx.font = fontSpec;
     lbCtx.textBaseline = 'top';
 
     const lines = [`${dateStr} at ${timeStr}`, ...addressLines];
-    const marginX = Math.round(W * 0.028);
-    const marginY = Math.round(H * 0.022);
+    const marginX = Math.round(fontPx * 1.1);
+    const marginY = Math.round(fontPx * 0.85);
     const lineH = Math.round(fontPx * 1.15);
     const totalH = lineH * lines.length;
 
@@ -5334,13 +5335,13 @@ Việt Nam</textarea>
     // Position buttons
     lbcPos.querySelectorAll('button').forEach(b =>
       b.classList.toggle('active', b.dataset.pos === state.position));
-    // Font size slider
-    const cur = parseFloat(document.getElementById('fontSize').value) || 2.6;
+    // Font size slider (pixels)
+    const cur = parseFloat(document.getElementById('fontSize').value) || 100;
     lbFontSize.value = cur;
-    lbFontSizeVal.textContent = cur.toFixed(1) + '%';
+    lbFontSizeVal.textContent = Math.round(cur) + ' px';
     if (lbFontSizeMobile) {
       lbFontSizeMobile.value = cur;
-      lbFontSizeValMobile.textContent = cur.toFixed(1) + '%';
+      lbFontSizeValMobile.textContent = Math.round(cur) + ' px';
     }
   }
 
@@ -5375,10 +5376,10 @@ Việt Nam</textarea>
     // Preload source image + font in background so first slider drag is instant
     const f = state.files[lbIndex];
     if (f) {
-      const cur = parseFloat(lbFontSize.value) || 2.6;
+      const cur = parseFloat(lbFontSize.value) || 100;
       loadLbSourceImage(f).catch(() => {});
       if (document.fonts && document.fonts.load) {
-        const fontPx = Math.max(20, Math.round((f.width || 1500) * cur / 100));
+        const fontPx = Math.max(20, Math.round(cur));
         const spec = `300 ${fontPx}px "San Francisco Display Light", "SF Pro Display Light", "SF Pro Display", -apple-system, sans-serif`;
         document.fonts.load(spec).catch(() => {});
       }
@@ -5460,7 +5461,7 @@ Việt Nam</textarea>
     const opts = {
       position: state.position,
       // Use override if set (lightbox slider), otherwise main input
-      fontPercent: lbFontOverride !== null
+      fontPx: lbFontOverride !== null
         ? lbFontOverride
         : parseFloat(document.getElementById('fontSize').value),
       shadow: document.getElementById('shadow').checked,
@@ -5497,8 +5498,8 @@ Việt Nam</textarea>
   // Shared handler: when either font slider changes, sync both + live preview
   function onLbFontSliderInput(sourceSlider) {
     const v = parseFloat(sourceSlider.value);
-    lbFontSizeVal.textContent = v.toFixed(1) + '%';
-    if (lbFontSizeMobile) lbFontSizeValMobile.textContent = v.toFixed(1) + '%';
+    lbFontSizeVal.textContent = Math.round(v) + ' px';
+    if (lbFontSizeMobile) lbFontSizeValMobile.textContent = Math.round(v) + ' px';
     // Keep both sliders in sync
     if (sourceSlider !== lbFontSize) lbFontSize.value = v;
     if (lbFontSizeMobile && sourceSlider !== lbFontSizeMobile) lbFontSizeMobile.value = v;
@@ -5577,7 +5578,7 @@ Việt Nam</textarea>
     const addressLines = document.getElementById('lines').value.split('\n').filter(l => l.trim());
     const opts = {
       position: state.position,
-      fontPercent: newSize,
+      fontPx: newSize,
       shadow: document.getElementById('shadow').checked,
     };
     const bar = document.getElementById('progressBar');
