@@ -1505,11 +1505,11 @@
   .lbc-btn-row {
     margin-top: auto;
     display: flex;
-    gap: 6px;
+    flex-direction: column;
+    gap: 5px;
   }
   .lbc-btn-row .lbc-apply {
     margin-top: 0;
-    flex: 1;
   }
   .lbc-save-one {
     background: rgba(165,187,146,0.85) !important;
@@ -3122,14 +3122,6 @@ Việt Nam</textarea>
 
       <div class="field">
         <div class="row-inline">
-          <input type="checkbox" id="fontSync" style="width:auto; margin:0" />
-          <label for="fontSync" style="cursor:pointer" data-i18n="fontSync">Đồng bộ cỡ chữ (cùng kích thước pixel cho mọi ảnh)</label>
-        </div>
-        <p class="hint" style="margin: 2px 0 0" data-i18n="fontSyncHint">Khi bật, tất cả ảnh trong folder sẽ có cỡ chữ giống nhau dù kích thước ảnh khác nhau.</p>
-      </div>
-
-      <div class="field">
-        <div class="row-inline">
           <input type="checkbox" id="shadow" checked style="width:auto; margin:0" />
           <label for="shadow" style="cursor:pointer" data-i18n="shadow">Đổ bóng mờ (dễ đọc trên nền sáng)</label>
         </div>
@@ -3814,8 +3806,6 @@ Việt Nam</textarea>
       lbFontLabel: 'Cỡ chữ',
       lbSaveOne: 'Lưu ảnh này',
       lbApplyAll: 'Áp dụng tất cả',
-      fontSync: 'Đồng bộ cỡ chữ (cùng kích thước pixel cho mọi ảnh)',
-      fontSyncHint: 'Khi bật, tất cả ảnh trong folder sẽ có cỡ chữ giống nhau dù kích thước ảnh khác nhau.',
       // Actions bar
       actPhotos: 'ảnh',
       actProcessed: 'đã xử lý',
@@ -3870,8 +3860,6 @@ Việt Nam</textarea>
       lbFontLabel: 'Font size',
       lbSaveOne: 'Save this photo',
       lbApplyAll: 'Apply to all',
-      fontSync: 'Sync font size (same pixel size for all photos)',
-      fontSyncHint: 'When enabled, all photos in a folder will have the same font size regardless of image dimensions.',
       actPhotos: 'photos',
       actProcessed: 'processed',
       btnReset: 'Reset results',
@@ -4904,7 +4892,7 @@ Việt Nam</textarea>
           ctx.drawImage(img, 0, 0);
 
           const W = canvas.width, H = canvas.height;
-          // When fontSync is on, use refWidth for consistent pixel size across images
+          // Use refWidth (median) for consistent pixel size across all images
           const fontBaseW = opts.refWidth || W;
           const fontPx = Math.max(20, Math.round(fontBaseW * opts.fontPercent / 100));
           const fontSpec = `300 ${fontPx}px "San Francisco Display Light", "SF Pro Display Light", "SF Pro Display", -apple-system, "Roboto", "Segoe UI Light", "Segoe UI", "Helvetica Neue", Arial, sans-serif`;
@@ -4972,12 +4960,11 @@ Việt Nam</textarea>
     const baseSec = timeToSec(document.getElementById('baseTime').value || '00:00:00');
     const [imin, imax] = getIntervals();
     const addressLines = document.getElementById('lines').value.split('\n').filter(l => l.trim());
-    const fontSyncOn = document.getElementById('fontSync').checked;
     const opts = {
       position: state.position,
       fontPercent: parseFloat(document.getElementById('fontSize').value),
       shadow: document.getElementById('shadow').checked,
-      refWidth: fontSyncOn ? state._refWidth : 0,
+      refWidth: state._refWidth || 0,
     };
     const times = buildTimestamps(baseSec, imin, imax, state.files.length);
 
@@ -5314,8 +5301,8 @@ Việt Nam</textarea>
     const addressLines = document.getElementById('lines').value.split('\n').filter(l => l.trim());
     const timeStr = secToTime(times[lbIndex]);
 
-    // When fontSync is on, use refWidth for consistent pixel size
-    const fontBaseW = (document.getElementById('fontSync').checked && state._refWidth) ? state._refWidth : W;
+    // Always use refWidth (median) for consistent pixel size across all images
+    const fontBaseW = state._refWidth || W;
     const fontPx = Math.max(20, Math.round(fontBaseW * fontPercent / 100));
     const fontSpec = `300 ${fontPx}px "San Francisco Display Light", "SF Pro Display Light", "SF Pro Display", -apple-system, "Roboto", "Segoe UI Light", "Segoe UI", "Helvetica Neue", Arial, sans-serif`;
     lbCtx.font = fontSpec;
@@ -5493,7 +5480,6 @@ Việt Nam</textarea>
     const [imin, imax] = getIntervals();
     const times = buildTimestamps(baseSec, imin, imax, state.files.length);
     const addressLines = document.getElementById('lines').value.split('\n').filter(l => l.trim());
-    const fontSyncOn = document.getElementById('fontSync').checked;
     const opts = {
       position: state.position,
       // Use override if set (lightbox slider), otherwise main input
@@ -5501,7 +5487,7 @@ Việt Nam</textarea>
         ? lbFontOverride
         : parseFloat(document.getElementById('fontSize').value),
       shadow: document.getElementById('shadow').checked,
-      refWidth: fontSyncOn ? state._refWidth : 0,
+      refWidth: state._refWidth || 0,
     };
     return stampOne(f, dateStr, secToTime(times[index]), addressLines, opts);
   }
@@ -5613,12 +5599,11 @@ Việt Nam</textarea>
     const [imin, imax] = getIntervals();
     const times = buildTimestamps(baseSec, imin, imax, state.files.length);
     const addressLines = document.getElementById('lines').value.split('\n').filter(l => l.trim());
-    const fontSyncOn = document.getElementById('fontSync').checked;
     const opts = {
       position: state.position,
       fontPercent: newSize,
       shadow: document.getElementById('shadow').checked,
-      refWidth: fontSyncOn ? state._refWidth : 0,
+      refWidth: state._refWidth || 0,
     };
     const bar = document.getElementById('progressBar');
     let done = 0;
