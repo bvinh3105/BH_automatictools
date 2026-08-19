@@ -6607,12 +6607,54 @@ Việt Nam</textarea>
       document.querySelectorAll('#posGrid button').forEach(x => x.classList.toggle('active', x === b));
     });
 
-    // ---------- Font size label ----------
+    // ---------- Font size label & Click to Edit ----------
     const fontSizeEl = document.getElementById('fontSize');
     const fontSizeLabel = document.getElementById('fontSizeLabel');
     fontSizeEl.addEventListener('input', () => {
       fontSizeLabel.textContent = fontSizeEl.value + ' px';
     });
+
+    function setupEditablePxLabel(labelEl, sliderEl) {
+      if (!labelEl || !sliderEl) return;
+      labelEl.style.cursor = 'pointer';
+      labelEl.title = 'Bấm để nhập số px trực tiếp';
+      labelEl.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (labelEl.querySelector('input')) return;
+        const cur = parseInt(sliderEl.value) || 100;
+        const input = document.createElement('input');
+        input.type = 'number';
+        input.min = '10';
+        input.max = '500';
+        input.value = cur;
+        input.style.width = '60px';
+        input.style.textAlign = 'center';
+        input.style.background = 'var(--bg-input, #222)';
+        input.style.color = '#fff';
+        input.style.border = '1px solid var(--accent, #3b82f6)';
+        input.style.borderRadius = '3px';
+        labelEl.textContent = '';
+        labelEl.appendChild(input);
+        input.focus();
+        input.select();
+
+        function commit() {
+          let val = parseInt(input.value);
+          if (isNaN(val) || val <= 0) val = cur;
+          sliderEl.value = val;
+          sliderEl.dispatchEvent(new Event('input', { bubbles: true }));
+          labelEl.textContent = `${val} px`;
+        }
+        input.addEventListener('keydown', ev => {
+          if (ev.key === 'Enter') { ev.preventDefault(); commit(); }
+          if (ev.key === 'Escape') { ev.preventDefault(); labelEl.textContent = `${cur} px`; }
+        });
+        input.addEventListener('blur', commit);
+        input.addEventListener('click', ev => ev.stopPropagation());
+      });
+    }
+
+    setupEditablePxLabel(fontSizeLabel, fontSizeEl);
 
     // ---------- Preview ----------
     function updatePreview() {
@@ -6630,10 +6672,7 @@ Việt Nam</textarea>
       pv.classList.add('pos-' + state.position);
       // Shadow toggle
       pv.classList.toggle('shadow', document.getElementById('shadow').checked);
-      // Font size — scale theo % chiều rộng ảnh giả định 1500px để preview trực quan
-      const pct = parseFloat(document.getElementById('fontSize').value) || 2.6;
-      const previewPx = Math.max(11, Math.round(pct * 1500 / 100 * 0.35)); // ~14–26px
-      pv.style.fontSize = previewPx + 'px';
+      pv.style.fontSize = ''; // Reset ve CSS mac dinh
     }
     function escapeHtml(s) {
       return s.replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -7561,6 +7600,8 @@ Việt Nam</textarea>
       scheduleLbCanvasDraw();
     }
     lbFontSize.addEventListener('input', () => onLbFontSliderInput(lbFontSize));
+    setupEditablePxLabel(lbFontSizeVal, lbFontSize);
+    if (typeof lbFontSizeValMobile !== 'undefined' && lbFontSizeMobile) setupEditablePxLabel(lbFontSizeValMobile, lbFontSizeMobile);
     if (lbFontSizeMobile) lbFontSizeMobile.addEventListener('input', () => onLbFontSliderInput(lbFontSizeMobile));
 
     // Lightbox config panel: live preview on every input change
