@@ -4530,11 +4530,13 @@ Việt Nam</textarea>
   }
 
   // ---------- State ----------
+  console.log('%c[BH_automatictools] Tab 1 build 2026-08-19-v3 (font sync via long-side median)', 'color:#A5BB92;font-weight:bold');
   const state = {
     files: [],   // {id, file, url, ts, processedBlob, status:'idle'|'processing'|'done'|'error', name, customName?, _w?, _h?}
     position: 'tr',
     processing: false,
-    _refWidth: 0, // median width for font sync
+    _refBase: 0,  // median long-side for font sync (orientation-agnostic)
+    _refWidth: 0, // legacy alias, kept in sync
   };
   function showDownloadBtns(show) {
     const d = show ? '' : 'none';
@@ -4857,30 +4859,35 @@ Việt Nam</textarea>
   );
 
   // ---------- Image dimensions & font sync ----------
-  // Load natural dimensions for ALL files, returns Promise that resolves
-  // when every image has been measured. Safe to call multiple times.
-  function loadAllDimensions() {
-    const promises = state.files.map(f => {
-      if (f._w) return Promise.resolve();
-      return new Promise(resolve => {
+  // Load natural dimensions for ALL files sequentially with await guarantees.
+  // Returns a Promise resolved AFTER refBase has been computed.
+  async function ensureDimensionsReady() {
+    for (const f of state.files) {
+      if (f._w && f._h) continue;
+      await new Promise(resolve => {
         const img = new Image();
         img.onload = () => { f._w = img.naturalWidth; f._h = img.naturalHeight; resolve(); };
-        img.onerror = () => resolve(); // skip broken images
+        img.onerror = () => resolve();
         img.src = f.url;
       });
-    });
-    return Promise.all(promises).then(() => computeRefWidth());
+    }
+    computeRefBase();
+    return state._refBase;
   }
-  // Fire-and-forget version for addFiles
-  function loadImageDimensions() { loadAllDimensions(); }
-  // Compute median width as reference for font sync
-  function computeRefWidth() {
-    const widths = state.files.map(f => f._w).filter(Boolean);
-    if (!widths.length) { state._refWidth = 0; return; }
-    widths.sort((a, b) => a - b);
-    const mid = Math.floor(widths.length / 2);
-    state._refWidth = widths.length % 2 ? widths[mid] : Math.round((widths[mid - 1] + widths[mid]) / 2);
+  // Fire-and-forget for addFiles — kicks off dimension loading in background
+  function loadImageDimensions() { ensureDimensionsReady(); }
+  // Compute reference base = median of the LONG SIDE of every image.
+  // Long side (= max(W,H)) is orientation-agnostic so landscape and portrait
+  // photos of the same megapixel share the same base → identical font pixels.
+  function computeRefBase() {
+    const longs = state.files.map(f => (f._w && f._h) ? Math.max(f._w, f._h) : 0).filter(Boolean);
+    if (!longs.length) { state._refBase = 0; return; }
+    longs.sort((a, b) => a - b);
+    const mid = Math.floor(longs.length / 2);
+    state._refBase = longs.length % 2 ? longs[mid] : Math.round((longs[mid - 1] + longs[mid]) / 2);
   }
+  // Legacy alias — keep for backwards compat with any remaining refs
+  function computeRefWidth() { computeRefBase(); state._refWidth = state._refBase; }
 
   // ---------- Canvas stamping ----------
   async function stampOne(fileObj, dateStr, timeStr, addressLines, opts) {
@@ -4895,10 +4902,13 @@ Việt Nam</textarea>
           ctx.drawImage(img, 0, 0);
 
           const W = canvas.width, H = canvas.height;
-          // Use refWidth (median) for consistent pixel size across all images
-          const fontBaseW = opts.refWidth || W;
-          const fontPx = Math.max(20, Math.round(fontBaseW * opts.fontPercent / 100));
-          console.log('[FONT SYNC]', fileObj.name, '| imgW:', W, '| refWidth:', opts.refWidth, '| fontBaseW:', fontBaseW, '| fontPx:', fontPx);
+          // Font sync: use refBase (median long side) so every image in the
+          // batch gets IDENTICAL pixel dimensions for the stamp block.
+          // Margins are also derived from the SAME base, keeping the block
+          // corner-anchored at a consistent pixel distance from every edge.
+          const base = opts.refBase || Math.max(W, H);
+          const fontPx = Math.max(20, Math.round(base * opts.fontPercent / 100));
+          console.log('[STAMP]', fileObj.name, '| WxH:', W + 'x' + H, '| base:', base, '| fontPx:', fontPx);
           const fontSpec = `300 ${fontPx}px "San Francisco Display Light", "SF Pro Display Light", "SF Pro Display", -apple-system, "Roboto", "Segoe UI Light", "Segoe UI", "Helvetica Neue", Arial, sans-serif`;
           // Ensure Roboto is loaded before drawing (canvas doesn't wait for fonts otherwise)
           if (document.fonts && document.fonts.load) {
@@ -4908,8 +4918,8 @@ Việt Nam</textarea>
           ctx.textBaseline = 'top';
 
           const lines = [`${dateStr} at ${timeStr}`, ...addressLines];
-          const marginX = Math.round(W * 0.028);
-          const marginY = Math.round(H * 0.022);
+          const marginX = Math.round(base * 0.028);
+          const marginY = Math.round(base * 0.022);
           const lineH = Math.round(fontPx * 1.15);
           const totalH = lineH * lines.length;
 
@@ -4960,27 +4970,10 @@ Việt Nam</textarea>
     btnProcess.disabled = true;
     showDownloadBtns(false);
 
-    // Phase 1: measure every image to compute a single reference width
-    const widths = [];
-    for (const f of state.files) {
-      if (!f._w) {
-        const dim = await new Promise(res => {
-          const im = new Image();
-          im.onload = () => res({ w: im.naturalWidth, h: im.naturalHeight });
-          im.onerror = () => res(null);
-          im.src = f.url;
-        });
-        if (dim) { f._w = dim.w; f._h = dim.h; }
-      }
-      if (f._w) widths.push(f._w);
-    }
-    widths.sort((a, b) => a - b);
-    const mid = Math.floor(widths.length / 2);
-    const refW = widths.length
-      ? (widths.length % 2 ? widths[mid] : Math.round((widths[mid - 1] + widths[mid]) / 2))
-      : 0;
-    state._refWidth = refW;
-    console.log('[FONT SYNC] refWidth:', refW, '| widths:', widths);
+    // Phase 1: measure every image, compute a single reference base
+    const refBase = await ensureDimensionsReady();
+    console.log('[FONT SYNC] refBase:', refBase, '| files:',
+      state.files.map(f => `${f.name}=${f._w}x${f._h}(long=${Math.max(f._w||0,f._h||0)})`));
 
     const dateStr = formatDate(document.getElementById('date').value, document.getElementById('dateFormat').value);
     const baseSec = timeToSec(document.getElementById('baseTime').value || '00:00:00');
@@ -4990,7 +4983,7 @@ Việt Nam</textarea>
       position: state.position,
       fontPercent: parseFloat(document.getElementById('fontSize').value),
       shadow: document.getElementById('shadow').checked,
-      refWidth: refW,
+      refBase: refBase,
     };
     const times = buildTimestamps(baseSec, imin, imax, state.files.length);
 
@@ -5327,16 +5320,17 @@ Việt Nam</textarea>
     const addressLines = document.getElementById('lines').value.split('\n').filter(l => l.trim());
     const timeStr = secToTime(times[lbIndex]);
 
-    // Always use refWidth (median) for consistent pixel size across all images
-    const fontBaseW = state._refWidth || W;
-    const fontPx = Math.max(20, Math.round(fontBaseW * fontPercent / 100));
+    // Font sync — same refBase (median long-side) drives BOTH font & margin
+    // so the stamp block has identical pixel dimensions on every image.
+    const base = state._refBase || Math.max(W, H);
+    const fontPx = Math.max(20, Math.round(base * fontPercent / 100));
     const fontSpec = `300 ${fontPx}px "San Francisco Display Light", "SF Pro Display Light", "SF Pro Display", -apple-system, "Roboto", "Segoe UI Light", "Segoe UI", "Helvetica Neue", Arial, sans-serif`;
     lbCtx.font = fontSpec;
     lbCtx.textBaseline = 'top';
 
     const lines = [`${dateStr} at ${timeStr}`, ...addressLines];
-    const marginX = Math.round(W * 0.028);
-    const marginY = Math.round(H * 0.022);
+    const marginX = Math.round(base * 0.028);
+    const marginY = Math.round(base * 0.022);
     const lineH = Math.round(fontPx * 1.15);
     const totalH = lineH * lines.length;
 
@@ -5414,6 +5408,8 @@ Việt Nam</textarea>
     lbIndex = index;
     syncLbConfigFromMain();
     lbFontOverride = null;
+    // Ensure font-sync reference is ready so preview matches final output
+    ensureDimensionsReady();
     lightbox.classList.add('open');
     document.body.style.overflow = 'hidden';
     // On desktop, slide sidebar away to make room
@@ -5500,19 +5496,7 @@ Việt Nam</textarea>
   }
 
   async function stampOneWithCurrentSettings(index) {
-    // Inline dimension scan for font sync
-    for (const ff of state.files) {
-      if (!ff._w) {
-        const dim = await new Promise(res => {
-          const im = new Image();
-          im.onload = () => res({ w: im.naturalWidth, h: im.naturalHeight });
-          im.onerror = () => res(null);
-          im.src = ff.url;
-        });
-        if (dim) { ff._w = dim.w; ff._h = dim.h; }
-      }
-    }
-    computeRefWidth();
+    const refBase = await ensureDimensionsReady();
     const f = state.files[index];
     const dateStr = formatDate(document.getElementById('date').value, document.getElementById('dateFormat').value);
     const baseSec = timeToSec(document.getElementById('baseTime').value || '00:00:00');
@@ -5526,7 +5510,7 @@ Việt Nam</textarea>
         ? lbFontOverride
         : parseFloat(document.getElementById('fontSize').value),
       shadow: document.getElementById('shadow').checked,
-      refWidth: state._refWidth || 0,
+      refBase: refBase,
     };
     return stampOne(f, dateStr, secToTime(times[index]), addressLines, opts);
   }
@@ -5601,19 +5585,7 @@ Việt Nam</textarea>
   lbApplyAll.addEventListener('click', async () => {
     // Always sync config panel to main panel first
     syncMainFromLbConfig();
-    // Inline dimension scan for font sync
-    for (const f of state.files) {
-      if (!f._w) {
-        const dim = await new Promise(res => {
-          const im = new Image();
-          im.onload = () => res({ w: im.naturalWidth, h: im.naturalHeight });
-          im.onerror = () => res(null);
-          im.src = f.url;
-        });
-        if (dim) { f._w = dim.w; f._h = dim.h; }
-      }
-    }
-    computeRefWidth();
+    const refBase = await ensureDimensionsReady();
 
     const newSize = lbFontOverride !== null ? lbFontOverride : parseFloat(lbFontSize.value);
     const mainInput = document.getElementById('fontSize');
@@ -5655,7 +5627,7 @@ Việt Nam</textarea>
       position: state.position,
       fontPercent: newSize,
       shadow: document.getElementById('shadow').checked,
-      refWidth: state._refWidth || 0,
+      refBase: refBase,
     };
     const bar = document.getElementById('progressBar');
     let done = 0;
