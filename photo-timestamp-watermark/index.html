@@ -4568,7 +4568,7 @@ Việt Nam</textarea>
   }
 
   // ---------- State ----------
-  console.log('%c[BH_automatictools] Tab 1 build 2026-08-20-v8 (preview font: clearer size differences + consistent orientations)', 'color:#A5BB92;font-weight:bold');
+  console.log('%c[BH_automatictools] Tab 1 build 2026-08-20-v9 (absolute pixel everywhere — preview matches output)', 'color:#A5BB92;font-weight:bold');
   const state = {
     files: [],   // {id, file, url, ts, processedBlob, status:'idle'|'processing'|'done'|'error', name, customName?, _w?, _h?}
     position: 'tr',
@@ -5346,13 +5346,10 @@ Việt Nam</textarea>
     const addressLines = document.getElementById('lines').value.split('\n').filter(l => l.trim());
     const timeStr = secToTime(times[lbIndex]);
 
-    // Preview: scale fontPxIn so that size changes are clearly visible,
-    // while preventing overflow on small images. Large images (≥3000px long
-    // side) show near-actual pixel size; smaller ones scale down linearly.
-    // max(W,H) ensures portrait & landscape of same resolution match.
-    const refDim = Math.max(W, H);
-    const scale = Math.min(1, refDim / 3000);
-    const fontPx = Math.max(12, Math.round(fontPxIn * scale));
+    // Absolute pixel — identical to stampOne: 100px = 100px on every image,
+    // regardless of image dimensions or aspect ratio (like font in a word
+    // processor: 14px is 14px whether the page is A4 or A1).
+    const fontPx = Math.max(20, Math.round(fontPxIn));
     const fontSpec = `300 ${fontPx}px "San Francisco Display Light", "SF Pro Display Light", "SF Pro Display", -apple-system, "Roboto", "Segoe UI Light", "Segoe UI", "Helvetica Neue", Arial, sans-serif`;
     lbCtx.font = fontSpec;
     lbCtx.textBaseline = 'top';
