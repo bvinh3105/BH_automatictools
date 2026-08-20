@@ -4568,7 +4568,7 @@ Việt Nam</textarea>
   }
 
   // ---------- State ----------
-  console.log('%c[BH_automatictools] Tab 1 build 2026-08-20-v7 (fix preview font consistency across aspect ratios)', 'color:#A5BB92;font-weight:bold');
+  console.log('%c[BH_automatictools] Tab 1 build 2026-08-20-v8 (preview font: clearer size differences + consistent orientations)', 'color:#A5BB92;font-weight:bold');
   const state = {
     files: [],   // {id, file, url, ts, processedBlob, status:'idle'|'processing'|'done'|'error', name, customName?, _w?, _h?}
     position: 'tr',
@@ -5346,11 +5346,13 @@ Việt Nam</textarea>
     const addressLines = document.getElementById('lines').value.split('\n').filter(l => l.trim());
     const timeStr = secToTime(times[lbIndex]);
 
-    // Preview only shows info + position (not actual output size).
-    // Use max(W,H) so landscape 1920×1080 and portrait 1080×1920 get the
-    // SAME canvas fontPx → visually consistent preview regardless of orientation.
+    // Preview: scale fontPxIn so that size changes are clearly visible,
+    // while preventing overflow on small images. Large images (≥3000px long
+    // side) show near-actual pixel size; smaller ones scale down linearly.
+    // max(W,H) ensures portrait & landscape of same resolution match.
     const refDim = Math.max(W, H);
-    const fontPx = Math.max(12, Math.round(refDim * fontPxIn / 4000));
+    const scale = Math.min(1, refDim / 3000);
+    const fontPx = Math.max(12, Math.round(fontPxIn * scale));
     const fontSpec = `300 ${fontPx}px "San Francisco Display Light", "SF Pro Display Light", "SF Pro Display", -apple-system, "Roboto", "Segoe UI Light", "Segoe UI", "Helvetica Neue", Arial, sans-serif`;
     lbCtx.font = fontSpec;
     lbCtx.textBaseline = 'top';
