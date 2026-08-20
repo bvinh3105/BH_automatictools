@@ -3154,8 +3154,8 @@ Việt Nam</textarea>
       </div>
 
       <div class="field">
-        <div class="split"><label for="fontSize" data-i18n="fontSize">Cỡ chữ (px — cùng kích thước cho mọi ảnh)</label><input type="number" class="r val val-input" id="fontSizeInput" min="20" max="600" step="1" value="100" title="Click để nhập trực tiếp" /></div>
-        <input type="range" id="fontSize" min="30" max="300" step="1" value="100" />
+        <div class="split"><label for="fontSize" data-i18n="fontSize">Cỡ chữ (pt)</label><input type="number" class="r val val-input" id="fontSizeInput" min="5" max="144" step="1" value="24" title="Click để nhập trực tiếp" /></div>
+        <input type="range" id="fontSize" min="8" max="72" step="1" value="24" />
       </div>
 
       <div class="field">
@@ -3241,8 +3241,8 @@ Việt Nam</textarea>
           </div>
         </div>
         <div class="lbc-group">
-          <div class="lbc-row-label"><label data-i18n="lbFontLabel">Cỡ chữ (px)</label><input type="number" class="lbc-val lbc-val-input" id="lbFontSizeInput" min="20" max="600" step="1" value="100" title="Click để nhập trực tiếp" /></div>
-          <input type="range" id="lbFontSize" min="30" max="300" step="1" value="100" class="lb-slider" />
+          <div class="lbc-row-label"><label data-i18n="lbFontLabel">Cỡ chữ (pt)</label><input type="number" class="lbc-val lbc-val-input" id="lbFontSizeInput" min="5" max="144" step="1" value="24" title="Click để nhập trực tiếp" /></div>
+          <input type="range" id="lbFontSize" min="8" max="72" step="1" value="24" class="lb-slider" />
         </div>
         <div class="lbc-group">
           <label class="lbc-check">
@@ -3266,9 +3266,9 @@ Việt Nam</textarea>
 
     <!-- Mobile-only font adjust (hidden on desktop where config panel exists) -->
     <div class="lb-adjust lb-adjust-mobile" id="lbAdjust">
-      <span class="lb-adjust-label" data-i18n="lbFontLabel">Cỡ chữ (px)</span>
-      <input type="range" id="lbFontSizeMobile" min="30" max="300" step="1" value="100" class="lb-slider" />
-      <span class="lb-adjust-value" id="lbFontSizeValMobile">100 px</span>
+      <span class="lb-adjust-label" data-i18n="lbFontLabel">Cỡ chữ (pt)</span>
+      <input type="range" id="lbFontSizeMobile" min="8" max="72" step="1" value="24" class="lb-slider" />
+      <span class="lb-adjust-value" id="lbFontSizeValMobile">24 pt</span>
     </div>
 
     <div class="lbbar">
@@ -3822,7 +3822,7 @@ Việt Nam</textarea>
       posTR: '↗ Trên phải',
       posBL: '↙ Dưới trái',
       posBR: '↘ Dưới phải',
-      fontSize: 'Cỡ chữ (px — cùng kích thước cho mọi ảnh)',
+      fontSize: 'Cỡ chữ (pt)',
       shadow: 'Đổ bóng mờ (dễ đọc trên nền sáng)',
       previewLabel: 'Preview dòng đầu',
       // Files panel
@@ -3841,7 +3841,7 @@ Việt Nam</textarea>
       lbPrev: '‹ Trước',
       lbNext: 'Sau ›',
       lbDownload: 'Tải ảnh này',
-      lbFontLabel: 'Cỡ chữ',
+      lbFontLabel: 'Cỡ chữ (pt)',
       lbSaveOne: 'Áp dụng ảnh này',
       lbApplyAll: 'Áp dụng tất cả',
       // Actions bar
@@ -3878,7 +3878,7 @@ Việt Nam</textarea>
       posTR: '↗ Top right',
       posBL: '↙ Bottom left',
       posBR: '↘ Bottom right',
-      fontSize: 'Font size (px — same size on every image)',
+      fontSize: 'Font size (pt)',
       shadow: 'Drop shadow (easier to read on light backgrounds)',
       previewLabel: 'First line preview',
       photos: 'Photos',
@@ -3895,7 +3895,7 @@ Việt Nam</textarea>
       lbPrev: '‹ Prev',
       lbNext: 'Next ›',
       lbDownload: 'Download this',
-      lbFontLabel: 'Font size',
+      lbFontLabel: 'Font size (pt)',
       lbSaveOne: 'Apply to this photo',
       lbApplyAll: 'Apply to all',
       actPhotos: 'photos',
@@ -4568,7 +4568,7 @@ Việt Nam</textarea>
   }
 
   // ---------- State ----------
-  console.log('%c[BH_automatictools] Tab 1 build 2026-08-20-v9 (absolute pixel everywhere — preview matches output)', 'color:#A5BB92;font-weight:bold');
+  console.log('%c[BH_automatictools] Tab 1 build 2026-08-20-v10 (font unit: pt like Word — 300 DPI conversion)', 'color:#A5BB92;font-weight:bold');
   const state = {
     files: [],   // {id, file, url, ts, processedBlob, status:'idle'|'processing'|'done'|'error', name, customName?, _w?, _h?}
     position: 'tr',
@@ -4592,6 +4592,10 @@ Việt Nam</textarea>
     document.querySelectorAll('#posGrid button').forEach(x => x.classList.toggle('active', x === b));
   });
 
+  // Font unit: pt (points) — like Word/print. Internally converts to px at 300 DPI.
+  const PT_TO_PX = 300 / 72; // 1pt ≈ 4.167px
+  function ptToPx(pt) { return Math.max(20, Math.round(pt * PT_TO_PX)); }
+
   // ---------- Font size: 2-way sync between slider and editable number input ----------
   const fontSizeEl = document.getElementById('fontSize');
   const fontSizeInput = document.getElementById('fontSizeInput');
@@ -4600,7 +4604,7 @@ Việt Nam</textarea>
   });
   function clampFontInput() {
     let v = parseInt(fontSizeInput.value, 10);
-    if (!Number.isFinite(v)) v = 100;
+    if (!Number.isFinite(v)) v = 24;
     v = Math.max(parseInt(fontSizeInput.min, 10), Math.min(parseInt(fontSizeInput.max, 10), v));
     fontSizeInput.value = v;
     // Slider max may be smaller than input max — clamp slider only for its visual position
@@ -4620,10 +4624,12 @@ Việt Nam</textarea>
   fontSizeInput.addEventListener('blur', clampFontInput);
   fontSizeInput.addEventListener('keydown', e => { if (e.key === 'Enter') { clampFontInput(); fontSizeInput.blur(); } });
   // Canonical getter — always read from input (supports values beyond slider max)
-  function getFontPx() {
+  // Read pt from input, return px for canvas rendering
+  function getFontPt() {
     const v = parseInt(fontSizeInput.value, 10);
-    return Number.isFinite(v) && v > 0 ? v : 100;
+    return Number.isFinite(v) && v > 0 ? v : 24;
   }
+  function getFontPx() { return ptToPx(getFontPt()); }
 
   // ---------- Preview ----------
   function updatePreview() {
@@ -4644,8 +4650,8 @@ Việt Nam</textarea>
     // Font size — mini preview shows just line-1 at a fixed comfortable size
     // (this preview is for info + position only, not actual output size).
     // Scale absolute px value onto a ~11–24px range for the mini box.
-    const px = getFontPx();
-    const previewPx = Math.max(11, Math.min(24, Math.round(px * 0.13)));
+    const px = getFontPt();
+    const previewPx = Math.max(11, Math.min(24, Math.round(px * 0.5)));
     pv.style.fontSize = previewPx + 'px';
   }
   function escapeHtml(s) {
@@ -4665,7 +4671,7 @@ Việt Nam</textarea>
     if (!lightbox.classList.contains('open') || lbView === 'original') return;
     // Sync main → lightbox config panel so they stay in sync
     syncLbConfigFromMain();
-    const fp = lbFontOverride !== null ? lbFontOverride : getFontPx();
+    const fp = lbFontOverride !== null ? lbFontOverride : getFontPt();
     lbSliderPendingVal = fp;
     scheduleLbCanvasDraw();
   }
@@ -5346,10 +5352,10 @@ Việt Nam</textarea>
     const addressLines = document.getElementById('lines').value.split('\n').filter(l => l.trim());
     const timeStr = secToTime(times[lbIndex]);
 
-    // Absolute pixel — identical to stampOne: 100px = 100px on every image,
-    // regardless of image dimensions or aspect ratio (like font in a word
-    // processor: 14px is 14px whether the page is A4 or A1).
-    const fontPx = Math.max(20, Math.round(fontPxIn));
+    // Absolute pixel — identical to stampOne: Npt converts to the same px
+    // on every image, regardless of image dimensions or aspect ratio (like
+    // font in a word processor: 14pt is 14pt whether the page is A4 or A1).
+    const fontPx = ptToPx(fontPxIn);
     const fontSpec = `300 ${fontPx}px "San Francisco Display Light", "SF Pro Display Light", "SF Pro Display", -apple-system, "Roboto", "Segoe UI Light", "Segoe UI", "Helvetica Neue", Arial, sans-serif`;
     lbCtx.font = fontSpec;
     lbCtx.textBaseline = 'top';
@@ -5404,13 +5410,13 @@ Việt Nam</textarea>
     // Position buttons
     lbcPos.querySelectorAll('button').forEach(b =>
       b.classList.toggle('active', b.dataset.pos === state.position));
-    // Font size slider (pixels)
-    const cur = getFontPx() || 100;
+    // Font size slider (points)
+    const cur = getFontPt();
     lbFontSize.value = cur;
-    lbFontSizeInput.value = Math.round(cur);
+    lbFontSizeInput.value = cur;
     if (lbFontSizeMobile) {
       lbFontSizeMobile.value = cur;
-      lbFontSizeValMobile.textContent = Math.round(cur) + ' px';
+      lbFontSizeValMobile.textContent = cur + ' pt';
     }
   }
 
@@ -5445,10 +5451,10 @@ Việt Nam</textarea>
     // Preload source image + font in background so first slider drag is instant
     const f = state.files[lbIndex];
     if (f) {
-      const cur = parseFloat(lbFontSize.value) || 100;
+      const cur = parseFloat(lbFontSize.value) || 24;
       loadLbSourceImage(f).catch(() => {});
       if (document.fonts && document.fonts.load) {
-        const fontPx = Math.max(20, Math.round(cur));
+        const fontPx = ptToPx(cur);
         const spec = `300 ${fontPx}px "San Francisco Display Light", "SF Pro Display Light", "SF Pro Display", -apple-system, sans-serif`;
         document.fonts.load(spec).catch(() => {});
       }
@@ -5503,7 +5509,7 @@ Việt Nam</textarea>
         await loadLbSourceImage(f);
         // Guard against navigation while awaiting
         if (state.files[lbIndex] !== f) return;
-        const fp = hasOverride ? lbFontOverride : getFontPx();
+        const fp = hasOverride ? lbFontOverride : getFontPt();
         drawLbCanvas(fp);
         showLbCanvas();
       } catch (err) {
@@ -5529,10 +5535,10 @@ Việt Nam</textarea>
     const addressLines = document.getElementById('lines').value.split('\n').filter(l => l.trim());
     const opts = {
       position: state.position,
-      // Use override if set (lightbox slider), otherwise main input
-      fontPx: lbFontOverride !== null
+      // Use override if set (lightbox slider), otherwise main input (pt → px)
+      fontPx: ptToPx(lbFontOverride !== null
         ? lbFontOverride
-        : getFontPx(),
+        : getFontPt()),
       shadow: document.getElementById('shadow').checked,
     };
     return stampOne(f, dateStr, secToTime(times[index]), addressLines, opts);
@@ -5568,7 +5574,7 @@ Việt Nam</textarea>
   function onLbFontSliderInput(sourceSlider) {
     const v = parseFloat(sourceSlider.value);
     lbFontSizeInput.value = Math.round(v);
-    if (lbFontSizeMobile) lbFontSizeValMobile.textContent = Math.round(v) + ' px';
+    if (lbFontSizeMobile) lbFontSizeValMobile.textContent = Math.round(v) + ' pt';
     // Keep both sliders in sync
     if (sourceSlider !== lbFontSize) lbFontSize.value = v;
     if (lbFontSizeMobile && sourceSlider !== lbFontSizeMobile) lbFontSizeMobile.value = v;
@@ -5581,14 +5587,14 @@ Việt Nam</textarea>
   // Editable number input for lightbox — type any value directly
   function clampLbFontInput() {
     let v = parseInt(lbFontSizeInput.value, 10);
-    if (!Number.isFinite(v)) v = 100;
+    if (!Number.isFinite(v)) v = 24;
     v = Math.max(parseInt(lbFontSizeInput.min, 10), Math.min(parseInt(lbFontSizeInput.max, 10), v));
     lbFontSizeInput.value = v;
     const sMin = parseInt(lbFontSize.min, 10), sMax = parseInt(lbFontSize.max, 10);
     lbFontSize.value = Math.max(sMin, Math.min(sMax, v));
     if (lbFontSizeMobile) {
       lbFontSizeMobile.value = Math.max(sMin, Math.min(sMax, v));
-      lbFontSizeValMobile.textContent = v + ' px';
+      lbFontSizeValMobile.textContent = v + ' pt';
     }
     lbFontOverride = v;
     lbSliderPendingVal = v;
@@ -5602,7 +5608,7 @@ Việt Nam</textarea>
       lbFontSize.value = Math.max(sMin, Math.min(sMax, v));
       if (lbFontSizeMobile) {
         lbFontSizeMobile.value = Math.max(sMin, Math.min(sMax, v));
-        lbFontSizeValMobile.textContent = v + ' px';
+        lbFontSizeValMobile.textContent = v + ' pt';
       }
       lbFontOverride = v;
       lbSliderPendingVal = v;
@@ -5681,7 +5687,7 @@ Việt Nam</textarea>
     const addressLines = document.getElementById('lines').value.split('\n').filter(l => l.trim());
     const opts = {
       position: state.position,
-      fontPx: newSize,
+      fontPx: ptToPx(newSize),
       shadow: document.getElementById('shadow').checked,
     };
     const bar = document.getElementById('progressBar');
