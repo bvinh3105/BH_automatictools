@@ -4568,7 +4568,7 @@ Việt Nam</textarea>
   }
 
   // ---------- State ----------
-  console.log('%c[BH_automatictools] Tab 1 build 2026-08-19-v6 (absolute px + click-to-type font input + proportional preview)', 'color:#A5BB92;font-weight:bold');
+  console.log('%c[BH_automatictools] Tab 1 build 2026-08-20-v7 (fix preview font consistency across aspect ratios)', 'color:#A5BB92;font-weight:bold');
   const state = {
     files: [],   // {id, file, url, ts, processedBlob, status:'idle'|'processing'|'done'|'error', name, customName?, _w?, _h?}
     position: 'tr',
@@ -5347,17 +5347,18 @@ Việt Nam</textarea>
     const timeStr = secToTime(times[lbIndex]);
 
     // Preview only shows info + position (not actual output size).
-    // Interpret slider value AS-IF it were "% of 4000px reference":
-    // fontPx=100 → 2.5% of W. This keeps preview visually reasonable
-    // on any image resolution. Real output size uses absolute px (see stampOne).
-    const fontPx = Math.max(12, Math.round(W * fontPxIn / 4000));
+    // Use max(W,H) so landscape 1920×1080 and portrait 1080×1920 get the
+    // SAME canvas fontPx → visually consistent preview regardless of orientation.
+    const refDim = Math.max(W, H);
+    const fontPx = Math.max(12, Math.round(refDim * fontPxIn / 4000));
     const fontSpec = `300 ${fontPx}px "San Francisco Display Light", "SF Pro Display Light", "SF Pro Display", -apple-system, "Roboto", "Segoe UI Light", "Segoe UI", "Helvetica Neue", Arial, sans-serif`;
     lbCtx.font = fontSpec;
     lbCtx.textBaseline = 'top';
 
     const lines = [`${dateStr} at ${timeStr}`, ...addressLines];
-    const marginX = Math.round(W * 0.028);
-    const marginY = Math.round(H * 0.022);
+    // Margins proportional to fontPx (matches stampOne pattern)
+    const marginX = Math.round(fontPx * 1.1);
+    const marginY = Math.round(fontPx * 0.85);
     const lineH = Math.round(fontPx * 1.15);
     const totalH = lineH * lines.length;
 
