@@ -3154,8 +3154,8 @@ Việt Nam</textarea>
       </div>
 
       <div class="field">
-        <div class="split"><label for="fontSize" data-i18n="fontSize">Cỡ chữ (pt)</label><input type="number" class="r val val-input" id="fontSizeInput" min="5" max="144" step="1" value="24" title="Click để nhập trực tiếp" /></div>
-        <input type="range" id="fontSize" min="8" max="72" step="1" value="24" />
+        <div class="split"><label for="fontSize" data-i18n="fontSize">Cỡ chữ (pt)</label><input type="number" class="r val val-input" id="fontSizeInput" min="20" max="500" step="1" value="100" title="Click để nhập trực tiếp" /></div>
+        <input type="range" id="fontSize" min="20" max="300" step="1" value="100" />
       </div>
 
       <div class="field">
@@ -3241,8 +3241,8 @@ Việt Nam</textarea>
           </div>
         </div>
         <div class="lbc-group">
-          <div class="lbc-row-label"><label data-i18n="lbFontLabel">Cỡ chữ (pt)</label><input type="number" class="lbc-val lbc-val-input" id="lbFontSizeInput" min="5" max="144" step="1" value="24" title="Click để nhập trực tiếp" /></div>
-          <input type="range" id="lbFontSize" min="8" max="72" step="1" value="24" class="lb-slider" />
+          <div class="lbc-row-label"><label data-i18n="lbFontLabel">Cỡ chữ (pt)</label><input type="number" class="lbc-val lbc-val-input" id="lbFontSizeInput" min="20" max="500" step="1" value="100" title="Click để nhập trực tiếp" /></div>
+          <input type="range" id="lbFontSize" min="20" max="300" step="1" value="100" class="lb-slider" />
         </div>
         <div class="lbc-group">
           <label class="lbc-check">
@@ -3267,8 +3267,8 @@ Việt Nam</textarea>
     <!-- Mobile-only font adjust (hidden on desktop where config panel exists) -->
     <div class="lb-adjust lb-adjust-mobile" id="lbAdjust">
       <span class="lb-adjust-label" data-i18n="lbFontLabel">Cỡ chữ (pt)</span>
-      <input type="range" id="lbFontSizeMobile" min="8" max="72" step="1" value="24" class="lb-slider" />
-      <span class="lb-adjust-value" id="lbFontSizeValMobile">24 pt</span>
+      <input type="range" id="lbFontSizeMobile" min="20" max="300" step="1" value="100" class="lb-slider" />
+      <span class="lb-adjust-value" id="lbFontSizeValMobile">100 pt</span>
     </div>
 
     <div class="lbbar">
@@ -4568,7 +4568,7 @@ Việt Nam</textarea>
   }
 
   // ---------- State ----------
-  console.log('%c[BH_automatictools] Tab 1 build 2026-08-20-v10 (font unit: pt like Word — 300 DPI conversion)', 'color:#A5BB92;font-weight:bold');
+  console.log('%c[BH_automatictools] Tab 1 build 2026-08-21-v11 (font: 1pt = 1px absolute, default 100)', 'color:#A5BB92;font-weight:bold');
   const state = {
     files: [],   // {id, file, url, ts, processedBlob, status:'idle'|'processing'|'done'|'error', name, customName?, _w?, _h?}
     position: 'tr',
@@ -4592,8 +4592,11 @@ Việt Nam</textarea>
     document.querySelectorAll('#posGrid button').forEach(x => x.classList.toggle('active', x === b));
   });
 
-  // Font unit: pt (points) — like Word/print. Internally converts to px at 300 DPI.
-  const PT_TO_PX = 300 / 72; // 1pt ≈ 4.167px
+  // Font unit: pt — 1pt = 1px (screen-equivalent, absolute pixel).
+  // The value you type IS the pixel size on every image, regardless of
+  // dimensions or aspect ratio. 100pt = 100px on both 4000×3000 and
+  // 1080×1920 images — like font in a word processor.
+  const PT_TO_PX = 1;
   function ptToPx(pt) { return Math.max(20, Math.round(pt * PT_TO_PX)); }
 
   // ---------- Font size: 2-way sync between slider and editable number input ----------
@@ -4604,7 +4607,7 @@ Việt Nam</textarea>
   });
   function clampFontInput() {
     let v = parseInt(fontSizeInput.value, 10);
-    if (!Number.isFinite(v)) v = 24;
+    if (!Number.isFinite(v)) v = 100;
     v = Math.max(parseInt(fontSizeInput.min, 10), Math.min(parseInt(fontSizeInput.max, 10), v));
     fontSizeInput.value = v;
     // Slider max may be smaller than input max — clamp slider only for its visual position
@@ -4627,7 +4630,7 @@ Việt Nam</textarea>
   // Read pt from input, return px for canvas rendering
   function getFontPt() {
     const v = parseInt(fontSizeInput.value, 10);
-    return Number.isFinite(v) && v > 0 ? v : 24;
+    return Number.isFinite(v) && v > 0 ? v : 100;
   }
   function getFontPx() { return ptToPx(getFontPt()); }
 
@@ -5451,7 +5454,7 @@ Việt Nam</textarea>
     // Preload source image + font in background so first slider drag is instant
     const f = state.files[lbIndex];
     if (f) {
-      const cur = parseFloat(lbFontSize.value) || 24;
+      const cur = parseFloat(lbFontSize.value) || 100;
       loadLbSourceImage(f).catch(() => {});
       if (document.fonts && document.fonts.load) {
         const fontPx = ptToPx(cur);
@@ -5587,7 +5590,7 @@ Việt Nam</textarea>
   // Editable number input for lightbox — type any value directly
   function clampLbFontInput() {
     let v = parseInt(lbFontSizeInput.value, 10);
-    if (!Number.isFinite(v)) v = 24;
+    if (!Number.isFinite(v)) v = 100;
     v = Math.max(parseInt(lbFontSizeInput.min, 10), Math.min(parseInt(lbFontSizeInput.max, 10), v));
     lbFontSizeInput.value = v;
     const sMin = parseInt(lbFontSize.min, 10), sMax = parseInt(lbFontSize.max, 10);
