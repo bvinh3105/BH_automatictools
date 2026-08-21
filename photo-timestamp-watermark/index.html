@@ -5359,6 +5359,7 @@ Việt Nam</textarea>
     // on every image, regardless of image dimensions or aspect ratio (like
     // font in a word processor: 14pt is 14pt whether the page is A4 or A1).
     const fontPx = ptToPx(fontPxIn);
+    console.log('[PREVIEW]', 'fontPxIn(pt):', fontPxIn, '| fontPx:', fontPx, '| canvas:', W + 'x' + H);
     const fontSpec = `300 ${fontPx}px "San Francisco Display Light", "SF Pro Display Light", "SF Pro Display", -apple-system, "Roboto", "Segoe UI Light", "Segoe UI", "Helvetica Neue", Arial, sans-serif`;
     lbCtx.font = fontSpec;
     lbCtx.textBaseline = 'top';
@@ -5536,12 +5537,12 @@ Việt Nam</textarea>
     const [imin, imax] = getIntervals();
     const times = buildTimestamps(baseSec, imin, imax, state.files.length);
     const addressLines = document.getElementById('lines').value.split('\n').filter(l => l.trim());
+    const ptVal = lbFontOverride !== null ? lbFontOverride : getFontPt();
+    const pxVal = ptToPx(ptVal);
+    console.log('[APPLY]', 'lbFontOverride:', lbFontOverride, '| getFontPt():', getFontPt(), '| ptVal:', ptVal, '| fontPx:', pxVal);
     const opts = {
       position: state.position,
-      // Use override if set (lightbox slider), otherwise main input (pt → px)
-      fontPx: ptToPx(lbFontOverride !== null
-        ? lbFontOverride
-        : getFontPt()),
+      fontPx: pxVal,
       shadow: document.getElementById('shadow').checked,
     };
     return stampOne(f, dateStr, secToTime(times[index]), addressLines, opts);
