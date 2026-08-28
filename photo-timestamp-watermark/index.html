@@ -8,7 +8,7 @@
 <meta http-equiv="Expires" content="0">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800&family=Roboto:wght@400;500;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800&family=Roboto:wght@300;400;500;700&display=swap">
 <title>Thảo Tools</title>
 <style>
   :root {
@@ -3160,6 +3160,14 @@ Việt Nam</textarea>
 
       <div class="field">
         <div class="row-inline">
+          <input type="checkbox" id="autoFontScale" style="width:auto; margin:0" />
+          <label for="autoFontScale" style="cursor:pointer" data-i18n="autoFontScale">Tự động đồng nhất tỉ lệ</label>
+        </div>
+        <p class="hint" style="margin:2px 0 0" data-i18n="autoFontScaleHint">Co giãn cỡ chữ theo kích thước ảnh — timestamp trông đồng nhất trên mọi ảnh dù resolution khác nhau.</p>
+      </div>
+
+      <div class="field">
+        <div class="row-inline">
           <input type="checkbox" id="shadow" checked style="width:auto; margin:0" />
           <label for="shadow" style="cursor:pointer" data-i18n="shadow">Đổ bóng mờ (dễ đọc trên nền sáng)</label>
         </div>
@@ -3245,6 +3253,10 @@ Việt Nam</textarea>
           <input type="range" id="lbFontSize" min="20" max="300" step="1" value="100" class="lb-slider" />
         </div>
         <div class="lbc-group">
+          <label class="lbc-check">
+            <input type="checkbox" id="lbAutoFontScale" />
+            <span data-i18n="autoFontScaleShort">Đồng nhất tỉ lệ</span>
+          </label>
           <label class="lbc-check">
             <input type="checkbox" id="lbcShadow" checked />
             <span data-i18n="shadow">Đổ bóng mờ</span>
@@ -3823,6 +3835,9 @@ Việt Nam</textarea>
       posBL: '↙ Dưới trái',
       posBR: '↘ Dưới phải',
       fontSize: 'Cỡ chữ (pt)',
+      autoFontScale: 'Tự động đồng nhất tỉ lệ',
+      autoFontScaleShort: 'Đồng nhất tỉ lệ',
+      autoFontScaleHint: 'Co giãn cỡ chữ theo kích thước ảnh — timestamp trông đồng nhất trên mọi ảnh dù resolution khác nhau.',
       shadow: 'Đổ bóng mờ (dễ đọc trên nền sáng)',
       previewLabel: 'Preview dòng đầu',
       // Files panel
@@ -3879,6 +3894,9 @@ Việt Nam</textarea>
       posBL: '↙ Bottom left',
       posBR: '↘ Bottom right',
       fontSize: 'Font size (pt)',
+      autoFontScale: 'Auto-uniform ratio',
+      autoFontScaleShort: 'Uniform ratio',
+      autoFontScaleHint: 'Scale font size to image dimensions — timestamp looks uniform on all photos regardless of resolution.',
       shadow: 'Drop shadow (easier to read on light backgrounds)',
       previewLabel: 'First line preview',
       photos: 'Photos',
@@ -4599,6 +4617,16 @@ Việt Nam</textarea>
   const PT_TO_PX = 1;
   function ptToPx(pt) { return Math.max(20, Math.round(pt * PT_TO_PX)); }
 
+  // Auto-scale reference: when "Tự động đồng nhất tỉ lệ" is ON,
+  // fontPx is scaled by min(W,H)/FONT_REF_SHORT so the timestamp
+  // occupies the same visual proportion on every image.
+  // 100pt on a 1920px-short-side image = 100px (reference baseline).
+  const FONT_REF_SHORT = 1920;
+  function scaledFontPx(basePx, imgW, imgH) {
+    const refDim = Math.min(imgW, imgH);
+    return Math.max(20, Math.round(basePx * refDim / FONT_REF_SHORT));
+  }
+
   // ---------- Font size: 2-way sync between slider and editable number input ----------
   const fontSizeEl = document.getElementById('fontSize');
   const fontSizeInput = document.getElementById('fontSizeInput');
@@ -4660,7 +4688,7 @@ Việt Nam</textarea>
   function escapeHtml(s) {
     return s.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   }
-  ['date','dateFormat','baseTime','lines','fontSize','fontSizeInput','shadow'].forEach(id => {
+  ['date','dateFormat','baseTime','lines','fontSize','fontSizeInput','shadow','autoFontScale'].forEach(id => {
     document.getElementById(id).addEventListener('input', updatePreview);
     document.getElementById(id).addEventListener('change', updatePreview);
   });
@@ -4678,7 +4706,7 @@ Việt Nam</textarea>
     lbSliderPendingVal = fp;
     scheduleLbCanvasDraw();
   }
-  ['date','dateFormat','baseTime','lines','fontSize','shadow'].forEach(id => {
+  ['date','dateFormat','baseTime','lines','fontSize','shadow','autoFontScale'].forEach(id => {
     document.getElementById(id).addEventListener('input', onConfigChangeWhileLightboxOpen);
     document.getElementById(id).addEventListener('change', onConfigChangeWhileLightboxOpen);
   });
@@ -4942,14 +4970,13 @@ Việt Nam</textarea>
           ctx.drawImage(img, 0, 0);
 
           const W = canvas.width, H = canvas.height;
-          // Absolute-pixel font: every image (landscape, portrait, small, large)
-          // gets the EXACT same fontPx from the slider. Margins scale from
-          // fontPx too, so the whole stamp block has identical pixel dimensions
-          // on every image regardless of aspect ratio. Example: fontPx=100 →
-          // stamp block ~380px wide × ~350px tall on both 1920x1080 and
-          // 1080x1920, and even on 720x1280 or 1280x720.
-          const fontPx = Math.max(20, Math.round(opts.fontPx));
-          console.log('[STAMP]', fileObj.name, '| WxH:', W + 'x' + H, '| fontPx:', fontPx);
+          // fontPx: absolute pixel by default; when autoScale is ON,
+          // scale proportionally to min(W,H) so the stamp looks uniform.
+          let fontPx = Math.max(20, Math.round(opts.fontPx));
+          if (opts.autoScale) {
+            fontPx = scaledFontPx(opts.fontPx, W, H);
+          }
+          console.log('[STAMP]', fileObj.name, '| WxH:', W + 'x' + H, '| fontPx:', fontPx, '| autoScale:', !!opts.autoScale);
           const fontSpec = `300 ${fontPx}px "San Francisco Display Light", "SF Pro Display Light", "SF Pro Display", -apple-system, "Roboto", "Segoe UI Light", "Segoe UI", "Helvetica Neue", Arial, sans-serif`;
           // Ensure Roboto is loaded before drawing (canvas doesn't wait for fonts otherwise)
           if (document.fonts && document.fonts.load) {
@@ -5019,6 +5046,7 @@ Việt Nam</textarea>
       position: state.position,
       fontPx: getFontPx(),
       shadow: document.getElementById('shadow').checked,
+      autoScale: document.getElementById('autoFontScale').checked,
     };
     const times = buildTimestamps(baseSec, imin, imax, state.files.length);
 
@@ -5355,11 +5383,14 @@ Việt Nam</textarea>
     const addressLines = document.getElementById('lines').value.split('\n').filter(l => l.trim());
     const timeStr = secToTime(times[lbIndex]);
 
-    // Absolute pixel — identical to stampOne: Npt converts to the same px
-    // on every image, regardless of image dimensions or aspect ratio (like
-    // font in a word processor: 14pt is 14pt whether the page is A4 or A1).
-    const fontPx = ptToPx(fontPxIn);
-    console.log('[PREVIEW]', 'fontPxIn(pt):', fontPxIn, '| fontPx:', fontPx, '| canvas:', W + 'x' + H);
+    // fontPx: absolute pixel by default; when autoScale is ON,
+    // scale proportionally to min(W,H) so the stamp looks uniform.
+    const autoScale = document.getElementById('autoFontScale').checked;
+    let fontPx = ptToPx(fontPxIn);
+    if (autoScale) {
+      fontPx = scaledFontPx(fontPx, W, H);
+    }
+    console.log('[PREVIEW]', 'fontPxIn(pt):', fontPxIn, '| fontPx:', fontPx, '| canvas:', W + 'x' + H, '| autoScale:', autoScale);
     const fontSpec = `300 ${fontPx}px "San Francisco Display Light", "SF Pro Display Light", "SF Pro Display", -apple-system, "Roboto", "Segoe UI Light", "Segoe UI", "Helvetica Neue", Arial, sans-serif`;
     lbCtx.font = fontSpec;
     lbCtx.textBaseline = 'top';
@@ -5411,6 +5442,8 @@ Việt Nam</textarea>
     lbcTime.value = document.getElementById('baseTime').value;
     lbcLines.value = document.getElementById('lines').value;
     lbcShadow.checked = document.getElementById('shadow').checked;
+    // Auto font scale
+    document.getElementById('lbAutoFontScale').checked = document.getElementById('autoFontScale').checked;
     // Position buttons
     lbcPos.querySelectorAll('button').forEach(b =>
       b.classList.toggle('active', b.dataset.pos === state.position));
@@ -5431,6 +5464,8 @@ Việt Nam</textarea>
     document.getElementById('baseTime').value = lbcTime.value;
     document.getElementById('lines').value = lbcLines.value;
     document.getElementById('shadow').checked = lbcShadow.checked;
+    // Auto font scale
+    document.getElementById('autoFontScale').checked = document.getElementById('lbAutoFontScale').checked;
     // Position — read from active button
     const activePos = lbcPos.querySelector('button.active');
     if (activePos) {
@@ -5544,6 +5579,7 @@ Việt Nam</textarea>
       position: state.position,
       fontPx: pxVal,
       shadow: document.getElementById('shadow').checked,
+      autoScale: document.getElementById('autoFontScale').checked,
     };
     return stampOne(f, dateStr, secToTime(times[index]), addressLines, opts);
   }
@@ -5632,7 +5668,7 @@ Việt Nam</textarea>
     lbSliderPendingVal = fp;
     scheduleLbCanvasDraw();
   }
-  [lbcDate, lbcFormat, lbcTime, lbcLines, lbcShadow].forEach(el => {
+  [lbcDate, lbcFormat, lbcTime, lbcLines, lbcShadow, document.getElementById('lbAutoFontScale')].forEach(el => {
     el.addEventListener('input', onLbcChange);
     el.addEventListener('change', onLbcChange);
   });
@@ -5693,6 +5729,7 @@ Việt Nam</textarea>
       position: state.position,
       fontPx: ptToPx(newSize),
       shadow: document.getElementById('shadow').checked,
+      autoScale: document.getElementById('autoFontScale').checked,
     };
     const bar = document.getElementById('progressBar');
     let done = 0;
