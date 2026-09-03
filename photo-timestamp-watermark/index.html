@@ -8710,10 +8710,15 @@ QUY TẮC:
       const url=URL.createObjectURL(file);
       const img=new Image();
       img.onload=()=>{
-        refImage=img; LAYERS[3].visible=true;
+        refImage=img; refVisible=true; LAYERS[3].visible=true;
+        flushGlobals(); // persist refImage into the active artboard so drawArtboard() can see it
         document.getElementById('embRefOpRow').style.display='';
         document.getElementById('embRefVisRow').style.display='';
         renderLayers(); schedRender(); URL.revokeObjectURL(url);
+      };
+      img.onerror=()=>{
+        alert('Không đọc được ảnh. Vui lòng thử ảnh JPG/PNG khác.');
+        URL.revokeObjectURL(url);
       };
       img.src=url;
     }
@@ -9273,10 +9278,13 @@ QUY TẮC:
       document.getElementById('embRefOpacity')?.addEventListener('input',e=>{
         refOpacity=parseInt(e.target.value)/100;
         document.getElementById('embRefOpVal').textContent=e.target.value+'%';
+        flushGlobals();
         schedRender();
       });
       document.getElementById('embRefVisible')?.addEventListener('change',e=>{
-        refVisible=e.target.checked; LAYERS[3].visible=refVisible; renderLayers(); schedRender();
+        refVisible=e.target.checked; LAYERS[3].visible=refVisible;
+        flushGlobals();
+        renderLayers(); schedRender();
       });
       document.getElementById('embColorPicker')?.addEventListener('input',e=>setColor(e.target.value.toUpperCase()));
       document.getElementById('embColorPreview')?.addEventListener('click',()=>document.getElementById('embColorPicker')?.click());
@@ -9438,6 +9446,7 @@ QUY TẮC:
       const newImg=new Image();
       newImg.onload=()=>{
         refImage=newImg;
+        flushGlobals(); // persist cropped refImage into the active artboard
         document.getElementById('embRefOpRow').style.display='';
         document.getElementById('embRefVisRow').style.display='';
         LAYERS[3].visible=true; renderLayers(); schedRender();
