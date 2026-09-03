@@ -2246,124 +2246,95 @@
     .emb-toolbox { width:44px; }
     .emb-tool-btn { width:34px; height:34px; }
   }
-  .cs-layout { display:flex; height:100%; gap:0; overflow:hidden; }
-  .cs-toolbar {
-    width:240px; min-width:200px; padding:10px 10px; overflow-y:auto;
-    border-right:1px solid var(--border);
-    background:color-mix(in srgb, var(--glass) 60%, transparent);
-    display:flex; flex-direction:column; gap:2px;
+  /* ── Photo-to-Pattern Wizard Modal ── */
+  .emb-wizard-backdrop {
+    position:fixed; inset:0; z-index:9990;
+    background:rgba(0,0,0,.55); backdrop-filter:blur(6px);
+    display:none; align-items:center; justify-content:center;
+    animation:emb-fade-in .2s ease;
   }
-  .cs-title { font-size:14px; font-weight:700; margin:0 0 4px; color:var(--text); }
-  .cs-section { margin-bottom:6px; }
-  .cs-label { font-size:11px; font-weight:600; color:var(--text-dim); text-transform:uppercase; letter-spacing:.5px; margin-bottom:5px; display:block; }
-  .cs-hint { font-size:10px; color:var(--text-dim); margin:2px 0 0; }
-  .cs-upload {
-    border:2px dashed var(--border); border-radius:10px; padding:18px 12px;
-    text-align:center; cursor:pointer; transition:border-color .2s;
-  }
-  .cs-upload:hover { border-color:var(--accent); }
-  .cs-upload-text { font-size:13px; color:var(--text-dim); }
-  .cs-img-preview { position:relative; margin-top:4px; border-radius:6px; overflow:hidden; }
-  .cs-img-preview img { max-height:60px; width:auto; display:block; border-radius:6px; margin:0 auto; object-fit:contain; }
-  .cs-remove-img { position:absolute; top:4px; right:4px; background:rgba(0,0,0,.6); color:#fff; border:none; border-radius:50%; width:22px; height:22px; cursor:pointer; font-size:12px; line-height:22px; text-align:center; }
-  .cs-opacity-row { display:flex; align-items:center; gap:6px; margin-top:4px; font-size:11px; color:var(--text-dim); }
-  .cs-opacity-row input[type=range] { flex:1; height:4px; }
-  .cs-radio-group { display:flex; gap:4px; flex-wrap:wrap; }
-  .cs-radio {
-    padding:5px 12px; border-radius:8px; border:1px solid var(--border);
-    background:transparent; color:var(--text); font-size:12px; cursor:pointer;
-    transition:all .15s;
-  }
-  .cs-radio.active { background:var(--accent); color:#fff; border-color:var(--accent); }
-  .cs-custom-size { display:flex; align-items:center; gap:4px; margin-top:6px; }
-  .cs-custom-size input { width:65px; padding:4px 6px; border:1px solid var(--border); border-radius:6px; background:var(--glass); color:var(--text); font-size:12px; text-align:center; }
-  .cs-custom-size span { color:var(--text-dim); font-size:11px; }
-  .cs-density-row { display:flex; align-items:center; gap:8px; }
-  .cs-density-row input[type=range] { flex:1; }
-  .cs-density-row span { font-size:12px; font-weight:600; color:var(--text); min-width:44px; }
-  .cs-grid-info { font-size:11px; color:var(--accent); margin-top:3px; font-weight:500; }
-  .cs-tools { display:flex; gap:4px; flex-wrap:wrap; }
-  .cs-tool {
-    width:36px; height:36px; border-radius:8px; border:1px solid var(--border);
-    background:transparent; color:var(--text); font-size:16px; cursor:pointer;
-    display:flex; align-items:center; justify-content:center; transition:all .15s;
-  }
-  .cs-tool.active { background:var(--accent); color:#fff; border-color:var(--accent); }
-  .cs-tool:hover:not(.active) { background:color-mix(in srgb, var(--accent) 15%, transparent); }
-  .cs-color-input { width:100%; height:24px; border:none; border-radius:6px; cursor:pointer; margin-bottom:4px; }
-  .cs-palette { display:flex; flex-wrap:wrap; gap:3px; }
-  .cs-palette-swatch {
-    width:16px; height:16px; border-radius:3px; cursor:pointer; border:2px solid transparent;
-    transition:border-color .15s, transform .1s;
-  }
-  .cs-palette-swatch:hover { transform:scale(1.2); }
-  .cs-palette-swatch.active { border-color:var(--text); }
-  .cs-used-list { display:flex; flex-wrap:wrap; gap:3px; }
-  .cs-used-swatch { width:18px; height:18px; border-radius:3px; cursor:pointer; border:1px solid var(--border); position:relative; }
-  .cs-used-swatch .cs-count { position:absolute; bottom:-4px; right:-4px; background:var(--accent); color:#fff; font-size:8px; border-radius:4px; padding:0 3px; line-height:14px; }
-  .cs-btn { width:100%; padding:8px; border-radius:8px; border:1px solid var(--border); background:var(--glass); color:var(--text); font-size:12px; cursor:pointer; transition:all .15s; margin-bottom:4px; }
-  .cs-btn:hover { background:var(--accent); color:#fff; border-color:var(--accent); }
-  .cs-btn-sm { width:28px; height:28px; border-radius:6px; border:1px solid var(--border); background:var(--glass); color:var(--text); font-size:14px; cursor:pointer; display:flex; align-items:center; justify-content:center; }
-  .cs-btn-sm:hover { background:var(--accent); color:#fff; }
-  .cs-stats { font-size:12px; color:var(--text-dim); }
-  .cs-artboard-list { display:flex; flex-direction:column; gap:3px; margin-bottom:6px; max-height:150px; overflow-y:auto; }
-  .cs-artboard-item {
-    display:flex; align-items:center; gap:6px; padding:5px 8px; border-radius:6px;
-    border:1px solid var(--border); background:transparent; cursor:pointer; font-size:11px;
-    color:var(--text); transition:all .15s; min-height:28px;
-  }
-  .cs-artboard-item.active { background:var(--accent); color:#fff; border-color:var(--accent); }
-  .cs-artboard-item:hover:not(.active) { background:color-mix(in srgb, var(--accent) 10%, transparent); }
-  .cs-artboard-name { flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-  .cs-artboard-name[contenteditable] { outline:none; border-bottom:1px dashed currentColor; }
-  .cs-artboard-del { opacity:.5; background:none; border:none; color:inherit; cursor:pointer; font-size:12px; padding:0 2px; }
-  .cs-artboard-del:hover { opacity:1; color:#e74c3c; }
-  .cs-artboard-size { font-size:9px; opacity:.6; white-space:nowrap; }
-  .cs-zoom-sep { width:1px; height:18px; background:var(--border); flex-shrink:0; }
-  .cs-canvas-wrap { flex:1; display:flex; flex-direction:column; overflow:hidden; position:relative; }
-  .cs-zoom-controls { display:flex; align-items:center; gap:6px; padding:8px 12px; border-bottom:1px solid var(--border); background:color-mix(in srgb, var(--glass) 40%, transparent); }
-  .cs-zoom-controls span { font-size:12px; color:var(--text-dim); min-width:40px; text-align:center; }
-  .cs-canvas-scroll { flex:1; overflow:auto; display:flex; align-items:center; justify-content:center; background:color-mix(in srgb, var(--bg) 94%, var(--accent) 6%); cursor:crosshair; position:relative; }
-  .cs-canvas-scroll canvas { box-shadow:0 2px 12px rgba(0,0,0,0.35); }
-  #csCanvas { image-rendering:pixelated; }
-  /* Layers panel (right) */
-  .cs-layers-panel {
-    width:200px; min-width:160px; border-left:1px solid var(--border);
-    background:color-mix(in srgb, var(--glass) 60%, transparent);
+  .emb-wizard-backdrop.open { display:flex; }
+  @keyframes emb-fade-in { from{opacity:0} to{opacity:1} }
+  .emb-wizard {
+    width:680px; max-width:96vw; max-height:90vh;
+    background:color-mix(in srgb, var(--bg) 96%, var(--text) 4%);
+    border:1px solid var(--border-strong); border-radius:16px;
+    box-shadow:0 24px 80px rgba(0,0,0,.45);
     display:flex; flex-direction:column; overflow:hidden;
   }
-  .cs-layers-header {
+  .emb-wizard-header {
     display:flex; align-items:center; justify-content:space-between;
-    padding:8px 10px; border-bottom:1px solid var(--border);
-    font-size:12px; font-weight:700; color:var(--text);
+    padding:16px 20px; border-bottom:1px solid var(--border);
   }
-  .cs-layers-list { flex:1; overflow-y:auto; padding:4px 0; }
-  .cs-layer-item {
-    display:flex; align-items:center; gap:4px; padding:5px 8px; margin:1px 4px;
-    border-radius:6px; border:1px solid transparent; cursor:pointer;
-    font-size:11px; color:var(--text); transition:all .15s; user-select:none;
+  .emb-wizard-header h3 { margin:0; font-size:15px; font-weight:700; color:var(--text); }
+  .emb-wizard-close {
+    width:28px; height:28px; border-radius:7px; border:1px solid var(--border);
+    background:transparent; color:var(--muted); font-size:16px; cursor:pointer;
+    display:flex; align-items:center; justify-content:center; transition:all .12s;
   }
-  .cs-layer-item:hover { background:color-mix(in srgb, var(--accent) 10%, transparent); }
-  .cs-layer-item.active { background:color-mix(in srgb, var(--accent) 20%, transparent); border-color:var(--accent); }
-  .cs-layer-eye, .cs-layer-lock {
-    width:20px; height:20px; border:none; background:none; color:var(--text);
-    cursor:pointer; font-size:13px; display:flex; align-items:center; justify-content:center;
-    border-radius:4px; opacity:.7; flex-shrink:0;
+  .emb-wizard-close:hover { background:rgba(220,50,50,.12); color:#d33; border-color:rgba(220,50,50,.3); }
+  .emb-wizard-body { padding:20px; overflow-y:auto; display:flex; gap:20px; }
+  .emb-wizard-left { flex:1; min-width:0; display:flex; flex-direction:column; gap:14px; }
+  .emb-wizard-right { width:260px; flex-shrink:0; display:flex; flex-direction:column; gap:10px; }
+  .emb-wizard-preview {
+    width:100%; aspect-ratio:1; border:1px solid var(--border); border-radius:10px;
+    background:var(--input-bg); overflow:hidden; display:flex; align-items:center;
+    justify-content:center; position:relative;
   }
-  .cs-layer-eye:hover, .cs-layer-lock:hover { opacity:1; background:color-mix(in srgb, var(--accent) 15%, transparent); }
-  .cs-layer-eye.hidden { opacity:.3; }
-  .cs-layer-lock.locked { opacity:1; color:var(--accent); }
-  .cs-layer-name { flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-  .cs-layer-thumb {
-    width:24px; height:24px; border-radius:3px; border:1px solid var(--border);
-    flex-shrink:0; display:flex; align-items:center; justify-content:center;
-    font-size:14px; background:var(--glass);
+  .emb-wizard-preview canvas { max-width:100%; max-height:100%; image-rendering:pixelated; }
+  .emb-wizard-preview .emb-wiz-placeholder { font-size:12px; color:var(--muted); text-align:center; padding:20px; }
+  .emb-wizard-row { display:flex; align-items:center; gap:10px; }
+  .emb-wizard-row label { font-size:12px; color:var(--muted); min-width:80px; flex-shrink:0; }
+  .emb-wizard-row input[type="number"] {
+    width:70px; padding:5px 8px; border:1px solid var(--border); border-radius:7px;
+    background:var(--input-bg); color:var(--text); font:inherit; font-size:12px;
   }
-  @media (max-width:768px) {
-    .cs-layout { flex-direction:column; }
-    .cs-toolbar { width:100%; min-width:unset; max-height:40vh; border-right:none; border-bottom:1px solid var(--border); }
-    .cs-layers-panel { width:100%; min-width:unset; max-height:25vh; border-left:none; border-top:1px solid var(--border); }
+  .emb-wizard-row input[type="range"] { flex:1; accent-color:var(--accent-2); }
+  .emb-wizard-row .emb-wiz-val { font-size:12px; font-weight:700; color:var(--text); min-width:30px; text-align:right; }
+  .emb-wizard-row select {
+    flex:1; padding:5px 8px; border:1px solid var(--border); border-radius:7px;
+    background:var(--input-bg); color:var(--text); font:inherit; font-size:12px;
   }
+  .emb-wizard-info { font-size:11px; color:var(--muted); line-height:1.5; }
+  .emb-wizard-info b { color:var(--text); }
+  .emb-wizard-footer {
+    display:flex; align-items:center; justify-content:flex-end; gap:8px;
+    padding:14px 20px; border-top:1px solid var(--border);
+  }
+  .emb-wizard-footer button {
+    padding:7px 18px; border-radius:8px; border:1px solid var(--border);
+    background:var(--glass); color:var(--text); font:inherit; font-size:12.5px;
+    font-weight:600; cursor:pointer; transition:all .12s;
+  }
+  .emb-wizard-footer button:hover { background:color-mix(in srgb, var(--text) 8%, transparent); }
+  .emb-wizard-footer .emb-wiz-apply {
+    background:var(--accent-2); color:#fff; border-color:transparent;
+  }
+  .emb-wizard-footer .emb-wiz-apply:hover { filter:brightness(1.1); }
+  .emb-wizard-footer .emb-wiz-apply:disabled { opacity:.5; cursor:not-allowed; filter:none; }
+
+  /* ── View Mode Toggle ── */
+  .emb-view-toggle {
+    display:flex; gap:1px; background:var(--border); border-radius:7px; overflow:hidden; margin-left:8px;
+  }
+  .emb-view-toggle button {
+    padding:3px 8px; font-size:10px; font-weight:700; border:none;
+    background:var(--glass); color:var(--muted); cursor:pointer; transition:all .12s;
+    text-transform:uppercase; letter-spacing:.04em;
+  }
+  .emb-view-toggle button:hover { color:var(--text); }
+  .emb-view-toggle button.active { background:var(--accent-2); color:#fff; }
+
+  /* ── Fabric Color Selector ── */
+  .emb-fabric-colors {
+    display:flex; gap:4px; align-items:center;
+  }
+  .emb-fabric-swatch {
+    width:22px; height:22px; border-radius:5px; cursor:pointer; border:2px solid transparent;
+    transition:border-color .12s, transform .12s;
+  }
+  .emb-fabric-swatch:hover { transform:scale(1.15); }
+  .emb-fabric-swatch.active { border-color:var(--accent-2); box-shadow:0 0 0 1px var(--accent-2); }
 
   /* Empty tab placeholder */
   .tab-empty {
@@ -3535,6 +3506,14 @@ Việt Nam</textarea>
         <span>Vị trí: <b id="embStatPos">—</b></span>
         <div class="emb-stat-sep"></div>
         <span>Mũi: <b id="embStatCount">0</b></span>
+        <div class="emb-stat-sep"></div>
+        <span>Màu: <b id="embStatColors">0</b></span>
+        <div style="flex:1"></div>
+        <div class="emb-view-toggle">
+          <button class="active" data-view="color" title="Xem màu">Màu</button>
+          <button data-view="symbol" title="Xem ký hiệu">Ký hiệu</button>
+          <button data-view="both" title="Màu + Ký hiệu">Cả hai</button>
+        </div>
       </div>
     </div>
 
@@ -3574,6 +3553,21 @@ Việt Nam</textarea>
               <span class="emb-prop-label">Kích thước</span>
               <span class="emb-prop-value" id="embPropSize">—</span>
             </div>
+            <div class="emb-prop-row">
+              <span class="emb-prop-label">Thật</span>
+              <span class="emb-prop-value" id="embFinishedSize" style="font-size:11px;font-weight:500">—</span>
+            </div>
+          </div>
+          <div class="emb-prop-group">
+            <div class="emb-prop-title">Màu vải</div>
+            <div class="emb-fabric-colors">
+              <div class="emb-fabric-swatch active" data-fabric="#FFFFFF" style="background:#FFFFFF;border-color:#ccc" title="Trắng"></div>
+              <div class="emb-fabric-swatch" data-fabric="#FFF8E7" style="background:#FFF8E7" title="Kem"></div>
+              <div class="emb-fabric-swatch" data-fabric="#E8DCC8" style="background:#E8DCC8" title="Linen"></div>
+              <div class="emb-fabric-swatch" data-fabric="#D4E6F1" style="background:#D4E6F1" title="Xanh nhạt"></div>
+              <div class="emb-fabric-swatch" data-fabric="#333333" style="background:#333333" title="Đen"></div>
+              <input type="color" id="embFabricCustom" value="#FFFFFF" style="width:22px;height:22px;border:none;border-radius:5px;cursor:pointer;padding:0;background:none" title="Tùy chọn">
+            </div>
           </div>
           <div class="emb-prop-group">
             <div class="emb-prop-title">Màu hiện tại</div>
@@ -3601,7 +3595,7 @@ Việt Nam</textarea>
             <div class="emb-prop-title">Ảnh tham chiếu</div>
             <div class="emb-prop-row">
               <button class="emb-btn-sm" id="embPropImport" style="flex:1">📷 Import ảnh</button>
-              <button class="emb-btn-sm" id="embPropAuto">✨ Auto</button>
+              <button class="emb-btn-sm" id="embPropAuto">✨ Ảnh → Pattern</button>
             </div>
             <div class="emb-prop-row" id="embRefOpRow" style="display:none">
               <span class="emb-prop-label">Mờ</span>
@@ -3701,6 +3695,72 @@ Việt Nam</textarea>
 </div>
 </div><!-- /pane-compress -->
 
+<!-- Photo-to-Pattern Wizard Modal -->
+<div class="emb-wizard-backdrop" id="embWizardBackdrop">
+  <div class="emb-wizard">
+    <div class="emb-wizard-header">
+      <h3>✨ Chuyển ảnh thành Pattern</h3>
+      <button class="emb-wizard-close" id="embWizClose">✕</button>
+    </div>
+    <div class="emb-wizard-body">
+      <div class="emb-wizard-left">
+        <div class="emb-wizard-row">
+          <label>Chiều rộng</label>
+          <input type="number" id="embWizWidth" min="10" max="500" value="100" step="1">
+          <span style="font-size:12px;color:var(--muted)">mũi</span>
+          <label style="min-width:auto;margin-left:8px">🔗</label>
+          <input type="checkbox" id="embWizLock" checked style="accent-color:var(--accent-2)">
+        </div>
+        <div class="emb-wizard-row">
+          <label>Chiều cao</label>
+          <input type="number" id="embWizHeight" min="10" max="500" value="100" step="1">
+          <span style="font-size:12px;color:var(--muted)">mũi</span>
+        </div>
+        <div class="emb-wizard-row">
+          <label>Số màu chỉ</label>
+          <input type="range" id="embWizColors" min="2" max="64" value="16" style="flex:1">
+          <span class="emb-wiz-val" id="embWizColorsVal">16</span>
+        </div>
+        <div class="emb-wizard-row">
+          <label>Fabric count</label>
+          <select id="embWizFabric">
+            <option value="11">11ct Aida</option>
+            <option value="14" selected>14ct Aida</option>
+            <option value="16">16ct Aida</option>
+            <option value="18">18ct Aida</option>
+            <option value="28">28ct Evenweave</option>
+          </select>
+        </div>
+        <div class="emb-wizard-info" id="embWizInfo">
+          Kích thước thật: <b>—</b> &nbsp;·&nbsp; Tổng mũi: <b>—</b>
+        </div>
+        <div class="emb-wizard-row" style="margin-top:4px">
+          <label>Chỉ dùng DMC</label>
+          <input type="checkbox" id="embWizDMCOnly" checked style="accent-color:var(--accent-2)">
+        </div>
+        <div class="emb-wizard-row">
+          <label>Bỏ nền trắng</label>
+          <input type="checkbox" id="embWizSkipWhite" checked style="accent-color:var(--accent-2)">
+          <span style="font-size:11px;color:var(--muted)">Ngưỡng</span>
+          <input type="number" id="embWizWhiteThresh" min="200" max="255" value="240" style="width:50px;padding:3px 5px;border:1px solid var(--border);border-radius:6px;background:var(--input-bg);color:var(--text);font-size:11px">
+        </div>
+      </div>
+      <div class="emb-wizard-right">
+        <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.08em">Xem trước</div>
+        <div class="emb-wizard-preview" id="embWizPreview">
+          <div class="emb-wiz-placeholder">Import ảnh rồi bấm<br>「Xem trước」</div>
+        </div>
+        <button class="emb-btn-sm" id="embWizPreviewBtn" style="width:100%">🔄 Xem trước</button>
+        <div class="emb-wizard-info" id="embWizPalette" style="font-size:10.5px;max-height:80px;overflow-y:auto"></div>
+      </div>
+    </div>
+    <div class="emb-wizard-footer">
+      <button id="embWizCancel">Huỷ</button>
+      <button class="emb-wiz-apply" id="embWizApply" disabled>Áp dụng Pattern</button>
+    </div>
+  </div>
+</div>
+
 <!-- Embroidery Context Menu (global, positioned by JS) -->
 <div class="emb-ctx-menu" id="embCtxMenu">
   <div class="emb-ctx-header" id="embCtxHeader">Canvas</div>
@@ -3734,6 +3794,10 @@ Việt Nam</textarea>
   </div>
   <div class="emb-ctx-item" id="embCtxClearMask" style="display:none">
     <span>✕ Xoá vùng mask</span>
+  </div>
+  <div class="emb-ctx-sep"></div>
+  <div class="emb-ctx-item" id="embCtxReplaceColor">
+    <span>🔄 Thay thế màu ô này</span>
   </div>
   <div class="emb-ctx-sep"></div>
   <div class="emb-ctx-item" id="embCtxExportPNG">
@@ -7717,6 +7781,8 @@ QUY TẮC:
     let currentTool = 'cross', currentColor = '#B5121B', currentDMC = null;
     let refImage = null, refOpacity = 0.35, refVisible = true;
     let showGrid = true, showMajor = true, showSymbols = false;
+    let viewMode = 'color'; // 'color' | 'symbol' | 'both'
+    let fabricColor = '#FFFFFF';
     let history = [], histIdx = -1;
     let isDrawing = false, drawStart = null, lastCell = null;
 
@@ -7863,6 +7929,7 @@ QUY TẮC:
       recalcWorldCanvas();
       const sz = document.getElementById('embPropSize');
       if (sz) sz.textContent = `${cols} × ${rows} ô`;
+      updateFinishedSize();
       pushHist();
       schedRender();
     }
@@ -7886,6 +7953,7 @@ QUY TẮC:
       });
 
       updateUsedColors();
+      updateFinishedSize();
     }
 
     function drawArtboard(ab, isActive) {
@@ -7900,12 +7968,12 @@ QUY TẮC:
       mctx.shadowBlur = 16;
       mctx.shadowOffsetX = 3;
       mctx.shadowOffsetY = 4;
-      mctx.fillStyle = '#FFFFFF';
+      mctx.fillStyle = fabricColor;
       mctx.fillRect(ox, oy, aw, ah);
       mctx.restore();
 
-      // White background
-      mctx.fillStyle = '#FFFFFF';
+      // Fabric background
+      mctx.fillStyle = fabricColor;
       mctx.fillRect(ox, oy, aw, ah);
 
       mctx.save();
@@ -7989,19 +8057,38 @@ QUY TẮC:
       const cell = abCells[col]?.[row]; if (!cell) return;
       const x = ox + col*CELL_PX, y = oy + row*CELL_PX, p = CELL_PX;
       const pad = p * 0.1;
+      const isSymbol = viewMode === 'symbol';
+      const isBoth   = viewMode === 'both';
+      const isColor  = viewMode === 'color';
+      // Determine if this cell needs dark text on dark fabric
+      const darkFabric = fabricColor !== '#FFFFFF' && luminance(fabricColor) < 0.4;
+      const symColor = darkFabric ? '#FFFFFF' : '#000000';
+
       if (cell.satin) {
-        ctx.fillStyle = cell.satin;
-        ctx.fillRect(x, y, p, p);
-        ctx.strokeStyle = darkenHex(cell.satin, 0.18);
-        ctx.lineWidth = 1; ctx.lineCap = 'round';
-        for (let i=1; i<4; i++) {
-          ctx.beginPath(); ctx.moveTo(x, y+p/4*i); ctx.lineTo(x+p, y+p/4*i); ctx.stroke();
+        if (isSymbol) {
+          ctx.fillStyle = cell.satin+'55'; ctx.fillRect(x,y,p,p);
+          ctx.fillStyle = symColor; ctx.font=`bold ${p*.45}px monospace`;
+          ctx.textAlign='center'; ctx.textBaseline='middle';
+          ctx.fillText(getSymbol(cell.satin), x+p/2, y+p/2);
+        } else {
+          ctx.fillStyle = cell.satin;
+          ctx.fillRect(x, y, p, p);
+          ctx.strokeStyle = darkenHex(cell.satin, 0.18);
+          ctx.lineWidth = 1; ctx.lineCap = 'round';
+          for (let i=1; i<4; i++) {
+            ctx.beginPath(); ctx.moveTo(x, y+p/4*i); ctx.lineTo(x+p, y+p/4*i); ctx.stroke();
+          }
+          if (isBoth) {
+            ctx.fillStyle = symColor; ctx.font=`bold ${p*.4}px monospace`;
+            ctx.textAlign='center'; ctx.textBaseline='middle';
+            ctx.fillText(getSymbol(cell.satin), x+p/2, y+p/2);
+          }
         }
       }
       if (cell.cross) {
-        if (showSymbols) {
+        if (isSymbol) {
           ctx.fillStyle = cell.cross+'55'; ctx.fillRect(x,y,p,p);
-          ctx.fillStyle='#000'; ctx.font=`${p*.55}px monospace`;
+          ctx.fillStyle = symColor; ctx.font=`bold ${p*.55}px monospace`;
           ctx.textAlign='center'; ctx.textBaseline='middle';
           ctx.fillText(getSymbol(cell.cross), x+p/2, y+p/2);
         } else {
@@ -8011,17 +8098,41 @@ QUY TẮC:
           ctx.moveTo(x+pad, y+pad); ctx.lineTo(x+p-pad, y+p-pad);
           ctx.moveTo(x+p-pad, y+pad); ctx.lineTo(x+pad, y+p-pad);
           ctx.stroke();
+          if (isBoth) {
+            ctx.fillStyle = cell.cross+'33'; ctx.fillRect(x,y,p,p);
+            ctx.fillStyle = symColor; ctx.font=`bold ${p*.4}px monospace`;
+            ctx.textAlign='center'; ctx.textBaseline='middle';
+            ctx.fillText(getSymbol(cell.cross), x+p/2, y+p/2);
+          }
         }
       }
       if (cell.halfTL) {
-        ctx.strokeStyle = cell.halfTL;
-        ctx.lineWidth = Math.max(1, p*.18); ctx.lineCap = 'round';
-        ctx.beginPath(); ctx.moveTo(x+pad, y+p-pad); ctx.lineTo(x+p-pad, y+pad); ctx.stroke();
+        if (isSymbol) {
+          ctx.save(); ctx.beginPath(); ctx.moveTo(x,y); ctx.lineTo(x+p,y); ctx.lineTo(x,y+p); ctx.closePath(); ctx.clip();
+          ctx.fillStyle = cell.halfTL+'55'; ctx.fillRect(x,y,p,p);
+          ctx.fillStyle = symColor; ctx.font=`${p*.35}px monospace`;
+          ctx.textAlign='center'; ctx.textBaseline='middle';
+          ctx.fillText(getSymbol(cell.halfTL), x+p*.3, y+p*.4);
+          ctx.restore();
+        } else {
+          ctx.strokeStyle = cell.halfTL;
+          ctx.lineWidth = Math.max(1, p*.18); ctx.lineCap = 'round';
+          ctx.beginPath(); ctx.moveTo(x+pad, y+p-pad); ctx.lineTo(x+p-pad, y+pad); ctx.stroke();
+        }
       }
       if (cell.halfBR) {
-        ctx.strokeStyle = cell.halfBR;
-        ctx.lineWidth = Math.max(1, p*.18); ctx.lineCap = 'round';
-        ctx.beginPath(); ctx.moveTo(x+pad, y+pad); ctx.lineTo(x+p-pad, y+p-pad); ctx.stroke();
+        if (isSymbol) {
+          ctx.save(); ctx.beginPath(); ctx.moveTo(x+p,y); ctx.lineTo(x+p,y+p); ctx.lineTo(x,y+p); ctx.closePath(); ctx.clip();
+          ctx.fillStyle = cell.halfBR+'55'; ctx.fillRect(x,y,p,p);
+          ctx.fillStyle = symColor; ctx.font=`${p*.35}px monospace`;
+          ctx.textAlign='center'; ctx.textBaseline='middle';
+          ctx.fillText(getSymbol(cell.halfBR), x+p*.7, y+p*.6);
+          ctx.restore();
+        } else {
+          ctx.strokeStyle = cell.halfBR;
+          ctx.lineWidth = Math.max(1, p*.18); ctx.lineCap = 'round';
+          ctx.beginPath(); ctx.moveTo(x+pad, y+pad); ctx.lineTo(x+p-pad, y+p-pad); ctx.stroke();
+        }
       }
       if (cell.french) {
         const r = p*.2;
@@ -8029,6 +8140,11 @@ QUY TẮC:
         ctx.beginPath(); ctx.arc(x+p/2, y+p/2, r, 0, Math.PI*2); ctx.fill();
         ctx.strokeStyle = darkenHex(cell.french,.3); ctx.lineWidth=.8; ctx.stroke();
       }
+    }
+
+    function luminance(hex) {
+      const [r,g,b] = hexToRGB(hex).map(v => { v/=255; return v <= 0.03928 ? v/12.92 : Math.pow((v+0.055)/1.055, 2.4); });
+      return 0.2126*r + 0.7152*g + 0.0722*b;
     }
 
     // Backward compat shim for export/tool code that calls drawCell(col,row)
@@ -8500,29 +8616,238 @@ QUY TẮC:
       img.src=url;
     }
 
-    // ── Auto Pattern ──
-    function autoPattern() {
-      if(!refImage){alert('Vui lòng import ảnh tham chiếu trước.');return;}
-      const n=parseInt(prompt('Số màu chỉ (4–64):','16'))||16;
-      const tc=document.createElement('canvas');
-      tc.width=gridCols; tc.height=gridRows;
-      const tctx=tc.getContext('2d');
-      tctx.drawImage(refImage,0,0,gridCols,gridRows);
-      const imgData=tctx.getImageData(0,0,gridCols,gridRows).data;
-      pushHist();
-      for(let r=0;r<gridRows;r++) {
-        for(let c=0;c<gridCols;c++) {
-          const i=(r*gridCols+c)*4;
-          const alpha=imgData[i+3];
-          if(alpha<50) continue;
-          const brightness=(imgData[i]+imgData[i+1]+imgData[i+2])/3;
-          if(brightness>240) continue;
-          const hex='#'+[imgData[i],imgData[i+1],imgData[i+2]].map(v=>v.toString(16).padStart(2,'0')).join('').toUpperCase();
-          const dmc=nearestDMC(hex);
-          if(dmc) cells[c][r].cross=dmc.hex;
+    // ── Finished Size ──
+    function updateFinishedSize() {
+      const el = document.getElementById('embFinishedSize');
+      if (!el) return;
+      const ab = artboards[activeAbIdx]; if (!ab) return;
+      const ct = ab.stitchCt || 14;
+      const wInch = ab.cols / ct, hInch = ab.rows / ct;
+      const wCm = (wInch * 2.54).toFixed(1), hCm = (hInch * 2.54).toFixed(1);
+      el.textContent = `${wCm} × ${hCm} cm`;
+      // Also update statusbar color count
+      const cc = document.getElementById('embStatColors');
+      if (cc) {
+        const usedSet = new Set();
+        for (let c = 0; c < ab.cols; c++) for (let r = 0; r < ab.rows; r++) {
+          const cell = ab.cells[c]?.[r]; if (!cell) continue;
+          [cell.cross, cell.satin, cell.halfTL, cell.halfBR, cell.french].filter(Boolean).forEach(h => usedSet.add(h));
+        }
+        ab.bs.forEach(s => usedSet.add(s.color));
+        ab.fk.forEach(k => usedSet.add(k.color));
+        cc.textContent = usedSet.size;
+      }
+    }
+
+    // ── Photo-to-Pattern Wizard ──
+    let wizImage = null, wizPreviewData = null;
+
+    function openWizard() {
+      if (!refImage) { alert('Vui lòng import ảnh tham chiếu trước.'); return; }
+      wizImage = refImage;
+      const backdrop = document.getElementById('embWizardBackdrop');
+      backdrop.classList.add('open');
+      // Set default dimensions based on image aspect ratio
+      const aspect = wizImage.naturalWidth / wizImage.naturalHeight;
+      const w = document.getElementById('embWizWidth');
+      const h = document.getElementById('embWizHeight');
+      if (aspect >= 1) { w.value = 100; h.value = Math.round(100 / aspect); }
+      else { h.value = 100; w.value = Math.round(100 * aspect); }
+      document.getElementById('embWizFabric').value = String(artboards[activeAbIdx]?.stitchCt || 14);
+      updateWizInfo();
+      wizPreviewData = null;
+      document.getElementById('embWizApply').disabled = true;
+      const prev = document.getElementById('embWizPreview');
+      prev.innerHTML = '<div class="emb-wiz-placeholder">Bấm「🔄 Xem trước」để tạo preview</div>';
+      document.getElementById('embWizPalette').innerHTML = '';
+    }
+
+    function closeWizard() {
+      document.getElementById('embWizardBackdrop').classList.remove('open');
+      wizImage = null; wizPreviewData = null;
+    }
+
+    function updateWizInfo() {
+      const w = parseInt(document.getElementById('embWizWidth').value) || 100;
+      const h = parseInt(document.getElementById('embWizHeight').value) || 100;
+      const ct = parseInt(document.getElementById('embWizFabric').value) || 14;
+      const wCm = (w / ct * 2.54).toFixed(1), hCm = (h / ct * 2.54).toFixed(1);
+      document.getElementById('embWizInfo').innerHTML =
+        `Kích thước thật: <b>${wCm} × ${hCm} cm</b> &nbsp;·&nbsp; Tổng mũi: <b>${(w*h).toLocaleString()}</b>`;
+    }
+
+    function wizPreview() {
+      if (!wizImage) return;
+      const outW = parseInt(document.getElementById('embWizWidth').value) || 100;
+      const outH = parseInt(document.getElementById('embWizHeight').value) || 100;
+      const maxColors = parseInt(document.getElementById('embWizColors').value) || 16;
+      const useDMC = document.getElementById('embWizDMCOnly').checked;
+      const skipWhite = document.getElementById('embWizSkipWhite').checked;
+      const whiteThresh = parseInt(document.getElementById('embWizWhiteThresh').value) || 240;
+
+      // Downsample image to outW×outH
+      const tc = document.createElement('canvas');
+      tc.width = outW; tc.height = outH;
+      const tctx = tc.getContext('2d');
+      tctx.drawImage(wizImage, 0, 0, outW, outH);
+      const imgData = tctx.getImageData(0, 0, outW, outH);
+      const px = imgData.data;
+
+      // Color quantization: median-cut simplified
+      const colorMap = {};
+      for (let i = 0; i < px.length; i += 4) {
+        if (px[i+3] < 50) continue;
+        if (skipWhite && px[i] >= whiteThresh && px[i+1] >= whiteThresh && px[i+2] >= whiteThresh) continue;
+        // Quantize to reduce unique colors
+        const qr = Math.round(px[i]/8)*8, qg = Math.round(px[i+1]/8)*8, qb = Math.round(px[i+2]/8)*8;
+        const key = `${qr},${qg},${qb}`;
+        if (!colorMap[key]) colorMap[key] = { r: 0, g: 0, b: 0, count: 0 };
+        colorMap[key].r += px[i]; colorMap[key].g += px[i+1]; colorMap[key].b += px[i+2];
+        colorMap[key].count++;
+      }
+
+      // Sort by frequency, take top N
+      let palette = Object.values(colorMap)
+        .map(c => ({ r: Math.round(c.r/c.count), g: Math.round(c.g/c.count), b: Math.round(c.b/c.count), count: c.count }))
+        .sort((a, b) => b.count - a.count)
+        .slice(0, maxColors * 4);
+
+      // If using DMC, map to nearest DMC colors and deduplicate
+      if (useDMC) {
+        const dmcSet = new Map();
+        palette.forEach(c => {
+          const hex = '#' + [c.r, c.g, c.b].map(v => v.toString(16).padStart(2, '0')).join('').toUpperCase();
+          const dmc = nearestDMC(hex);
+          if (dmc && !dmcSet.has(dmc.hex)) dmcSet.set(dmc.hex, { ...c, hex: dmc.hex, dmc });
+          else if (dmc && dmcSet.has(dmc.hex)) dmcSet.get(dmc.hex).count += c.count;
+        });
+        palette = Array.from(dmcSet.values()).sort((a, b) => b.count - a.count).slice(0, maxColors);
+      } else {
+        palette = palette.slice(0, maxColors).map(c => {
+          const hex = '#' + [c.r, c.g, c.b].map(v => v.toString(16).padStart(2, '0')).join('').toUpperCase();
+          return { ...c, hex };
+        });
+      }
+
+      // Build palette lookup for nearest matching
+      const paletteLabs = palette.map(p => ({ hex: p.hex, lab: hexToLab(p.hex), dmc: p.dmc }));
+
+      // Create preview pattern
+      const result = Array.from({ length: outW }, () => Array.from({ length: outH }, () => null));
+      for (let r = 0; r < outH; r++) {
+        for (let c = 0; c < outW; c++) {
+          const i = (r * outW + c) * 4;
+          if (px[i+3] < 50) continue;
+          if (skipWhite && px[i] >= whiteThresh && px[i+1] >= whiteThresh && px[i+2] >= whiteThresh) continue;
+          const lab = hexToLab('#' + [px[i], px[i+1], px[i+2]].map(v => v.toString(16).padStart(2, '0')).join(''));
+          let bestD = Infinity, bestHex = palette[0]?.hex;
+          for (const pl of paletteLabs) {
+            const d = labDist(lab, pl.lab);
+            if (d < bestD) { bestD = d; bestHex = pl.hex; }
+          }
+          result[c][r] = bestHex;
         }
       }
+
+      // Draw preview canvas
+      const previewEl = document.getElementById('embWizPreview');
+      const pCanvas = document.createElement('canvas');
+      const cellSz = Math.max(1, Math.min(4, Math.floor(240 / Math.max(outW, outH))));
+      pCanvas.width = outW * cellSz; pCanvas.height = outH * cellSz;
+      const pctx = pCanvas.getContext('2d');
+      pctx.fillStyle = fabricColor; pctx.fillRect(0, 0, pCanvas.width, pCanvas.height);
+      for (let c = 0; c < outW; c++) for (let r = 0; r < outH; r++) {
+        if (result[c][r]) {
+          pctx.fillStyle = result[c][r];
+          pctx.fillRect(c * cellSz, r * cellSz, cellSz, cellSz);
+        }
+      }
+      previewEl.innerHTML = '';
+      pCanvas.style.imageRendering = 'pixelated';
+      previewEl.appendChild(pCanvas);
+
+      // Show palette info
+      const palEl = document.getElementById('embWizPalette');
+      palEl.innerHTML = palette.map(p =>
+        `<span style="display:inline-flex;align-items:center;gap:3px;margin:1px 4px 1px 0">` +
+        `<span style="width:12px;height:12px;border-radius:2px;background:${p.hex};display:inline-block;border:1px solid rgba(0,0,0,.15)"></span>` +
+        `<span>${p.dmc ? 'DMC '+p.dmc.code : p.hex}</span></span>`
+      ).join('');
+
+      wizPreviewData = { result, outW, outH, palette: paletteLabs };
+      document.getElementById('embWizApply').disabled = false;
+    }
+
+    function wizApply() {
+      if (!wizPreviewData) return;
+      const { result, outW, outH } = wizPreviewData;
+      const ct = parseInt(document.getElementById('embWizFabric').value) || 14;
+      const ab = artboards[activeAbIdx]; if (!ab) return;
+
+      // Resize artboard to fit pattern
+      paper = ab.paper || 'A4'; stitchCt = ct;
+      // Ensure cells fit
+      const newCols = outW, newRows = outH;
+      ab.cols = newCols; ab.rows = newRows;
+      ab.stitchCt = ct;
+      ab.cells = makeAbCells(newCols, newRows);
+      ab.bs = []; ab.fk = [];
+      syncGlobals();
+
+      pushHist();
+      for (let c = 0; c < newCols; c++) for (let r = 0; r < newRows; r++) {
+        if (result[c][r]) cells[c][r].cross = result[c][r];
+      }
+
+      recalcWorldCanvas();
+      const sz = document.getElementById('embPropSize');
+      if (sz) sz.textContent = `${newCols} × ${newRows} ô`;
+      updateFinishedSize();
       schedRender();
+      fitToView();
+      closeWizard();
+    }
+
+    function initWizard() {
+      document.getElementById('embWizClose')?.addEventListener('click', closeWizard);
+      document.getElementById('embWizCancel')?.addEventListener('click', closeWizard);
+      document.getElementById('embWizApply')?.addEventListener('click', wizApply);
+      document.getElementById('embWizPreviewBtn')?.addEventListener('click', wizPreview);
+      document.getElementById('embWizardBackdrop')?.addEventListener('click', e => {
+        if (e.target === e.currentTarget) closeWizard();
+      });
+
+      // Lock aspect ratio
+      const wEl = document.getElementById('embWizWidth');
+      const hEl = document.getElementById('embWizHeight');
+      const lock = document.getElementById('embWizLock');
+      let lastW = 100, lastH = 100;
+      wEl?.addEventListener('input', () => {
+        if (lock.checked && wizImage) {
+          const aspect = wizImage.naturalWidth / wizImage.naturalHeight;
+          hEl.value = Math.round(parseInt(wEl.value) / aspect);
+        }
+        updateWizInfo();
+      });
+      hEl?.addEventListener('input', () => {
+        if (lock.checked && wizImage) {
+          const aspect = wizImage.naturalWidth / wizImage.naturalHeight;
+          wEl.value = Math.round(parseInt(hEl.value) * aspect);
+        }
+        updateWizInfo();
+      });
+
+      // Colors slider
+      const cs = document.getElementById('embWizColors');
+      const cv = document.getElementById('embWizColorsVal');
+      cs?.addEventListener('input', () => { cv.textContent = cs.value; });
+
+      document.getElementById('embWizFabric')?.addEventListener('change', updateWizInfo);
+    }
+
+    // Keep old autoPattern as wizard opener
+    function autoPattern() {
+      openWizard();
     }
 
     // ── Export ──
@@ -8530,7 +8855,7 @@ QUY TẮC:
       const ec=document.createElement('canvas');
       ec.width=mainCanvas.width; ec.height=mainCanvas.height;
       const ectx=ec.getContext('2d');
-      ectx.fillStyle='#FFFFFF'; ectx.fillRect(0,0,ec.width,ec.height);
+      ectx.fillStyle=fabricColor; ectx.fillRect(0,0,ec.width,ec.height);
       if(LAYERS[0].visible) for(let c=0;c<gridCols;c++) for(let r=0;r<gridRows;r++) drawCell(c,r,ectx);
       if(LAYERS[1].visible) {
         backstitches.forEach(s=>{
@@ -8557,14 +8882,23 @@ QUY TẮC:
     }
 
     function exportPDF() {
+      const ab = artboards[activeAbIdx]; if (!ab) return;
       const usedMap={};
       for(let c=0;c<gridCols;c++) for(let r=0;r<gridRows;r++) {
         const cell=cells[c]?.[r]; if(!cell) continue;
-        [cell.cross,cell.satin].filter(Boolean).forEach(hex=>{
+        [cell.cross,cell.satin,cell.halfTL,cell.halfBR,cell.french].filter(Boolean).forEach(hex=>{
           if(!usedMap[hex]){const dmc=nearestDMC(hex);usedMap[hex]={dmc,count:0,sym:getSymbol(hex)};}
           usedMap[hex].count++;
         });
       }
+      backstitches.forEach(s=>{
+        if(!usedMap[s.color]){const dmc=nearestDMC(s.color);usedMap[s.color]={dmc,count:0,sym:getSymbol(s.color)};}
+        usedMap[s.color].count++;
+      });
+      frenchKnots.forEach(k=>{
+        if(!usedMap[k.color]){const dmc=nearestDMC(k.color);usedMap[k.color]={dmc,count:0,sym:getSymbol(k.color)};}
+        usedMap[k.color].count++;
+      });
       // Symbol canvas
       const sc=document.createElement('canvas');
       sc.width=mainCanvas.width; sc.height=mainCanvas.height;
@@ -8587,31 +8921,52 @@ QUY TẮC:
       for(let r=0;r<=gridRows;r+=MAJOR){sctx.beginPath();sctx.moveTo(0,r*CELL_PX);sctx.lineTo(sc.width,r*CELL_PX);sctx.stroke();}
       const colorImg=mainCanvas.toDataURL();
       const symImg=sc.toDataURL();
-      const colorTable=Object.entries(usedMap).map(([hex,info])=>`
-        <tr><td><div style="width:22px;height:22px;background:${hex};border:1px solid #ccc;border-radius:3px;display:inline-block"></div></td>
+      // Calculate thread length: each cross ≈ 2×stitch_length, stitch_length = 1/ct inch
+      // 1 skein DMC = 8m = ~315 inches. Each cross uses ~2.5 inches of thread at 14ct
+      const ct = ab.stitchCt || 14;
+      const stitchLen = 2.5 / ct * 14; // normalize to 14ct baseline
+      const colorTable=Object.entries(usedMap).sort((a,b)=>b[1].count-a[1].count).map(([hex,info])=>{
+        const threadM = (info.count * stitchLen * 2.54 / 100).toFixed(1);
+        const skeins = (info.count * stitchLen / 315).toFixed(1);
+        return `<tr>
+        <td><div style="width:22px;height:22px;background:${hex};border:1px solid #ccc;border-radius:3px;display:inline-block"></div></td>
         <td style="font-size:16px">${info.sym}</td>
         <td>DMC ${info.dmc?.code||'?'}</td><td>${info.dmc?.name||''}</td>
-        <td>${info.count.toLocaleString()}</td></tr>`).join('');
-      const [pw,ph]=PAPER_MM[paper];
-      const wInch=pw/25.4,hInch=ph/25.4;
-      const pw2=Math.round(wInch*stitchCt*2.54/10);
+        <td style="text-align:right">${info.count.toLocaleString()}</td>
+        <td style="text-align:right">${threadM}m</td>
+        <td style="text-align:right">${skeins}</td></tr>`;
+      }).join('');
+      const totalStitches = Object.values(usedMap).reduce((s,v)=>s+v.count,0);
+      const [pw,ph]=PAPER_MM[ab.paper||paper];
+      const wCm = (gridCols / ct * 2.54).toFixed(1), hCm = (gridRows / ct * 2.54).toFixed(1);
       const printWin=window.open('','_blank');
       if(!printWin){alert('Cho phép pop-up để xuất PDF.');return;}
       printWin.document.write(`<!DOCTYPE html><html><head><title>Embroidery Pattern — Thảo Tools</title>
       <style>body{font-family:Arial,sans-serif;padding:20px;max-width:900px;margin:0 auto}
       h2{font-size:18px;margin-bottom:6px}h3{font-size:14px;margin:20px 0 8px}
       .info{font-size:12px;color:#555;margin-bottom:16px}
+      .summary{display:flex;gap:20px;flex-wrap:wrap;margin-bottom:16px}
+      .summary-card{background:#f8f8f8;border-radius:8px;padding:10px 14px;flex:1;min-width:120px}
+      .summary-card .val{font-size:20px;font-weight:700;color:#333}
+      .summary-card .label{font-size:10px;color:#888;text-transform:uppercase;letter-spacing:.5px;margin-top:2px}
       img{max-width:100%;border:1px solid #ddd;display:block;margin-bottom:4px}
       table{border-collapse:collapse;width:100%;font-size:12px;margin-top:6px}
       th,td{border:1px solid #ddd;padding:5px 8px;text-align:left}
       th{background:#f5f5f5;font-weight:700}
-      @media print{@page{margin:10mm}}</style></head>
+      @media print{@page{margin:10mm} .no-print{display:none}}
+      </style></head>
       <body><h2>🧵 Embroidery Pattern — Thảo Tools</h2>
-      <div class="info">Kích thước: ${gridCols} × ${gridRows} ô &nbsp;·&nbsp; ${stitchCt}ct &nbsp;·&nbsp; Vải: ${pw}×${ph}mm &nbsp;·&nbsp; ${Object.keys(usedMap).length} màu chỉ</div>
+      <div class="info">Kích thước: ${gridCols} × ${gridRows} ô &nbsp;·&nbsp; ${ct}ct &nbsp;·&nbsp; ${wCm} × ${hCm} cm &nbsp;·&nbsp; ${Object.keys(usedMap).length} màu chỉ</div>
+      <div class="summary">
+        <div class="summary-card"><div class="val">${totalStitches.toLocaleString()}</div><div class="label">Tổng mũi thêu</div></div>
+        <div class="summary-card"><div class="val">${Object.keys(usedMap).length}</div><div class="label">Màu chỉ DMC</div></div>
+        <div class="summary-card"><div class="val">${wCm} × ${hCm}</div><div class="label">Kích thước (cm)</div></div>
+        <div class="summary-card"><div class="val">${ct}ct</div><div class="label">Fabric count</div></div>
+      </div>
       <h3>Pattern màu</h3><img src="${colorImg}">
       <h3>Pattern ký hiệu (in đen trắng)</h3><img src="${symImg}">
-      <h3>Bảng màu chỉ DMC</h3>
-      <table><thead><tr><th>Màu</th><th>Ký hiệu</th><th>Mã DMC</th><th>Tên</th><th>Số mũi</th></tr></thead>
+      <h3>🧵 Bảng chỉ DMC — Shopping List</h3>
+      <table><thead><tr><th>Màu</th><th>Ký hiệu</th><th>Mã DMC</th><th>Tên</th><th>Số mũi</th><th>Chiều dài</th><th>Số tay (skein)</th></tr></thead>
       <tbody>${colorTable}</tbody></table>
       <script>window.onload=function(){window.print()}<\/script>
       </body></html>`);
@@ -8832,6 +9187,33 @@ QUY TẮC:
       document.getElementById('embJsonInput')?.addEventListener('change',e=>{if(e.target.files[0])loadJSON(e.target.files[0]);});
       document.getElementById('embLayerClear')?.addEventListener('click',()=>{
         if(confirm('Xoá toàn bộ pattern?')) clearAll();
+      });
+
+      // ── Fabric Color ──
+      document.querySelectorAll('.emb-fabric-swatch').forEach(sw => {
+        sw.addEventListener('click', () => {
+          fabricColor = sw.dataset.fabric;
+          document.querySelectorAll('.emb-fabric-swatch').forEach(s => s.classList.remove('active'));
+          sw.classList.add('active');
+          schedRender();
+        });
+      });
+      document.getElementById('embFabricCustom')?.addEventListener('input', e => {
+        fabricColor = e.target.value;
+        document.querySelectorAll('.emb-fabric-swatch').forEach(s => s.classList.remove('active'));
+        schedRender();
+      });
+
+      // ── View Mode Toggle ──
+      document.querySelectorAll('.emb-view-toggle button').forEach(btn => {
+        btn.addEventListener('click', () => {
+          viewMode = btn.dataset.view;
+          document.querySelectorAll('.emb-view-toggle button').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          // Sync legacy showSymbols for menu toggle compat
+          showSymbols = viewMode !== 'color';
+          schedRender();
+        });
       });
     }
 
@@ -9229,6 +9611,29 @@ QUY TẮC:
       });
       document.getElementById('embCtxApplyMask')?.addEventListener('click',()=>{closeCtx();applyRectMask();});
       document.getElementById('embCtxClearMask')?.addEventListener('click',()=>{closeCtx();clearRectSelection();});
+      document.getElementById('embCtxReplaceColor')?.addEventListener('click',()=>{
+        closeCtx();
+        if(!ctxCell) return;
+        const {col,row}=ctxCell; if(!valid(col,row)) return;
+        const cell=cells[col][row];
+        const oldColor=cell.cross||cell.satin||cell.halfTL||cell.halfBR||cell.french;
+        if(!oldColor){alert('Ô này chưa có màu.');return;}
+        // Replace all occurrences of oldColor with currentColor across entire artboard
+        const newColor=currentColor;
+        if(oldColor===newColor) return;
+        pushHist();
+        for(let c=0;c<gridCols;c++) for(let r=0;r<gridRows;r++) {
+          const cl=cells[c][r];
+          if(cl.cross===oldColor) cl.cross=newColor;
+          if(cl.satin===oldColor) cl.satin=newColor;
+          if(cl.halfTL===oldColor) cl.halfTL=newColor;
+          if(cl.halfBR===oldColor) cl.halfBR=newColor;
+          if(cl.french===oldColor) cl.french=newColor;
+        }
+        backstitches.forEach(s=>{if(s.color===oldColor) s.color=newColor;});
+        frenchKnots.forEach(k=>{if(k.color===oldColor) k.color=newColor;});
+        schedRender();
+      });
       document.getElementById('embCtxExportPNG')?.addEventListener('click',()=>{closeCtx();exportPNG();});
       document.getElementById('embCtxExportPDF')?.addEventListener('click',()=>{closeCtx();exportPDF();});
 
@@ -9283,1321 +9688,16 @@ QUY TẮC:
       initTooltips();
       initArtboardPanel();
       renderArtboardPanel();
+      initWizard();
       pushHist();
       const initD=DMC.find(d=>d.code==='321');
       if(initD) setColor(initD.hex,initD);
-      setTimeout(()=>{fitToView();schedRender();},150);
+      setTimeout(()=>{fitToView();updateFinishedSize();schedRender();},150);
     }
     init();
   })()
 
-  // ===== TAB 3 (part 2): CROSS STITCH CANVAS DESIGNER ========
-  ;(function initCrossStitch() {
-    const canvas = document.getElementById('csCanvas');
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-
-    // Paper sizes in mm
-    const PAPER = { A5: [148, 210], A4: [210, 297], A3: [297, 420] };
-    const MM_PER_INCH = 25.4;
-
-    // State
-    let paperSize = 'A4';
-    let paperW = 210, paperH = 297; // mm
-    let density = 14; // ct (stitches per inch)
-    let gridCols = 0, gridRows = 0;
-    let cellPx = 16; // pixel per cell on canvas
-    let zoom = 1;
-    let currentTool = 'cross';
-    let currentColor = '#e74c3c';
-    let refImage = null;
-    let refOpacity = 0.3;
-    // Image transform (Illustrator-style)
-    let imgX = 0, imgY = 0, imgW = 0, imgH = 0, imgRot = 0;
-    let imgLocked = true; // lock aspect ratio
-    let maskMode = false;
-    let maskW = 100, maskH = 100; // in mm (for print)
-    let maskX = null, maskY = null; // px on canvas (null = centered)
-    // === Illustrator Clipping Mask ===
-    // 'none'  → click → 'group' (mask on) or 'image' (mask off)
-    // 'group' → dblclick → isolation: click mask border→'mask', click image→'image'
-    // 'mask'  → chỉnh riêng mask rect (cam)
-    // 'image' → chỉnh riêng ảnh (xanh lá khi isolation, xanh khi ko mask)
-    // Escape → step back
-    let editTarget = 'none';
-    let dragMode = null; // 'move' | 'nw'|'ne'|'sw'|'se' | 'rotate'
-    let dragStart = null; // snapshot at drag begin
-    let stitches = {}; // key: "col,row" → { type, color }
-    let isDrawing = false;
-    let lastCell = null;
-    // View rotation (Illustrator Rotate View)
-    let viewRotation = 0; // degrees
-    // Artboard system
-    let artboards = [];
-    let activeArtboardId = null;
-    // Undo/Redo
-    let undoStack = [];
-    let redoStack = [];
-    let undoLock = false;
-    // Layer visibility
-    let layerVisible = { background: true, image: true, stitches: true, grid: true };
-    let layerLocked = { background: true, image: false, stitches: false, grid: true };
-
-    // Default palette (common thread colors)
-    const DEFAULT_PALETTE = [
-      '#e74c3c','#c0392b','#e91e63','#9b59b6','#8e44ad',
-      '#3498db','#2980b9','#1abc9c','#16a085','#2ecc71',
-      '#27ae60','#f39c12','#f1c40f','#e67e22','#d35400',
-      '#ecf0f1','#bdc3c7','#95a5a6','#7f8c8d','#34495e',
-      '#2c3e50','#000000','#ffffff','#ff69b4','#8b4513',
-      '#daa520','#ff6347','#4169e1','#32cd32','#ff4500',
-    ];
-
-    // Elements
-    const csUpload = document.getElementById('csUpload');
-    const csFileInput = document.getElementById('csFileInput');
-    const csImgPreview = document.getElementById('csImgPreview');
-    const csRefImg = document.getElementById('csRefImg');
-    const csRemoveImg = document.getElementById('csRemoveImg');
-    const csOpacity = document.getElementById('csOpacity');
-    const csOpacityVal = document.getElementById('csOpacityVal');
-    const csDensity = document.getElementById('csDensity');
-    const csDensityVal = document.getElementById('csDensityVal');
-    const csGridInfo = document.getElementById('csGridInfo');
-    const csCustomSize = document.getElementById('csCustomSize');
-    const csCustomW = document.getElementById('csCustomW');
-    const csCustomH = document.getElementById('csCustomH');
-    const csColorInput = document.getElementById('csColor');
-    const csPalette = document.getElementById('csPalette');
-    const csUsedList = document.getElementById('csUsedList');
-    const csStitchCount = document.getElementById('csStitchCount');
-    const csZoomLevel = document.getElementById('csZoomLevel');
-    const csCanvasScroll = document.getElementById('csCanvasScroll');
-
-    // --- mm ↔ canvas-px conversion (for mask) ---
-    function mmToPx(mm) { return (mm / MM_PER_INCH) * density * cellPx; }
-    function pxToMm(px) { return (px / cellPx / density) * MM_PER_INCH; }
-
-    // --- Coordinate conversion (accounts for view rotation) ---
-    function getCanvasXY(e) {
-      const rect = canvas.getBoundingClientRect();
-      if (viewRotation === 0) {
-        return { mx: (e.clientX - rect.left) / zoom, my: (e.clientY - rect.top) / zoom };
-      }
-      const cx = rect.left + rect.width / 2;
-      const cy = rect.top + rect.height / 2;
-      const dx = e.clientX - cx, dy = e.clientY - cy;
-      const rad = -viewRotation * Math.PI / 180;
-      const cos = Math.cos(rad), sin = Math.sin(rad);
-      const ux = dx * cos - dy * sin;
-      const uy = dx * sin + dy * cos;
-      const canvasW = canvas.width * zoom;
-      const canvasH = canvas.height * zoom;
-      return { mx: (ux + canvasW / 2) / zoom, my: (uy + canvasH / 2) / zoom };
-    }
-
-    // --- Undo/Redo ---
-    function pushUndo() {
-      if (undoLock) return;
-      undoStack.push(JSON.stringify(stitches));
-      if (undoStack.length > 80) undoStack.shift();
-      redoStack = [];
-    }
-    function doUndo() {
-      if (!undoStack.length) return;
-      redoStack.push(JSON.stringify(stitches));
-      stitches = JSON.parse(undoStack.pop());
-      updateStats(); draw();
-    }
-    function doRedo() {
-      if (!redoStack.length) return;
-      undoStack.push(JSON.stringify(stitches));
-      stitches = JSON.parse(redoStack.pop());
-      updateStats(); draw();
-    }
-
-    // --- Artboard system ---
-    function createArtboard(name) {
-      const id = Date.now() + Math.floor(Math.random() * 1000);
-      return {
-        id, name: name || ('Artboard ' + (artboards.length + 1)),
-        paperSize: 'A4', paperW: 210, paperH: 297, density: 14,
-        stitches: {},
-        refImage: null, refImageSrc: null,
-        imgX: 0, imgY: 0, imgW: 0, imgH: 0, imgRot: 0,
-        refOpacity: 0.3, imgLocked: true,
-        maskMode: false, maskW: 100, maskH: 100,
-        maskX: null, maskY: null,
-        layerVisible: { background: true, image: true, stitches: true, grid: true },
-        layerLocked: { background: true, image: false, stitches: false, grid: true },
-      };
-    }
-
-    function saveCurrentToArtboard() {
-      const ab = artboards.find(a => a.id === activeArtboardId);
-      if (!ab) return;
-      Object.assign(ab, {
-        paperSize, paperW, paperH, density,
-        stitches: JSON.parse(JSON.stringify(stitches)),
-        refImage, refImageSrc: refImage ? csRefImg.src : null,
-        imgX, imgY, imgW, imgH, imgRot,
-        refOpacity, imgLocked,
-        maskMode, maskW, maskH, maskX, maskY,
-        layerVisible: {...layerVisible}, layerLocked: {...layerLocked},
-      });
-    }
-
-    function loadArtboard(id) {
-      if (activeArtboardId != null) saveCurrentToArtboard();
-      const ab = artboards.find(a => a.id === id);
-      if (!ab) return;
-      activeArtboardId = id;
-      paperSize = ab.paperSize; paperW = ab.paperW; paperH = ab.paperH;
-      density = ab.density;
-      stitches = JSON.parse(JSON.stringify(ab.stitches));
-
-      // Restore image
-      if (ab.refImage) {
-        refImage = ab.refImage;
-        csRefImg.src = ab.refImageSrc || '';
-        csImgPreview.style.display = 'block';
-        csUpload.style.display = 'none';
-      } else {
-        refImage = null;
-        csImgPreview.style.display = 'none';
-        csUpload.style.display = '';
-      }
-      imgX = ab.imgX; imgY = ab.imgY; imgW = ab.imgW; imgH = ab.imgH; imgRot = ab.imgRot;
-      refOpacity = ab.refOpacity; imgLocked = ab.imgLocked;
-      maskMode = ab.maskMode; maskW = ab.maskW; maskH = ab.maskH;
-      maskX = ab.maskX; maskY = ab.maskY;
-      layerVisible = ab.layerVisible ? {...ab.layerVisible} : { background: true, image: true, stitches: true, grid: true };
-      layerLocked = ab.layerLocked ? {...ab.layerLocked} : { background: true, image: false, stitches: false, grid: true };
-      editTarget = 'none'; dragMode = null; dragStart = null;
-
-      // Sync UI controls
-      csOpacity.value = Math.round(refOpacity * 100);
-      csOpacityVal.textContent = csOpacity.value + '%';
-      document.getElementById('csLockRatio').checked = imgLocked;
-      csMaskCheck.checked = maskMode;
-      csMaskSizeEl.style.display = maskMode ? 'flex' : 'none';
-      document.getElementById('csMaskHint').style.display = maskMode ? '' : 'none';
-      csMaskWInput.value = Math.round(maskW);
-      csMaskHInput.value = Math.round(maskH);
-      csDensity.value = density;
-      csDensityVal.textContent = density + ' ct';
-      // Paper size buttons
-      document.querySelectorAll('.cs-radio').forEach(b => {
-        b.classList.toggle('active', b.dataset.size === paperSize);
-      });
-      csCustomSize.style.display = paperSize === 'custom' ? 'flex' : 'none';
-      if (paperSize === 'custom') {
-        csCustomW.value = paperW; csCustomH.value = paperH;
-      }
-
-      undoStack = []; redoStack = [];
-      renderArtboardList();
-      renderLayers();
-      recalcGrid();
-    }
-
-    function deleteArtboard(id) {
-      if (artboards.length <= 1) return;
-      artboards = artboards.filter(a => a.id !== id);
-      if (activeArtboardId === id) {
-        activeArtboardId = null;
-        loadArtboard(artboards[0].id);
-      } else {
-        renderArtboardList();
-      }
-    }
-
-    function renderArtboardList() {
-      const list = document.getElementById('csArtboardList');
-      list.innerHTML = '';
-      artboards.forEach(ab => {
-        const el = document.createElement('div');
-        el.className = 'cs-artboard-item' + (ab.id === activeArtboardId ? ' active' : '');
-        const nameSpan = document.createElement('span');
-        nameSpan.className = 'cs-artboard-name';
-        nameSpan.textContent = ab.name;
-        const sizeSpan = document.createElement('span');
-        sizeSpan.className = 'cs-artboard-size';
-        sizeSpan.textContent = ab.paperSize === 'custom' ? (ab.paperW + '×' + ab.paperH) : ab.paperSize;
-        el.appendChild(nameSpan);
-        el.appendChild(sizeSpan);
-        if (artboards.length > 1) {
-          const del = document.createElement('button');
-          del.className = 'cs-artboard-del';
-          del.textContent = '✕';
-          del.title = 'Xoá';
-          del.addEventListener('click', e => { e.stopPropagation(); deleteArtboard(ab.id); });
-          el.appendChild(del);
-        }
-        el.addEventListener('click', () => { if (ab.id !== activeArtboardId) loadArtboard(ab.id); });
-        el.addEventListener('dblclick', () => {
-          nameSpan.contentEditable = 'true';
-          nameSpan.focus();
-          const sel = window.getSelection();
-          sel.selectAllChildren(nameSpan);
-          const done = () => {
-            nameSpan.contentEditable = 'false';
-            ab.name = nameSpan.textContent.trim() || ab.name;
-            renderArtboardList();
-          };
-          nameSpan.addEventListener('blur', done, { once: true });
-          nameSpan.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); nameSpan.blur(); } });
-        });
-        list.appendChild(el);
-      });
-    }
-
-    document.getElementById('csAddArtboard').addEventListener('click', () => {
-      saveCurrentToArtboard();
-      const ab = createArtboard();
-      artboards.push(ab);
-      loadArtboard(ab.id);
-    });
-
-    // --- View rotation ---
-    function setViewRotation(deg) {
-      viewRotation = ((deg % 360) + 360) % 360;
-      if (Math.abs(viewRotation) < 0.5) viewRotation = 0;
-      canvas.style.transform = viewRotation ? `rotate(${viewRotation}deg)` : '';
-      document.getElementById('csViewRotation').textContent = Math.round(viewRotation) + '°';
-    }
-    document.getElementById('csRotateLeft').addEventListener('click', () => setViewRotation(viewRotation - 15));
-    document.getElementById('csRotateRight').addEventListener('click', () => setViewRotation(viewRotation + 15));
-    document.getElementById('csRotateReset').addEventListener('click', () => setViewRotation(0));
-
-    // --- Init palette ---
-    DEFAULT_PALETTE.forEach(c => {
-      const el = document.createElement('div');
-      el.className = 'cs-palette-swatch' + (c === currentColor ? ' active' : '');
-      el.style.background = c;
-      el.addEventListener('click', () => {
-        currentColor = c;
-        csColorInput.value = c;
-        document.querySelectorAll('.cs-palette-swatch').forEach(s => s.classList.remove('active'));
-        el.classList.add('active');
-        if (currentTool === 'eraser' || currentTool === 'picker') { currentTool = 'cross'; updateToolButtons(); }
-      });
-      csPalette.appendChild(el);
-    });
-
-    csColorInput.addEventListener('input', e => {
-      currentColor = e.target.value;
-      document.querySelectorAll('.cs-palette-swatch').forEach(s => s.classList.remove('active'));
-    });
-
-    // --- Paper size ---
-    document.querySelectorAll('.cs-radio').forEach(btn => {
-      btn.addEventListener('click', () => {
-        document.querySelectorAll('.cs-radio').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        const size = btn.dataset.size;
-        if (size === 'custom') {
-          csCustomSize.style.display = 'flex';
-          paperW = parseInt(csCustomW.value) || 210;
-          paperH = parseInt(csCustomH.value) || 297;
-          paperSize = 'custom';
-        } else {
-          csCustomSize.style.display = 'none';
-          paperSize = size;
-          paperW = PAPER[size][0];
-          paperH = PAPER[size][1];
-        }
-        recalcGrid();
-      });
-    });
-
-    csCustomW.addEventListener('change', () => { paperW = parseInt(csCustomW.value) || 210; recalcGrid(); });
-    csCustomH.addEventListener('change', () => { paperH = parseInt(csCustomH.value) || 297; recalcGrid(); });
-
-    // --- Density slider ---
-    csDensity.addEventListener('input', () => {
-      density = parseInt(csDensity.value);
-      csDensityVal.textContent = density + ' ct';
-      recalcGrid();
-    });
-
-    // --- Grid calculation ---
-    function recalcGrid() {
-      const wInch = paperW / MM_PER_INCH;
-      const hInch = paperH / MM_PER_INCH;
-      gridCols = Math.floor(wInch * density);
-      gridRows = Math.floor(hInch * density);
-      csGridInfo.textContent = `Lưới: ${gridCols} × ${gridRows} ô`;
-      resizeCanvas();
-    }
-
-    function resizeCanvas() {
-      canvas.width = gridCols * cellPx;
-      canvas.height = gridRows * cellPx;
-      canvas.style.width = (canvas.width * zoom) + 'px';
-      canvas.style.height = (canvas.height * zoom) + 'px';
-      draw();
-    }
-
-    // --- Zoom ---
-    function setZoom(z) {
-      zoom = Math.max(0.1, Math.min(5, z));
-      canvas.style.width = (canvas.width * zoom) + 'px';
-      canvas.style.height = (canvas.height * zoom) + 'px';
-      csZoomLevel.textContent = Math.round(zoom * 100) + '%';
-    }
-
-    document.getElementById('csZoomIn').addEventListener('click', () => setZoom(zoom * 1.25));
-    document.getElementById('csZoomOut').addEventListener('click', () => setZoom(zoom / 1.25));
-    document.getElementById('csZoomFit').addEventListener('click', () => {
-      const wrap = csCanvasScroll;
-      const scaleW = (wrap.clientWidth - 20) / canvas.width;
-      const scaleH = (wrap.clientHeight - 20) / canvas.height;
-      setZoom(Math.min(scaleW, scaleH, 2));
-    });
-
-    // --- Pan & Zoom (Illustrator-style) ---
-    let isPanning = false;
-    let panStartX = 0, panStartY = 0;
-    let panScrollX = 0, panScrollY = 0;
-    let spaceHeld = false;
-
-    // Space key → hand tool (like AI)
-    document.addEventListener('keydown', e => {
-      if (e.code === 'Space' && !spaceHeld && document.getElementById('pane-compress').style.display !== 'none') {
-        if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
-        spaceHeld = true;
-        csCanvasScroll.style.cursor = 'grab';
-        e.preventDefault();
-      }
-    });
-    document.addEventListener('keyup', e => {
-      if (e.code === 'Space') {
-        spaceHeld = false;
-        if (!isPanning) csCanvasScroll.style.cursor = '';
-      }
-    });
-
-    // Prevent middle-click auto-scroll browser behavior
-    csCanvasScroll.addEventListener('mousedown', e => { if (e.button === 1) e.preventDefault(); });
-    // Pan is handled in canvas pointerdown/move/up below
-
-    // Scroll-zoom toward cursor (Ctrl+Scroll or just Scroll)
-    csCanvasScroll.addEventListener('wheel', e => {
-      e.preventDefault();
-
-      if (e.ctrlKey || e.metaKey) {
-        // Zoom toward cursor position
-        const rect = csCanvasScroll.getBoundingClientRect();
-        const mouseX = e.clientX - rect.left + csCanvasScroll.scrollLeft;
-        const mouseY = e.clientY - rect.top + csCanvasScroll.scrollTop;
-
-        const oldZoom = zoom;
-        const factor = e.deltaY < 0 ? 1.15 : 1 / 1.15;
-        setZoom(zoom * factor);
-
-        // Adjust scroll to keep cursor position stable
-        const scale = zoom / oldZoom;
-        csCanvasScroll.scrollLeft = mouseX * scale - (e.clientX - rect.left);
-        csCanvasScroll.scrollTop = mouseY * scale - (e.clientY - rect.top);
-      } else {
-        // Normal scroll → pan
-        csCanvasScroll.scrollLeft += e.deltaX || 0;
-        csCanvasScroll.scrollTop += e.deltaY || 0;
-      }
-    }, { passive: false });
-
-    // Alt+scroll → horizontal pan (like AI)
-    // (handled above in deltaX)
-
-    // --- Image upload ---
-    csUpload.addEventListener('click', () => csFileInput.click());
-    csFileInput.addEventListener('change', e => {
-      const f = e.target.files[0];
-      if (f) loadRefImage(f);
-    });
-
-    // Paste into cross stitch tab
-    document.addEventListener('paste', e => {
-      if (document.getElementById('pane-compress').style.display === 'none') return;
-      const items = [...(e.clipboardData?.items || [])];
-      const img = items.find(i => i.type.startsWith('image/'));
-      if (img) {
-        e.preventDefault();
-        loadRefImage(img.getAsFile());
-      }
-    });
-
-    function loadRefImage(file) {
-      const url = URL.createObjectURL(file);
-      const img = new Image();
-      img.onload = () => {
-        refImage = img;
-        csRefImg.src = url;
-        csImgPreview.style.display = 'block';
-        csUpload.style.display = 'none';
-        // Fit image vào canvas giữ tỷ lệ
-        const cw = canvas.width, ch = canvas.height;
-        const iAspect = img.naturalWidth / img.naturalHeight;
-        const cAspect = cw / ch;
-        if (iAspect > cAspect) {
-          imgW = cw * 0.8; imgH = imgW / iAspect;
-        } else {
-          imgH = ch * 0.8; imgW = imgH * iAspect;
-        }
-        imgX = (cw - imgW) / 2;
-        imgY = (ch - imgH) / 2;
-        imgRot = 0;
-        editTarget = maskMode ? 'group' : 'image';
-        imgLocked = true;
-        draw();
-      };
-      img.src = url;
-    }
-
-    csRemoveImg.addEventListener('click', () => {
-      refImage = null;
-      editTarget = 'none'; dragMode = null; dragStart = null;
-      csImgPreview.style.display = 'none';
-      csUpload.style.display = '';
-      csFileInput.value = '';
-      draw();
-    });
-
-    csOpacity.addEventListener('input', () => {
-      refOpacity = parseInt(csOpacity.value) / 100;
-      csOpacityVal.textContent = csOpacity.value + '%';
-      draw();
-    });
-
-    document.getElementById('csLockRatio').addEventListener('change', e => { imgLocked = e.target.checked; });
-    const csMaskCheck = document.getElementById('csMaskMode');
-    const csMaskSizeEl = document.getElementById('csMaskSize');
-    const csMaskWInput = document.getElementById('csMaskW');
-    const csMaskHInput = document.getElementById('csMaskH');
-    csMaskCheck.addEventListener('change', e => {
-      maskMode = e.target.checked;
-      csMaskSizeEl.style.display = maskMode ? 'flex' : 'none';
-      document.getElementById('csMaskHint').style.display = maskMode ? '' : 'none';
-      if (maskMode) { maskX = null; maskY = null; editTarget = 'none'; } // center on enable
-      draw();
-    });
-    csMaskWInput.addEventListener('change', () => { maskW = parseInt(csMaskWInput.value) || 100; draw(); });
-    csMaskHInput.addEventListener('change', () => { maskH = parseInt(csMaskHInput.value) || 100; draw(); });
-
-    // --- Tool selection ---
-    function updateToolButtons() {
-      document.querySelectorAll('.cs-tool').forEach(b => b.classList.toggle('active', b.dataset.tool === currentTool));
-    }
-    document.querySelectorAll('.cs-tool').forEach(btn => {
-      btn.addEventListener('click', () => {
-        currentTool = btn.dataset.tool;
-        updateToolButtons();
-      });
-    });
-
-    // --- Drawing ---
-    function getCellFromEvent(e) {
-      const { mx, my } = getCanvasXY(e);
-      const col = Math.floor(mx / cellPx);
-      const row = Math.floor(my / cellPx);
-      if (col < 0 || col >= gridCols || row < 0 || row >= gridRows) return null;
-      return { col, row };
-    }
-
-    function applyTool(col, row) {
-      const key = col + ',' + row;
-      if (currentTool === 'eraser') {
-        pushUndo();
-        delete stitches[key];
-      } else if (currentTool === 'picker') {
-        const s = stitches[key];
-        if (s) {
-          currentColor = s.color;
-          csColorInput.value = s.color;
-          document.querySelectorAll('.cs-palette-swatch').forEach(sw => sw.classList.toggle('active', sw.style.background === s.color || sw.style.backgroundColor === s.color));
-        }
-      } else if (currentTool === 'fill') {
-        pushUndo();
-        floodFill(col, row, currentColor);
-      } else {
-        pushUndo();
-        stitches[key] = { type: currentTool, color: currentColor };
-      }
-      updateStats();
-      draw();
-    }
-
-    function floodFill(startCol, startRow, fillColor) {
-      const startKey = startCol + ',' + startRow;
-      const startStitch = stitches[startKey];
-      const targetColor = startStitch ? startStitch.color : null;
-      const targetType = startStitch ? startStitch.type : null;
-
-      if (targetColor === fillColor && targetType === 'cross') return;
-
-      const queue = [[startCol, startRow]];
-      const visited = new Set();
-
-      while (queue.length > 0) {
-        const [c, r] = queue.shift();
-        const k = c + ',' + r;
-        if (visited.has(k)) continue;
-        if (c < 0 || c >= gridCols || r < 0 || r >= gridRows) continue;
-
-        const s = stitches[k];
-        const sColor = s ? s.color : null;
-        const sType = s ? s.type : null;
-        if (sColor !== targetColor || sType !== targetType) continue;
-
-        visited.add(k);
-        stitches[k] = { type: 'cross', color: fillColor };
-        queue.push([c-1,r],[c+1,r],[c,r-1],[c,r+1]);
-      }
-    }
-
-    // (pointer events moved below draw() for transform handles)
-
-    // --- Render ---
-    function draw() {
-      const w = canvas.width, h = canvas.height;
-      ctx.clearRect(0, 0, w, h);
-
-      // White background
-      if (layerVisible.background) {
-        ctx.fillStyle = '#ffffff';
-        ctx.fillRect(0, 0, w, h);
-      }
-
-      // Reference image — vẽ với transform (vị trí/kích thước/xoay tự do)
-      if (refImage && layerVisible.image) {
-        ctx.save();
-        ctx.globalAlpha = refOpacity;
-
-        if (maskMode) {
-          // Mask: mm → canvas pixels
-          const mPxW = Math.min(mmToPx(maskW), w);
-          const mPxH = Math.min(mmToPx(maskH), h);
-          // Mask position (null = centered)
-          const mX = maskX != null ? maskX : (w - mPxW) / 2;
-          const mY = maskY != null ? maskY : (h - mPxH) / 2;
-
-          ctx.save();
-          ctx.beginPath();
-          ctx.rect(mX, mY, mPxW, mPxH);
-          ctx.clip();
-
-          const icx = imgX + imgW / 2, icy = imgY + imgH / 2;
-          ctx.translate(icx, icy);
-          ctx.rotate(imgRot);
-          ctx.drawImage(refImage, -imgW / 2, -imgH / 2, imgW, imgH);
-          ctx.restore();
-
-          // Vùng ngoài mask tối hơn
-          ctx.globalAlpha = 0.5;
-          ctx.fillStyle = '#000';
-          ctx.fillRect(0, 0, w, mY); // top
-          ctx.fillRect(0, mY + mPxH, w, h - mY - mPxH); // bottom
-          ctx.fillRect(0, mY, mX, mPxH); // left
-          ctx.fillRect(mX + mPxW, mY, w - mX - mPxW, mPxH); // right
-          ctx.globalAlpha = 1;
-
-          // Mask border — color by edit level
-          const isIsoMask = editTarget === 'mask';
-          const isGroup = editTarget === 'group';
-          const maskColor = isIsoMask ? '#ff6600' : '#0096ff';
-          ctx.strokeStyle = maskColor;
-          ctx.lineWidth = 2;
-          ctx.setLineDash(isIsoMask ? [] : [8, 4]);
-          ctx.strokeRect(mX, mY, mPxW, mPxH);
-          ctx.setLineDash([]);
-
-          // Kích thước label (mm)
-          ctx.fillStyle = maskColor;
-          ctx.font = '12px sans-serif';
-          ctx.textAlign = 'center';
-          ctx.fillText(`${Math.round(maskW)} × ${Math.round(maskH)} mm`, mX + mPxW / 2, mY - 8);
-
-          // Group handles (blue) on mask rect
-          if (isGroup) {
-            drawHandlesOnRect(mX, mY, mPxW, mPxH, 0, '#0096ff', false);
-          }
-          // Isolation: mask layer handles (orange)
-          if (isIsoMask) {
-            drawHandlesOnRect(mX, mY, mPxW, mPxH, 0, '#ff6600', false);
-          }
-        } else {
-          // Vẽ bình thường, không mask
-          const icx = imgX + imgW / 2, icy = imgY + imgH / 2;
-          ctx.translate(icx, icy);
-          ctx.rotate(imgRot);
-          ctx.drawImage(refImage, -imgW / 2, -imgH / 2, imgW, imgH);
-        }
-        ctx.restore();
-      }
-
-      // Draw stitches
-      if (!layerVisible.stitches) { /* skip stitches */ }
-      else for (const [key, stitch] of Object.entries(stitches)) {
-        const [c, r] = key.split(',').map(Number);
-        const x = c * cellPx, y = r * cellPx;
-
-        ctx.fillStyle = stitch.color;
-        ctx.fillRect(x + 1, y + 1, cellPx - 2, cellPx - 2);
-
-        // Draw cross/half mark
-        ctx.strokeStyle = getContrastColor(stitch.color);
-        ctx.lineWidth = 1.5;
-        ctx.beginPath();
-        if (stitch.type === 'cross') {
-          ctx.moveTo(x + 3, y + 3); ctx.lineTo(x + cellPx - 3, y + cellPx - 3);
-          ctx.moveTo(x + cellPx - 3, y + 3); ctx.lineTo(x + 3, y + cellPx - 3);
-        } else if (stitch.type === 'half') {
-          ctx.moveTo(x + 2, y + cellPx - 2); ctx.lineTo(x + cellPx - 2, y + 2);
-        } else if (stitch.type === 'backstitch') {
-          ctx.moveTo(x + 2, y + cellPx / 2); ctx.lineTo(x + cellPx - 2, y + cellPx / 2);
-        }
-        ctx.stroke();
-      }
-
-      // Grid lines
-      if (layerVisible.grid) {
-        ctx.strokeStyle = 'rgba(0,0,0,0.15)';
-        ctx.lineWidth = 0.5;
-        for (let c = 0; c <= gridCols; c++) {
-          const x = c * cellPx;
-          if (c % 10 === 0) { ctx.strokeStyle = 'rgba(0,0,0,0.4)'; ctx.lineWidth = 1; }
-          else { ctx.strokeStyle = 'rgba(0,0,0,0.12)'; ctx.lineWidth = 0.5; }
-          ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h); ctx.stroke();
-        }
-        for (let r = 0; r <= gridRows; r++) {
-          const y = r * cellPx;
-          if (r % 10 === 0) { ctx.strokeStyle = 'rgba(0,0,0,0.4)'; ctx.lineWidth = 1; }
-          else { ctx.strokeStyle = 'rgba(0,0,0,0.12)'; ctx.lineWidth = 0.5; }
-          ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke();
-        }
-
-        // Bold border
-        ctx.strokeStyle = 'rgba(0,0,0,0.6)';
-        ctx.lineWidth = 2;
-        ctx.strokeRect(0, 0, w, h);
-      }
-
-      // Transform handles — show based on editTarget
-      if (refImage) {
-        if (editTarget === 'image' && maskMode) {
-          // Isolation: image layer (green handles + rotate)
-          drawTransformHandles('#22c55e');
-        } else if (editTarget === 'image' && !maskMode) {
-          // No mask: image handles (blue + rotate)
-          drawTransformHandles('#0096ff');
-        }
-        // group/mask handles already drawn in mask section above
-      }
-    }
-
-    // --- Layers panel ---
-    const csLayersList = document.getElementById('csLayersList');
-    const LAYER_DEFS = [
-      { id: 'grid',       name: 'Grid',       icon: '▦' },
-      { id: 'stitches',   name: 'Stitches',   icon: '✕' },
-      { id: 'image',      name: 'Image',      icon: '🖼' },
-      { id: 'background', name: 'Background', icon: '◻' },
-    ];
-
-    function renderLayers() {
-      if (!csLayersList) return;
-      csLayersList.innerHTML = '';
-      for (const layer of LAYER_DEFS) {
-        const el = document.createElement('div');
-        el.className = 'cs-layer-item' + (layer.id === 'stitches' ? ' active' : '');
-        const vis = layerVisible[layer.id];
-        const lck = layerLocked[layer.id];
-        el.innerHTML = `
-          <button class="cs-layer-eye${vis ? '' : ' hidden'}" data-layer="${layer.id}" title="${vis ? 'Ẩn' : 'Hiện'}">
-            ${vis ? '👁' : '👁‍🗨'}
-          </button>
-          <button class="cs-layer-lock${lck ? ' locked' : ''}" data-layer="${layer.id}" title="${lck ? 'Mở khóa' : 'Khóa'}">
-            ${lck ? '🔒' : '🔓'}
-          </button>
-          <span class="cs-layer-thumb">${layer.icon}</span>
-          <span class="cs-layer-name">${layer.name}</span>
-        `;
-        // Eye toggle
-        el.querySelector('.cs-layer-eye').addEventListener('click', (e) => {
-          e.stopPropagation();
-          layerVisible[layer.id] = !layerVisible[layer.id];
-          renderLayers();
-          draw();
-        });
-        // Lock toggle
-        el.querySelector('.cs-layer-lock').addEventListener('click', (e) => {
-          e.stopPropagation();
-          layerLocked[layer.id] = !layerLocked[layer.id];
-          renderLayers();
-        });
-        csLayersList.appendChild(el);
-      }
-    }
-
-    // --- Transform handles ---
-    const HANDLE_SIZE = 8;
-    const ROTATE_OFFSET = 25;
-
-    function getImgCorners() {
-      // 4 góc + tâm xoay, tính theo rotation
-      const cx = imgX + imgW / 2, cy = imgY + imgH / 2;
-      const cos = Math.cos(imgRot), sin = Math.sin(imgRot);
-      function rot(px, py) {
-        const dx = px - cx, dy = py - cy;
-        return { x: cx + dx * cos - dy * sin, y: cy + dx * sin + dy * cos };
-      }
-      return {
-        nw: rot(imgX, imgY),
-        ne: rot(imgX + imgW, imgY),
-        se: rot(imgX + imgW, imgY + imgH),
-        sw: rot(imgX, imgY + imgH),
-        center: { x: cx, y: cy },
-        rotHandle: rot(cx, imgY - ROTATE_OFFSET),
-      };
-    }
-
-    // Generic rect handles (for mask / group)
-    function drawHandlesOnRect(rx, ry, rw, rh, rot, color, showRotate) {
-      ctx.save();
-      const corners = [
-        { x: rx, y: ry }, { x: rx + rw, y: ry },
-        { x: rx + rw, y: ry + rh }, { x: rx, y: ry + rh }
-      ];
-      // Border
-      ctx.strokeStyle = color; ctx.lineWidth = 1.5; ctx.setLineDash([6,4]);
-      ctx.beginPath(); ctx.moveTo(corners[0].x, corners[0].y);
-      corners.forEach((c,i) => { if(i) ctx.lineTo(c.x, c.y); });
-      ctx.closePath(); ctx.stroke(); ctx.setLineDash([]);
-      // Corner handles
-      corners.forEach(p => {
-        ctx.fillStyle = '#fff'; ctx.strokeStyle = color; ctx.lineWidth = 2;
-        ctx.fillRect(p.x - HANDLE_SIZE/2, p.y - HANDLE_SIZE/2, HANDLE_SIZE, HANDLE_SIZE);
-        ctx.strokeRect(p.x - HANDLE_SIZE/2, p.y - HANDLE_SIZE/2, HANDLE_SIZE, HANDLE_SIZE);
-      });
-      // Center crosshair
-      const ccx = rx + rw/2, ccy = ry + rh/2;
-      ctx.strokeStyle = color + '80'; ctx.lineWidth = 1;
-      ctx.beginPath();
-      ctx.moveTo(ccx-8, ccy); ctx.lineTo(ccx+8, ccy);
-      ctx.moveTo(ccx, ccy-8); ctx.lineTo(ccx, ccy+8);
-      ctx.stroke();
-      ctx.restore();
-    }
-
-    // Image transform handles (with rotation)
-    function drawTransformHandles(color) {
-      color = color || '#0096ff';
-      const c = getImgCorners();
-      const pts = [c.nw, c.ne, c.se, c.sw];
-      ctx.save();
-      // Bounding box
-      ctx.strokeStyle = color; ctx.lineWidth = 1.5; ctx.setLineDash([6,4]);
-      ctx.beginPath(); ctx.moveTo(pts[0].x, pts[0].y);
-      for (let i = 1; i < 4; i++) ctx.lineTo(pts[i].x, pts[i].y);
-      ctx.closePath(); ctx.stroke(); ctx.setLineDash([]);
-      // Rotation line + handle
-      ctx.strokeStyle = color; ctx.lineWidth = 1;
-      const topMid = { x: (c.nw.x+c.ne.x)/2, y: (c.nw.y+c.ne.y)/2 };
-      ctx.beginPath(); ctx.moveTo(topMid.x, topMid.y); ctx.lineTo(c.rotHandle.x, c.rotHandle.y); ctx.stroke();
-      ctx.fillStyle = '#fff'; ctx.strokeStyle = color; ctx.lineWidth = 2;
-      ctx.beginPath(); ctx.arc(c.rotHandle.x, c.rotHandle.y, 6, 0, Math.PI*2); ctx.fill(); ctx.stroke();
-      ctx.fillStyle = color; ctx.font = '10px sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-      ctx.fillText('↻', c.rotHandle.x, c.rotHandle.y);
-      // Corner handles
-      pts.forEach(p => {
-        ctx.fillStyle = '#fff'; ctx.strokeStyle = color; ctx.lineWidth = 2;
-        ctx.fillRect(p.x-HANDLE_SIZE/2, p.y-HANDLE_SIZE/2, HANDLE_SIZE, HANDLE_SIZE);
-        ctx.strokeRect(p.x-HANDLE_SIZE/2, p.y-HANDLE_SIZE/2, HANDLE_SIZE, HANDLE_SIZE);
-      });
-      // Center crosshair
-      const cc = c.center;
-      ctx.strokeStyle = color+'80'; ctx.lineWidth = 1;
-      ctx.beginPath();
-      ctx.moveTo(cc.x-8, cc.y); ctx.lineTo(cc.x+8, cc.y);
-      ctx.moveTo(cc.x, cc.y-8); ctx.lineTo(cc.x, cc.y+8);
-      ctx.stroke();
-      ctx.restore();
-    }
-
-    function isInsideImage(mx, my) {
-      if (!refImage) return false;
-      const cx = imgX + imgW / 2, cy = imgY + imgH / 2;
-      const cos = Math.cos(-imgRot), sin = Math.sin(-imgRot);
-      const dx = mx - cx, dy = my - cy;
-      const lx = dx * cos - dy * sin + cx;
-      const ly = dx * sin + dy * cos + cy;
-      return lx >= imgX && lx <= imgX + imgW && ly >= imgY && ly <= imgY + imgH;
-    }
-
-    function hitTestTransform(mx, my) {
-      if (!refImage) return null;
-      const hitR = 12 / zoom;
-
-      // Handles only when image layer is active
-      if (editTarget === 'image') {
-        const c = getImgCorners();
-        if (Math.hypot(mx - c.rotHandle.x, my - c.rotHandle.y) < hitR) return 'rotate';
-        if (Math.hypot(mx - c.nw.x, my - c.nw.y) < hitR) return 'nw';
-        if (Math.hypot(mx - c.ne.x, my - c.ne.y) < hitR) return 'ne';
-        if (Math.hypot(mx - c.se.x, my - c.se.y) < hitR) return 'se';
-        if (Math.hypot(mx - c.sw.x, my - c.sw.y) < hitR) return 'sw';
-      }
-
-      // Click vào ảnh → move (hoặc select nếu chưa selected)
-      if (isInsideImage(mx, my)) return 'move';
-      return null;
-    }
-
-    // --- Mask hit-test (for interactive editing) ---
-    function getMaskRect() {
-      const w = canvas.width, h = canvas.height;
-      const mPxW = Math.min(mmToPx(maskW), w);
-      const mPxH = Math.min(mmToPx(maskH), h);
-      const mX = maskX != null ? maskX : (w - mPxW) / 2;
-      const mY = maskY != null ? maskY : (h - mPxH) / 2;
-      return { mX, mY, mPxW, mPxH };
-    }
-
-    function hitTestMask(mx, my) {
-      if (!maskMode || (editTarget !== 'mask' && editTarget !== 'group')) return null;
-      const { mX, mY, mPxW, mPxH } = getMaskRect();
-      const hitR = 12 / zoom;
-
-      // Corner handles
-      if (Math.hypot(mx - mX, my - mY) < hitR) return 'nw';
-      if (Math.hypot(mx - (mX + mPxW), my - mY) < hitR) return 'ne';
-      if (Math.hypot(mx - (mX + mPxW), my - (mY + mPxH)) < hitR) return 'se';
-      if (Math.hypot(mx - mX, my - (mY + mPxH)) < hitR) return 'sw';
-
-      // Inside mask → move
-      if (mx >= mX && mx <= mX + mPxW && my >= mY && my <= mY + mPxH) return 'move';
-      return null;
-    }
-
-    function isInsideMask(mx, my) {
-      if (!maskMode) return false;
-      const { mX, mY, mPxW, mPxH } = getMaskRect();
-      return mx >= mX - 15 && mx <= mX + mPxW + 15 && my >= mY - 15 && my <= mY + mPxH + 15;
-    }
-
-    // === ILLUSTRATOR CLIPPING MASK: double-click isolation ===
-    canvas.addEventListener('dblclick', function csDblClick(e) {
-      const { mx, my } = getCanvasXY(e);
-      if (maskMode && refImage) {
-        if (editTarget === 'none' || editTarget === 'group') {
-          // Enter isolation — decide mask vs image by click position
-          if (isInsideMask(mx, my)) {
-            // Inside mask area → check if on mask border or on image
-            const { mX, mY, mPxW, mPxH } = getMaskRect();
-            const margin = 12 / zoom;
-            const onBorder = mx < mX + margin || mx > mX + mPxW - margin || my < mY + margin || my > mY + mPxH - margin;
-            editTarget = onBorder ? 'mask' : (isInsideImage(mx, my) ? 'image' : 'mask');
-          } else {
-            editTarget = 'mask';
-          }
-          draw(); e.preventDefault(); return;
-        }
-        if (editTarget === 'mask' || editTarget === 'image') {
-          // Exit isolation → back to group
-          editTarget = 'group'; draw(); e.preventDefault(); return;
-        }
-      } else if (!maskMode && refImage) {
-        // No mask: dblclick toggles image selection
-        editTarget = editTarget === 'image' ? 'none' : 'image';
-        draw(); e.preventDefault();
-      }
-    });
-
-    // === Unified drag helper: applies to group / mask / image ===
-    function applyDrag(mx, my, e) {
-      if (!dragStart) return;
-      const s = dragStart;
-      const dx = mx - s.mx, dy = my - s.my;
-
-      if (s.target === 'group') {
-        // Group: move/resize mask+image together
-        if (dragMode === 'move') {
-          maskX = s.maskX + dx; maskY = s.maskY + dy;
-          imgX = s.imgX + dx; imgY = s.imgY + dy;
-        } else {
-          // Corner resize → scale both proportionally
-          let newW = s.maskPxW, newH = s.maskPxH, newMX = s.maskX, newMY = s.maskY;
-          if (dragMode === 'se') { newW = s.maskPxW + dx; newH = s.maskPxH + dy; }
-          else if (dragMode === 'ne') { newW = s.maskPxW + dx; newH = s.maskPxH - dy; newMY = s.maskY + dy; }
-          else if (dragMode === 'sw') { newW = s.maskPxW - dx; newH = s.maskPxH + dy; newMX = s.maskX + dx; }
-          else if (dragMode === 'nw') { newW = s.maskPxW - dx; newH = s.maskPxH - dy; newMX = s.maskX + dx; newMY = s.maskY + dy; }
-          newW = Math.max(mmToPx(10), newW); newH = Math.max(mmToPx(10), newH);
-          const scale = newW / s.maskPxW;
-          // Fixed corner depends on drag corner
-          const fixX = (dragMode === 'nw' || dragMode === 'sw') ? s.maskX + s.maskPxW : s.maskX;
-          const fixY = (dragMode === 'nw' || dragMode === 'ne') ? s.maskY + s.maskPxH : s.maskY;
-          imgX = fixX + (s.imgX - fixX) * scale;
-          imgY = fixY + (s.imgY - fixY) * scale;
-          imgW = s.imgW * scale; imgH = s.imgH * scale;
-          maskX = newMX; maskY = newMY;
-          maskW = Math.round(pxToMm(newW)); maskH = Math.round(pxToMm(newH));
-          csMaskWInput.value = maskW; csMaskHInput.value = maskH;
-        }
-      } else if (s.target === 'mask') {
-        // Mask layer only
-        if (dragMode === 'move') {
-          maskX = s.maskX + dx; maskY = s.maskY + dy;
-        } else {
-          let newX = s.maskX, newY = s.maskY, newW = s.maskPxW, newH = s.maskPxH;
-          if (dragMode === 'se') { newW = s.maskPxW + dx; newH = s.maskPxH + dy; }
-          else if (dragMode === 'ne') { newW = s.maskPxW + dx; newH = s.maskPxH - dy; newY = s.maskY + dy; }
-          else if (dragMode === 'sw') { newW = s.maskPxW - dx; newH = s.maskPxH + dy; newX = s.maskX + dx; }
-          else if (dragMode === 'nw') { newW = s.maskPxW - dx; newH = s.maskPxH - dy; newX = s.maskX + dx; newY = s.maskY + dy; }
-          maskX = newX; maskY = newY;
-          maskW = Math.round(pxToMm(Math.max(mmToPx(10), newW)));
-          maskH = Math.round(pxToMm(Math.max(mmToPx(10), newH)));
-          csMaskWInput.value = maskW; csMaskHInput.value = maskH;
-        }
-      } else if (s.target === 'image') {
-        // Image layer only
-        if (dragMode === 'move') {
-          imgX = s.imgX + dx; imgY = s.imgY + dy;
-        } else if (dragMode === 'rotate') {
-          const cx = s.imgX + s.imgW/2, cy = s.imgY + s.imgH/2;
-          const a0 = Math.atan2(s.my - cy, s.mx - cx);
-          const a1 = Math.atan2(my - cy, mx - cx);
-          imgRot = s.imgRot + (a1 - a0);
-          const deg = (imgRot * 180 / Math.PI) % 360;
-          for (const snap of [0,90,180,270,-90,-180,-270]) {
-            if (Math.abs(deg - snap) < 5) { imgRot = snap * Math.PI / 180; break; }
-          }
-        } else {
-          // Corner resize (with rotation math)
-          const cx = s.imgX + s.imgW/2, cy = s.imgY + s.imgH/2;
-          const cos = Math.cos(-s.imgRot), sin = Math.sin(-s.imgRot);
-          const lmx = (mx-cx)*cos - (my-cy)*sin + cx;
-          const lmy = (mx-cx)*sin + (my-cy)*cos + cy;
-          const smx = (s.mx-cx)*cos - (s.my-cy)*sin + cx;
-          const smy = (s.mx-cx)*sin + (s.my-cy)*cos + cy;
-          const ldx = lmx-smx, ldy = lmy-smy;
-          let nW = s.imgW, nH = s.imgH, nX = s.imgX, nY = s.imgY;
-          if (dragMode === 'se') { nW = s.imgW+ldx; nH = s.imgH+ldy; }
-          else if (dragMode === 'ne') { nW = s.imgW+ldx; nH = s.imgH-ldy; nY = s.imgY+ldy; }
-          else if (dragMode === 'sw') { nW = s.imgW-ldx; nH = s.imgH+ldy; nX = s.imgX+ldx; }
-          else if (dragMode === 'nw') { nW = s.imgW-ldx; nH = s.imgH-ldy; nX = s.imgX+ldx; nY = s.imgY+ldy; }
-          nW = Math.max(20, nW); nH = Math.max(20, nH);
-          if (imgLocked || e?.shiftKey) {
-            const ratio = s.imgW / s.imgH;
-            nH = nW / ratio;
-            if (dragMode === 'nw') nY = s.imgY + s.imgH - nH;
-            if (dragMode === 'ne') nY = s.imgY + s.imgH - nH;
-          }
-          imgX = nX; imgY = nY; imgW = nW; imgH = nH;
-        }
-      }
-      draw();
-    }
-
-    // === Pointer events ===
-    canvas.addEventListener('pointerdown', function csPointerDown(e) {
-      // Pan: middle-click or Space+click
-      if (e.button === 1 || (e.button === 0 && spaceHeld)) {
-        e.preventDefault(); e.stopPropagation();
-        isPanning = true; panStartX = e.clientX; panStartY = e.clientY;
-        panScrollX = csCanvasScroll.scrollLeft; panScrollY = csCanvasScroll.scrollTop;
-        canvas.style.cursor = 'grabbing'; canvas.setPointerCapture(e.pointerId);
-        return;
-      }
-
-      const { mx, my } = getCanvasXY(e);
-      const { mX, mY, mPxW, mPxH } = getMaskRect();
-
-      // --- Isolation mode: mask layer ---
-      if (editTarget === 'mask') {
-        const mhit = hitTestMask(mx, my);
-        if (mhit) {
-          e.preventDefault(); dragMode = mhit;
-          dragStart = { target: 'mask', mx, my, maskX: mX, maskY: mY, maskPxW: mPxW, maskPxH: mPxH };
-          canvas.setPointerCapture(e.pointerId); return;
-        }
-        // Click on image inside mask → switch to image layer
-        if (isInsideImage(mx, my)) { editTarget = 'image'; draw(); return; }
-        // Click outside → exit isolation to group
-        editTarget = 'group'; draw(); return;
-      }
-
-      // --- Isolation mode: image layer ---
-      if (editTarget === 'image') {
-        const ihit = hitTestTransform(mx, my);
-        if (ihit) {
-          e.preventDefault(); dragMode = ihit;
-          dragStart = { target: 'image', mx, my, imgX, imgY, imgW, imgH, imgRot, aspect: imgW/imgH };
-          canvas.setPointerCapture(e.pointerId); return;
-        }
-        // Click on mask border → switch to mask layer (if in isolation)
-        if (maskMode && isInsideMask(mx, my) && !isInsideImage(mx, my)) {
-          editTarget = 'mask'; draw(); return;
-        }
-        // Click outside → exit
-        editTarget = maskMode ? 'group' : 'none'; draw();
-        if (!maskMode && currentTool !== 'select') { /* fall through to stitch */ } else return;
-      }
-
-      // --- Group mode (mask on) ---
-      if (editTarget === 'group' && maskMode) {
-        const mhit = hitTestMask(mx, my);
-        if (mhit) {
-          e.preventDefault(); dragMode = mhit;
-          dragStart = { target: 'group', mx, my, maskX: mX, maskY: mY, maskPxW: mPxW, maskPxH: mPxH, imgX, imgY, imgW, imgH };
-          canvas.setPointerCapture(e.pointerId); return;
-        }
-        // Click outside mask → deselect
-        editTarget = 'none'; draw();
-        if (currentTool !== 'select') { /* fall through to stitch */ } else return;
-      }
-
-      // --- Nothing selected: click to select ---
-      if (editTarget === 'none' && refImage) {
-        if (maskMode && isInsideMask(mx, my)) {
-          editTarget = 'group'; draw();
-          // Start group move immediately
-          dragMode = 'move';
-          dragStart = { target: 'group', mx, my, maskX: mX, maskY: mY, maskPxW: mPxW, maskPxH: mPxH, imgX, imgY, imgW, imgH };
-          e.preventDefault(); canvas.setPointerCapture(e.pointerId); return;
-        }
-        if (!maskMode && (currentTool === 'select' || isInsideImage(mx, my))) {
-          if (isInsideImage(mx, my)) {
-            editTarget = 'image'; draw();
-            dragMode = 'move';
-            dragStart = { target: 'image', mx, my, imgX, imgY, imgW, imgH, imgRot, aspect: imgW/imgH };
-            e.preventDefault(); canvas.setPointerCapture(e.pointerId); return;
-          }
-        }
-      }
-
-      // Select tool: don't draw stitches
-      if (currentTool === 'select') return;
-
-      // --- Normal stitch drawing ---
-      const cell = getCellFromEvent(e);
-      if (!cell) return;
-      e.preventDefault(); isDrawing = true; lastCell = cell;
-      applyTool(cell.col, cell.row);
-      canvas.setPointerCapture(e.pointerId);
-    });
-
-    canvas.addEventListener('pointermove', function csPointerMove(e) {
-      if (isPanning) {
-        csCanvasScroll.scrollLeft = panScrollX - (e.clientX - panStartX);
-        csCanvasScroll.scrollTop = panScrollY - (e.clientY - panStartY);
-        return;
-      }
-
-      const { mx, my } = getCanvasXY(e);
-
-      // Active drag
-      if (dragMode && dragStart) {
-        e.preventDefault(); applyDrag(mx, my, e); return;
-      }
-
-      // Cursor hints (no drag active)
-      if (!isDrawing) {
-        let cursor = currentTool === 'select' ? 'default' : 'crosshair';
-        if (editTarget === 'mask') {
-          const mh = hitTestMask(mx, my);
-          if (mh === 'move') cursor = 'move';
-          else if (mh === 'nw' || mh === 'se') cursor = 'nwse-resize';
-          else if (mh === 'ne' || mh === 'sw') cursor = 'nesw-resize';
-        } else if (editTarget === 'image') {
-          const ih = hitTestTransform(mx, my);
-          if (ih === 'move') cursor = 'move';
-          else if (ih === 'rotate') cursor = 'grab';
-          else if (ih === 'nw' || ih === 'se') cursor = 'nwse-resize';
-          else if (ih === 'ne' || ih === 'sw') cursor = 'nesw-resize';
-        } else if (editTarget === 'group' && maskMode) {
-          const gh = hitTestMask(mx, my);
-          if (gh === 'move') cursor = 'move';
-          else if (gh === 'nw' || gh === 'se') cursor = 'nwse-resize';
-          else if (gh === 'ne' || gh === 'sw') cursor = 'nesw-resize';
-        } else if (refImage && currentTool === 'select') {
-          if (isInsideImage(mx, my) || (maskMode && isInsideMask(mx, my))) cursor = 'pointer';
-        }
-        canvas.style.cursor = cursor;
-      }
-
-      // Stitch drawing
-      if (!isDrawing) return;
-      const cell = getCellFromEvent(e);
-      if (!cell) return;
-      if (lastCell && cell.col === lastCell.col && cell.row === lastCell.row) return;
-      lastCell = cell;
-      if (currentTool !== 'fill' && currentTool !== 'picker') applyTool(cell.col, cell.row);
-    });
-
-    canvas.addEventListener('pointerup', function csPointerUp() {
-      if (isPanning) { isPanning = false; canvas.style.cursor = spaceHeld ? 'grab' : 'default'; return; }
-      if (dragMode) { dragMode = null; dragStart = null; return; }
-      isDrawing = false; lastCell = null;
-    });
-
-    canvas.addEventListener('pointerleave', () => {
-      if (isPanning || dragMode) return;
-      isDrawing = false; lastCell = null;
-    });
-
-    function getContrastColor(hex) {
-      const r = parseInt(hex.slice(1,3), 16);
-      const g = parseInt(hex.slice(3,5), 16);
-      const b = parseInt(hex.slice(5,7), 16);
-      return (r * 0.299 + g * 0.587 + b * 0.114) > 140 ? 'rgba(0,0,0,0.6)' : 'rgba(255,255,255,0.8)';
-    }
-
-    function updateStats() {
-      const count = Object.keys(stitches).length;
-      csStitchCount.textContent = count;
-
-      // Update used colors
-      const colorMap = {};
-      for (const s of Object.values(stitches)) {
-        colorMap[s.color] = (colorMap[s.color] || 0) + 1;
-      }
-      csUsedList.innerHTML = '';
-      Object.entries(colorMap).sort((a, b) => b[1] - a[1]).forEach(([color, cnt]) => {
-        const el = document.createElement('div');
-        el.className = 'cs-used-swatch';
-        el.style.background = color;
-        el.title = color + ' (' + cnt + ' mũi)';
-        el.innerHTML = '<span class="cs-count">' + cnt + '</span>';
-        el.addEventListener('click', () => {
-          currentColor = color;
-          csColorInput.value = color;
-          if (currentTool === 'eraser') { currentTool = 'cross'; updateToolButtons(); }
-        });
-        csUsedList.appendChild(el);
-      });
-    }
-
-    // --- Clear ---
-    document.getElementById('csClear').addEventListener('click', () => {
-      if (Object.keys(stitches).length === 0) return;
-      if (!confirm('Xoá toàn bộ mẫu thêu?')) return;
-      stitches = {};
-      updateStats();
-      draw();
-    });
-
-    // --- Export PNG ---
-    document.getElementById('csExport').addEventListener('click', () => {
-      // Render at higher resolution
-      const exportCellPx = 24;
-      const expCanvas = document.createElement('canvas');
-      expCanvas.width = gridCols * exportCellPx;
-      expCanvas.height = gridRows * exportCellPx;
-      const expCtx = expCanvas.getContext('2d');
-
-      // White bg
-      expCtx.fillStyle = '#fff';
-      expCtx.fillRect(0, 0, expCanvas.width, expCanvas.height);
-
-      // Stitches
-      for (const [key, stitch] of Object.entries(stitches)) {
-        const [c, r] = key.split(',').map(Number);
-        const x = c * exportCellPx, y = r * exportCellPx;
-        expCtx.fillStyle = stitch.color;
-        expCtx.fillRect(x + 1, y + 1, exportCellPx - 2, exportCellPx - 2);
-        expCtx.strokeStyle = getContrastColor(stitch.color);
-        expCtx.lineWidth = 2;
-        expCtx.beginPath();
-        if (stitch.type === 'cross') {
-          expCtx.moveTo(x + 3, y + 3); expCtx.lineTo(x + exportCellPx - 3, y + exportCellPx - 3);
-          expCtx.moveTo(x + exportCellPx - 3, y + 3); expCtx.lineTo(x + 3, y + exportCellPx - 3);
-        } else if (stitch.type === 'half') {
-          expCtx.moveTo(x + 2, y + exportCellPx - 2); expCtx.lineTo(x + exportCellPx - 2, y + 2);
-        } else if (stitch.type === 'backstitch') {
-          expCtx.moveTo(x + 2, y + exportCellPx / 2); expCtx.lineTo(x + exportCellPx - 2, y + exportCellPx / 2);
-        }
-        expCtx.stroke();
-      }
-
-      // Grid
-      for (let c = 0; c <= gridCols; c++) {
-        const x = c * exportCellPx;
-        expCtx.strokeStyle = c % 10 === 0 ? 'rgba(0,0,0,0.5)' : 'rgba(0,0,0,0.15)';
-        expCtx.lineWidth = c % 10 === 0 ? 1.5 : 0.5;
-        expCtx.beginPath(); expCtx.moveTo(x, 0); expCtx.lineTo(x, expCanvas.height); expCtx.stroke();
-      }
-      for (let r = 0; r <= gridRows; r++) {
-        const y = r * exportCellPx;
-        expCtx.strokeStyle = r % 10 === 0 ? 'rgba(0,0,0,0.5)' : 'rgba(0,0,0,0.15)';
-        expCtx.lineWidth = r % 10 === 0 ? 1.5 : 0.5;
-        expCtx.beginPath(); expCtx.moveTo(0, y); expCtx.lineTo(expCanvas.width, y); expCtx.stroke();
-      }
-
-      // Border
-      expCtx.strokeStyle = 'rgba(0,0,0,0.7)';
-      expCtx.lineWidth = 2;
-      expCtx.strokeRect(0, 0, expCanvas.width, expCanvas.height);
-
-      const link = document.createElement('a');
-      link.download = `cross-stitch-${paperSize}-${density}ct.png`;
-      link.href = expCanvas.toDataURL('image/png');
-      link.click();
-    });
-
-    // --- Export PDF (simple — uses canvas as image) ---
-    document.getElementById('csExportPDF').addEventListener('click', () => {
-      // For now, trigger PNG download (PDF needs jsPDF library)
-      document.getElementById('csExport').click();
-      alert('PDF export sẽ được cập nhật sau. Hiện tại xuất dạng PNG.');
-    });
-
-    // --- Keyboard shortcuts ---
-    document.addEventListener('keydown', e => {
-      // Only active when cross-stitch tab visible
-      const csPane = document.getElementById('pane-compress');
-      if (!csPane || (!csPane.classList.contains('active') && csPane.style.display === 'none')) return;
-      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.isContentEditable) return;
-
-      if (e.key === 'v' || e.key === 'V') { currentTool = 'select'; updateToolButtons(); }
-      else if (e.key === 'x' || e.key === 'X') { currentTool = 'cross'; updateToolButtons(); }
-      else if (e.key === 'e' || e.key === 'E') { currentTool = 'eraser'; updateToolButtons(); }
-      else if (e.key === 'f' || e.key === 'F') { currentTool = 'fill'; updateToolButtons(); }
-      else if (e.key === 'h' || e.key === 'H') { currentTool = 'half'; updateToolButtons(); }
-      else if (e.key === 'b' || e.key === 'B') { currentTool = 'backstitch'; updateToolButtons(); }
-      else if (e.key === 'i' || e.key === 'I') { currentTool = 'picker'; updateToolButtons(); }
-      else if (e.key === 'r' || e.key === 'R') { setViewRotation(viewRotation + 15); }
-      else if (e.key === 'Escape') {
-        // Step back: image→group (or none), mask→group, group→none
-        if (editTarget === 'image' || editTarget === 'mask') {
-          editTarget = maskMode ? 'group' : 'none';
-        } else if (editTarget === 'group') {
-          editTarget = 'none';
-        }
-        dragMode = null; dragStart = null;
-        draw();
-      }
-      else if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === 'z') {
-        doRedo(); e.preventDefault();
-      }
-      else if ((e.ctrlKey || e.metaKey) && e.key === 'z') {
-        doUndo(); e.preventDefault();
-      }
-    });
-
-    // --- Init ---
-    // Create initial artboard
-    const firstAb = createArtboard('Artboard 1');
-    firstAb.paperSize = paperSize; firstAb.paperW = paperW; firstAb.paperH = paperH;
-    firstAb.density = density;
-    artboards.push(firstAb);
-    activeArtboardId = firstAb.id;
-    renderArtboardList();
-    renderLayers();
-    recalcGrid();
-    setTimeout(() => document.getElementById('csZoomFit')?.click(), 100);
-
-  })();
+  // (Dead code removed — unified in Embroidery Designer above)
 
 </script>
 </body>
