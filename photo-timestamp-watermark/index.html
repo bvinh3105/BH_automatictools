@@ -8083,10 +8083,25 @@ QUY TẮC:
       mctx.rect(ox, oy, aw, ah);
       mctx.clip();
 
-      // Reference image
+      // Reference image — giữ đúng tỉ lệ gốc, không kéo giãn méo theo khung artboard
       if (ab.refImage && ab.refVisible && LAYERS[3].visible) {
         mctx.save(); mctx.globalAlpha = ab.refOpacity;
-        mctx.drawImage(ab.refImage, ox, oy, aw, ah);
+        const img = ab.refImage;
+        const imgW = img.naturalWidth || img.width, imgH = img.naturalHeight || img.height;
+        if (imgW && imgH) {
+          const imgAspect = imgW / imgH, boxAspect = aw / ah;
+          let dw, dh, dx, dy;
+          if (imgAspect > boxAspect) { // ảnh "rộng" hơn khung -> khớp theo chiều rộng
+            dw = aw; dh = aw / imgAspect;
+            dx = ox; dy = oy + (ah - dh) / 2;
+          } else { // ảnh "cao" hơn khung -> khớp theo chiều cao
+            dh = ah; dw = ah * imgAspect;
+            dy = oy; dx = ox + (aw - dw) / 2;
+          }
+          mctx.drawImage(img, dx, dy, dw, dh);
+        } else {
+          mctx.drawImage(img, ox, oy, aw, ah);
+        }
         mctx.globalAlpha = 1; mctx.restore();
       }
 
