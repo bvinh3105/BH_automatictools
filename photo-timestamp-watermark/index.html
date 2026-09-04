@@ -7334,10 +7334,12 @@ QUY TẮC:
         [/CONG AN/gi, 'CÔNG AN'],
         [/Th[uư][oơ]ng t[aá]/gi, 'Thượng tá'],
         [/[ĐD][aạ]i t[aá]/gi, 'Đại tá'],
-        // XÃ vs XÍ
-        [/\bX[IÍ]\b/g, 'XÃ'], [/\bx[ií]\b/g, 'xã'],
-        // Tráng → Trắng
-        [/\bTr[aá]ng\b/g, 'Trắng'],
+        // XÃ vs XÍ — chỉ sửa dạng CHỮ HOA (tiêu đề hành chính, VD "TRƯỞNG CA XÃ").
+        // Bỏ dạng chữ thường vì sẽ phá từ thông dụng "xí nghiệp" → "xã nghiệp".
+        [/\bX[IÍ]\b/g, 'XÃ'],
+        // Tráng/Trang (OCR yếu mất dấu) → Trắng — CHỈ khi đứng ngay sau nhãn "Màu/Màu sơn"
+        // để không phá tên riêng phổ biến "Trang" (VD "Tên chủ xe: Nguyễn Thị Trang").
+        [/(Màu(?:\s*sơn)?\s*[:\-]?\s*)Tr[aá]ng\b/gi, '$1Trắng'],
       ];
       for (const [pattern, replacement] of fieldFixes) {
         text = text.replace(pattern, replacement);
@@ -7347,7 +7349,7 @@ QUY TẮC:
         [/NGUYéN/g, 'NGUYỄN'], [/Nguyén/g, 'Nguyễn'],
         [/TRUÓNG/g, 'TRƯỞNG'], [/Truóng/g, 'Trưởng'],
         [/HUYÉN/g, 'HUYỆN'], [/Huyén/g, 'Huyện'],
-        [/nãm/g, 'năm'], [/tháng/g, 'tháng'],
+        [/nãm/g, 'năm'],
         [/dăng/g, 'đăng'], [/Dăng/g, 'Đăng'],
       ];
       for (const [pattern, replacement] of diacriticFixes) {
