@@ -2325,6 +2325,17 @@
   .emb-view-toggle button:hover { color:var(--text); }
   .emb-view-toggle button.active { background:var(--accent-2); color:#fff; }
 
+  /* ── Segmented toggle (orientation, v.v.) ── */
+  .emb-seg {
+    display:flex; gap:1px; background:var(--border); border-radius:7px; overflow:hidden;
+  }
+  .emb-seg-btn {
+    flex:1; padding:5px 8px; font-size:11px; font-weight:600; border:none;
+    background:var(--glass); color:var(--muted); cursor:pointer; transition:all .12s;
+  }
+  .emb-seg-btn:hover { color:var(--text); }
+  .emb-seg-btn.active { background:var(--accent-2); color:#fff; }
+
   /* ── Fabric Color Selector ── */
   .emb-fabric-colors {
     display:flex; gap:4px; align-items:center;
@@ -3550,6 +3561,13 @@ Việt Nam</textarea>
               </select>
             </div>
             <div class="emb-prop-row">
+              <span class="emb-prop-label">Hướng giấy</span>
+              <div class="emb-seg" id="embOrientationSeg">
+                <button class="emb-seg-btn active" data-orientation="portrait" title="Dọc">⬜ Dọc</button>
+                <button class="emb-seg-btn" data-orientation="landscape" title="Ngang">▭ Ngang</button>
+              </div>
+            </div>
+            <div class="emb-prop-row">
               <span class="emb-prop-label">Kích thước</span>
               <span class="emb-prop-value" id="embPropSize">—</span>
             </div>
@@ -3605,6 +3623,11 @@ Việt Nam</textarea>
             <div class="emb-prop-row" id="embRefVisRow" style="display:none">
               <span class="emb-prop-label">Hiện</span>
               <input type="checkbox" class="emb-prop-checkbox" id="embRefVisible" checked>
+            </div>
+            <div class="emb-prop-row" id="embRefRotRow" style="display:none">
+              <span class="emb-prop-label">Xoay</span>
+              <button class="emb-btn-sm" id="embRefRotate" style="flex:1">↻ Xoay 90°</button>
+              <span class="emb-prop-value" id="embRefRotVal">0°</span>
             </div>
           </div>
           <div class="emb-prop-group">
@@ -7869,7 +7892,7 @@ QUY TẮC:
     ];
 
     // ── State ──
-    let paper = 'A4', stitchCt = 14;
+    let paper = 'A4', stitchCt = 14, orientation = 'portrait'; // orientation: 'portrait' | 'landscape'
     let gridCols = 0, gridRows = 0;
     let zoom = 1;
     // cells[col][row] = { cross, halfTL, halfBR, satin, french }
@@ -7883,7 +7906,7 @@ QUY TẮC:
       {id:'ref',   name:'Reference Img', icon:'🖼', visible:true},
     ];
     let currentTool = 'cross', currentColor = '#B5121B', currentDMC = null;
-    let refImage = null, refOpacity = 0.35, refVisible = true;
+    let refImage = null, refOpacity = 0.35, refVisible = true, refRotation = 0; // refRotation: 0|90|180|270
     let showGrid = true, showMajor = true, showSymbols = false;
     let viewMode = 'color'; // 'color' | 'symbol' | 'both'
     let fabricColor = '#FFFFFF';
@@ -7911,17 +7934,20 @@ QUY TẮC:
         rows: rows,
         paper: paper,
         stitchCt: stitchCt,
+        orientation: orientation,
         cells: makeAbCells(cols, rows),
         bs: [],
         fk: [],
         refImage: null,
         refOpacity: 0.35,
         refVisible: true,
+        refRotation: 0,
       };
     }
 
-    function abColsRows(p, ct) {
-      const [w,h] = PAPER_MM[p||'A4'] || [210,297];
+    function abColsRows(p, ct, orient) {
+      let [w,h] = PAPER_MM[p||'A4'] || [210,297];
+      if (orient === 'landscape') { const t=w; w=h; h=t; }
       return {
         cols: Math.floor(w / MM_PER_INCH * (ct||14)),
         rows: Math.floor(h / MM_PER_INCH * (ct||14)),
@@ -7940,24 +7966,39 @@ QUY TẮC:
       refImage    = ab.refImage;
       refOpacity  = ab.refOpacity;
       refVisible  = ab.refVisible;
+      refRotation = ab.refRotation || 0;
+      orientation = ab.orientation || 'portrait';
     }
 
     // Save global state back into active artboard
     function flushGlobals() {
       const ab = artboards[activeAbIdx];
       if (!ab) return;
-      ab.cells      = cells;
-      ab.bs         = backstitches;
-      ab.fk         = frenchKnots;
-      ab.refImage   = refImage;
-      ab.refOpacity = refOpacity;
-      ab.refVisible = refVisible;
+      ab.cells       = cells;
+      ab.bs          = backstitches;
+      ab.fk          = frenchKnots;
+      ab.refImage    = refImage;
+      ab.refOpacity  = refOpacity;
+      ab.refVisible  = refVisible;
+      ab.refRotation = refRotation;
+    }
+
+    function updateOrientationUI() {
+      document.querySelectorAll('#embOrientationSeg .emb-seg-btn').forEach(b=>{
+        b.classList.toggle('active', b.dataset.orientation===orientation);
+      });
+    }
+    function updateRefRotUI() {
+      const val = document.getElementById('embRefRotVal');
+      if (val) val.textContent = (refRotation||0)+'°';
     }
 
     function switchArtboard(idx) {
       flushGlobals();
       activeAbIdx = idx;
       syncGlobals();
+      updateOrientationUI();
+      updateRefRotUI();
       schedRender();
       renderArtboardPanel();
       updateStatus();
@@ -7965,7 +8006,7 @@ QUY TẮC:
 
     function addArtboard(name) {
       flushGlobals();
-      const {cols, rows} = abColsRows(paper, stitchCt);
+      const {cols, rows} = abColsRows(paper, stitchCt, orientation);
       // Place to the right of the last artboard
       let maxX = 0;
       artboards.forEach(ab => maxX = Math.max(maxX, ab.x + ab.cols));
@@ -8014,9 +8055,9 @@ QUY TẮC:
       updateStatus();
     }
 
-    // Called when paper/stitchCt changes — resizes ACTIVE artboard only
+    // Called when paper/stitchCt/orientation changes — resizes ACTIVE artboard only
     function recalcGrid() {
-      const {cols, rows} = abColsRows(paper, stitchCt);
+      const {cols, rows} = abColsRows(paper, stitchCt, orientation);
       const ab = artboards[activeAbIdx];
       if (!ab) return;
       // Resize: keep existing stitches that fit, trim rest
@@ -8028,7 +8069,7 @@ QUY TẮC:
       ab.cells = newCells;
       ab.bs = ab.bs.filter(s => s.x1>=0&&s.x1<=cols&&s.y1>=0&&s.y1<=rows);
       ab.fk = ab.fk.filter(k => k.col>=0&&k.col<cols&&k.row>=0&&k.row<rows);
-      ab.paper = paper; ab.stitchCt = stitchCt;
+      ab.paper = paper; ab.stitchCt = stitchCt; ab.orientation = orientation;
       syncGlobals();
       recalcWorldCanvas();
       const sz = document.getElementById('embPropSize');
@@ -8085,22 +8126,23 @@ QUY TẮC:
       mctx.rect(ox, oy, aw, ah);
       mctx.clip();
 
-      // Reference image — giữ đúng tỉ lệ gốc, không kéo giãn méo theo khung artboard
+      // Reference image — giữ đúng tỉ lệ gốc (contain-fit, không kéo giãn méo) + hỗ trợ xoay 90/180/270°
       if (ab.refImage && ab.refVisible && LAYERS[3].visible) {
         mctx.save(); mctx.globalAlpha = ab.refOpacity;
         const img = ab.refImage;
+        const rot = ((ab.refRotation||0) % 360 + 360) % 360;
+        const swapped = (rot===90 || rot===270); // ảnh xoay 90/270° thì đổi chỗ W/H khi tính tỉ lệ khớp khung
         const imgW = img.naturalWidth || img.width, imgH = img.naturalHeight || img.height;
         if (imgW && imgH) {
-          const imgAspect = imgW / imgH, boxAspect = aw / ah;
-          let dw, dh, dx, dy;
-          if (imgAspect > boxAspect) { // ảnh "rộng" hơn khung -> khớp theo chiều rộng
-            dw = aw; dh = aw / imgAspect;
-            dx = ox; dy = oy + (ah - dh) / 2;
-          } else { // ảnh "cao" hơn khung -> khớp theo chiều cao
-            dh = ah; dw = ah * imgAspect;
-            dy = oy; dx = ox + (aw - dw) / 2;
-          }
-          mctx.drawImage(img, dx, dy, dw, dh);
+          const effW = swapped ? imgH : imgW, effH = swapped ? imgW : imgH;
+          const imgAspect = effW / effH, boxAspect = aw / ah;
+          let dw, dh;
+          if (imgAspect > boxAspect) { dw = aw; dh = aw / imgAspect; } // ảnh "rộng" hơn khung -> khớp theo chiều rộng
+          else { dh = ah; dw = ah * imgAspect; }                       // ảnh "cao" hơn khung -> khớp theo chiều cao
+          const drawW = swapped ? dh : dw, drawH = swapped ? dw : dh;
+          mctx.translate(ox + aw/2, oy + ah/2);
+          if (rot) mctx.rotate(rot * Math.PI/180);
+          mctx.drawImage(img, -drawW/2, -drawH/2, drawW, drawH);
         } else {
           mctx.drawImage(img, ox, oy, aw, ah);
         }
@@ -8747,10 +8789,12 @@ QUY TẮC:
       const url=URL.createObjectURL(file);
       const img=new Image();
       img.onload=()=>{
-        refImage=img; refVisible=true; LAYERS[3].visible=true;
+        refImage=img; refVisible=true; refRotation=0; LAYERS[3].visible=true;
         flushGlobals(); // persist refImage into the active artboard so drawArtboard() can see it
         document.getElementById('embRefOpRow').style.display='';
         document.getElementById('embRefVisRow').style.display='';
+        document.getElementById('embRefRotRow').style.display='';
+        updateRefRotUI();
         renderLayers(); schedRender(); URL.revokeObjectURL(url);
       };
       img.onerror=()=>{
@@ -9119,7 +9163,7 @@ QUY TẮC:
 
     function saveJSON() {
       const data={
-        version:1, paper, stitchCt, gridCols, gridRows,
+        version:1, paper, stitchCt, orientation, gridCols, gridRows,
         cells:cells.map(col=>col.map(cell=>{
           const c={};
           if(cell.cross)  c.cross=cell.cross;
@@ -9141,10 +9185,11 @@ QUY TẮC:
       reader.onload=e=>{
         try {
           const d=JSON.parse(e.target.result);
-          paper=d.paper||'A4'; stitchCt=d.stitchCt||14;
+          paper=d.paper||'A4'; stitchCt=d.stitchCt||14; orientation=d.orientation||'portrait';
           const ps=document.getElementById('embPropPaper');
           const cs=document.getElementById('embPropCount');
           if(ps) ps.value=paper; if(cs) cs.value=stitchCt;
+          updateOrientationUI();
           recalcGrid();
           if(d.cells) d.cells.forEach((col,c)=>{ col.forEach((cell,r)=>{ if(cells[c]&&cells[c][r]) cells[c][r]={...cell}; }); });
           // Nạp trực tiếp (không reassign mảng) để giữ tham chiếu ab.bs/ab.fk — xem removeKnotAt()
@@ -9303,6 +9348,10 @@ QUY TẮC:
     }
     function setPaper(p) { paper=p; document.getElementById('embPropPaper').value=p; recalcGrid(); fitToView(); schedRender(); }
     function setCt(ct) { stitchCt=ct; document.getElementById('embPropCount').value=ct; recalcGrid(); fitToView(); schedRender(); }
+    function setOrientation(o) {
+      if (o===orientation) return;
+      orientation=o; updateOrientationUI(); recalcGrid(); fitToView(); schedRender();
+    }
     function clearAll() {
       // Xoá TRỰC TIẾP nội dung (không reassign mảng) để giữ tham chiếu ab.cells/ab.bs/ab.fk
       // — xem ghi chú ở removeKnotAt() về lỗi mất đồng bộ khi gán lại mảng mới.
@@ -9327,6 +9376,15 @@ QUY TẮC:
         refVisible=e.target.checked; LAYERS[3].visible=refVisible;
         flushGlobals();
         renderLayers(); schedRender();
+      });
+      document.getElementById('embRefRotate')?.addEventListener('click',()=>{
+        refRotation=((refRotation||0)+90)%360;
+        updateRefRotUI();
+        flushGlobals();
+        schedRender();
+      });
+      document.querySelectorAll('#embOrientationSeg .emb-seg-btn').forEach(btn=>{
+        btn.addEventListener('click',()=>setOrientation(btn.dataset.orientation));
       });
       document.getElementById('embColorPicker')?.addEventListener('input',e=>setColor(e.target.value.toUpperCase()));
       document.getElementById('embColorPreview')?.addEventListener('click',()=>document.getElementById('embColorPicker')?.click());
@@ -9475,7 +9533,31 @@ QUY TẮC:
       if(!rectSel||!refImage) {alert('Cần ảnh tham chiếu và vùng chọn.');return;}
       const ab=artboards[activeAbIdx]; if(!ab) return;
       const aw=ab.cols*CELL_PX, ah=ab.rows*CELL_PX;
-      // Crop refImage within rect area (artboard-local coords)
+      // Dựng lại ĐÚNG NHỮNG GÌ đang hiển thị trên canvas (đã contain-fit + xoay, xem
+      // drawArtboard) lên 1 canvas tạm cỡ đúng artboard, rồi mới cắt theo vùng chọn.
+      // (Trước đây code vẽ refImage kéo giãn lấp đầy (aw,ah) — sai lệch với những gì
+      // người dùng THẤY và CHỌN trên canvas sau khi refImage được vẽ contain-fit.)
+      const rot = ((refRotation||0)%360+360)%360;
+      const swapped = (rot===90||rot===270);
+      const imgW = refImage.naturalWidth||refImage.width, imgH = refImage.naturalHeight||refImage.height;
+      const full=document.createElement('canvas');
+      full.width=aw; full.height=ah;
+      const fctx=full.getContext('2d');
+      if (imgW && imgH) {
+        const effW = swapped?imgH:imgW, effH = swapped?imgW:imgH;
+        const imgAspect = effW/effH, boxAspect = aw/ah;
+        let dw,dh;
+        if (imgAspect>boxAspect) { dw=aw; dh=aw/imgAspect; } else { dh=ah; dw=ah*imgAspect; }
+        const drawW = swapped?dh:dw, drawH = swapped?dw:dh;
+        fctx.save();
+        fctx.translate(aw/2, ah/2);
+        if (rot) fctx.rotate(rot*Math.PI/180);
+        fctx.drawImage(refImage, -drawW/2, -drawH/2, drawW, drawH);
+        fctx.restore();
+      } else {
+        fctx.drawImage(refImage,0,0,aw,ah);
+      }
+      // Cắt theo vùng chọn (artboard-local coords)
       const tc=document.createElement('canvas');
       tc.width=aw; tc.height=ah;
       const tctx=tc.getContext('2d');
@@ -9483,14 +9565,17 @@ QUY TẮC:
       tctx.beginPath();
       tctx.rect(rectSel.x*CELL_PX,rectSel.y*CELL_PX,rectSel.w*CELL_PX,rectSel.h*CELL_PX);
       tctx.clip();
-      tctx.drawImage(refImage,0,0,aw,ah);
+      tctx.drawImage(full,0,0);
       tctx.restore();
       const newImg=new Image();
       newImg.onload=()=>{
         refImage=newImg;
+        refRotation=0; // đã "bake" góc xoay vào ảnh mới, reset để xoay tiếp từ đầu
         flushGlobals(); // persist cropped refImage into the active artboard
         document.getElementById('embRefOpRow').style.display='';
         document.getElementById('embRefVisRow').style.display='';
+        document.getElementById('embRefRotRow').style.display='';
+        updateRefRotUI();
         LAYERS[3].visible=true; renderLayers(); schedRender();
       };
       newImg.src=tc.toDataURL();
@@ -9820,11 +9905,13 @@ QUY TẮC:
     // ── Init ──
     function init() {
       // Bootstrap first artboard
-      const {cols, rows} = abColsRows('A4', 14);
+      const {cols, rows} = abColsRows('A4', 14, orientation);
       artboards.push(createArtboard('Artboard 1', cols, rows, 0, 0));
       activeAbIdx = 0;
       syncGlobals();
       recalcWorldCanvas();
+      updateOrientationUI();
+      updateRefRotUI();
 
       document.querySelectorAll('.emb-tool-btn[data-tool]').forEach(b=>{
         b.addEventListener('click',()=>activateTool(b.dataset.tool));
