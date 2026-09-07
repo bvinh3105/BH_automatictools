@@ -3633,9 +3633,13 @@ Việt Nam</textarea>
             <div class="emb-prop-row" id="embRefResetRow" style="display:none">
               <button class="emb-btn-sm" id="embRefReset" style="flex:1">↺ Đặt lại vị trí/cỡ/góc</button>
             </div>
+            <div class="emb-prop-row" id="embRefRestoreRow" style="display:none">
+              <button class="emb-btn-sm" id="embRefRestore" style="flex:1">🖼 Khôi phục ảnh gốc (bỏ crop)</button>
+            </div>
             <div class="emb-prop-hint" id="embRefHint" style="display:none">
               💡 Chọn công cụ <b>Chọn</b> (phím V) rồi kéo góc ảnh để phóng to/thu nhỏ,
-              kéo chấm tròn phía trên để xoay tự do, kéo giữa ảnh để di chuyển.
+              kéo chấm tròn phía trên để xoay tự do (giữ <b>Shift</b> để hít góc 15°),
+              kéo giữa ảnh để di chuyển.
             </div>
           </div>
           <div class="emb-prop-group">
@@ -3824,7 +3828,10 @@ Việt Nam</textarea>
     <span>✨ Áp mask lên ảnh tham chiếu</span>
   </div>
   <div class="emb-ctx-item" id="embCtxClearMask" style="display:none">
-    <span>✕ Xoá vùng mask</span>
+    <span>✕ Xoá vùng chọn</span>
+  </div>
+  <div class="emb-ctx-item" id="embCtxRestoreOriginal" style="display:none">
+    <span>🖼 Khôi phục ảnh gốc (bỏ crop)</span>
   </div>
   <div class="emb-ctx-sep"></div>
   <div class="emb-ctx-item" id="embCtxReplaceColor">
@@ -7915,6 +7922,7 @@ QUY TẮC:
     ];
     let currentTool = 'cross', currentColor = '#B5121B', currentDMC = null;
     let refImage = null, refOpacity = 0.35, refVisible = true;
+    let refOriginalImage = null; // ảnh gốc TRƯỚC KHI crop/mask — để "Khôi phục ảnh gốc"
     let refRotation = 0;   // độ, bất kỳ giá trị nào (không chỉ 0/90/180/270)
     let refScale = 1;      // hệ số scale thêm ngoài auto contain-fit
     let refOffsetX = 0, refOffsetY = 0; // lệch khỏi tâm artboard (px, hệ world/CELL_PX)
@@ -7951,6 +7959,7 @@ QUY TẮC:
         bs: [],
         fk: [],
         refImage: null,
+        refOriginalImage: null,
         refOpacity: 0.35,
         refVisible: true,
         refRotation: 0,
@@ -7979,6 +7988,7 @@ QUY TẮC:
       gridCols    = ab.cols;
       gridRows    = ab.rows;
       refImage    = ab.refImage;
+      refOriginalImage = ab.refOriginalImage || null;
       refOpacity  = ab.refOpacity;
       refVisible  = ab.refVisible;
       refRotation = ab.refRotation || 0;
@@ -7996,6 +8006,7 @@ QUY TẮC:
       ab.bs          = backstitches;
       ab.fk          = frenchKnots;
       ab.refImage    = refImage;
+      ab.refOriginalImage = refOriginalImage;
       ab.refOpacity  = refOpacity;
       ab.refVisible  = refVisible;
       ab.refScale    = refScale;
@@ -8718,7 +8729,7 @@ QUY TẮC:
         cells: cells.map(col=>col.map(cell=>({...cell}))),
         bs: JSON.parse(JSON.stringify(backstitches)),
         fk: JSON.parse(JSON.stringify(frenchKnots)),
-        refImage, refOpacity, refVisible, refRotation, refScale, refOffsetX, refOffsetY,
+        refImage, refOriginalImage, refOpacity, refVisible, refRotation, refScale, refOffsetX, refOffsetY,
       };
     }
     function restore(s) {
@@ -8726,6 +8737,7 @@ QUY TẮC:
       backstitches=JSON.parse(JSON.stringify(s.bs));
       frenchKnots=JSON.parse(JSON.stringify(s.fk));
       refImage=s.refImage||null;
+      refOriginalImage=s.refOriginalImage||null;
       refOpacity=s.refOpacity??0.35;
       refVisible=s.refVisible??true;
       refRotation=s.refRotation||0;
@@ -8746,7 +8758,7 @@ QUY TẮC:
     function syncRefControlsVisibility() {
       if (refImage) { showRefControls(); }
       else {
-        ['embRefOpRow','embRefVisRow','embRefRotRow','embRefResetRow','embRefHint'].forEach(id=>{
+        ['embRefOpRow','embRefVisRow','embRefRotRow','embRefResetRow','embRefRestoreRow','embRefHint'].forEach(id=>{
           const el=document.getElementById(id); if(el) el.style.display='none';
         });
       }
@@ -8927,6 +8939,9 @@ QUY TẮC:
       ['embRefOpRow','embRefVisRow','embRefRotRow','embRefResetRow','embRefHint'].forEach(id=>{
         const el=document.getElementById(id); if(el) el.style.display='';
       });
+      // Chỉ hiện "Khôi phục ảnh gốc" khi ảnh hiện tại KHÁC ảnh gốc (đã crop/mask)
+      const restoreRow=document.getElementById('embRefRestoreRow');
+      if (restoreRow) restoreRow.style.display = (refOriginalImage && refOriginalImage!==refImage) ? '' : 'none';
       updateRefRotUI();
     }
 
@@ -8934,7 +8949,7 @@ QUY TẮC:
       const url=URL.createObjectURL(file);
       const img=new Image();
       img.onload=()=>{
-        refImage=img; refVisible=true; refRotation=0; refScale=1; refOffsetX=0; refOffsetY=0;
+        refImage=img; refOriginalImage=img; refVisible=true; refRotation=0; refScale=1; refOffsetX=0; refOffsetY=0;
         LAYERS[3].visible=true;
         flushGlobals(); // persist refImage into the active artboard so drawArtboard() can see it
         showRefControls();
@@ -9536,6 +9551,14 @@ QUY TẮC:
         schedRender();
         pushHist();
       });
+      document.getElementById('embRefRestore')?.addEventListener('click',()=>{
+        if (!refOriginalImage) return;
+        refImage=refOriginalImage; refRotation=0; refScale=1; refOffsetX=0; refOffsetY=0;
+        flushGlobals();
+        showRefControls();
+        schedRender();
+        pushHist();
+      });
       document.querySelectorAll('#embOrientationSeg .emb-seg-btn').forEach(btn=>{
         btn.addEventListener('click',()=>setOrientation(btn.dataset.orientation));
       });
@@ -9702,16 +9725,14 @@ QUY TẮC:
       } else {
         fctx.drawImage(refImage,0,0,aw,ah);
       }
-      // Cắt theo vùng chọn (artboard-local coords)
+      // Cắt theo vùng chọn — canvas kết quả có kích thước ĐÚNG BẰNG vùng chọn
+      // (không phải cỡ cả artboard với viền trong suốt xung quanh), để sau khi
+      // crop, khung chọn/handle tương tác chỉ bao đúng phần ảnh còn lại.
+      const cropW=Math.max(1,Math.round(rectSel.w*CELL_PX)), cropH=Math.max(1,Math.round(rectSel.h*CELL_PX));
       const tc=document.createElement('canvas');
-      tc.width=aw; tc.height=ah;
+      tc.width=cropW; tc.height=cropH;
       const tctx=tc.getContext('2d');
-      tctx.save();
-      tctx.beginPath();
-      tctx.rect(rectSel.x*CELL_PX,rectSel.y*CELL_PX,rectSel.w*CELL_PX,rectSel.h*CELL_PX);
-      tctx.clip();
-      tctx.drawImage(full,0,0);
-      tctx.restore();
+      tctx.drawImage(full, -rectSel.x*CELL_PX, -rectSel.y*CELL_PX);
       const newImg=new Image();
       newImg.onload=()=>{
         refImage=newImg;
@@ -9749,12 +9770,15 @@ QUY TẮC:
 
     function updateCtxMaskItems() {
       const has=!!rectSel;
+      const canRestore = !!(refOriginalImage && refOriginalImage!==refImage);
       const sep=document.getElementById('embCtxMaskSep');
       const apply=document.getElementById('embCtxApplyMask');
       const clear=document.getElementById('embCtxClearMask');
-      if(sep) sep.style.display=has?'':'none';
+      const restore=document.getElementById('embCtxRestoreOriginal');
+      if(sep) sep.style.display=(has||canRestore)?'':'none';
       if(apply) apply.style.display=has?'':'none';
       if(clear) clear.style.display=has?'':'none';
+      if(restore) restore.style.display=canRestore?'':'none';
     }
 
     // ── Artboard Panel ──
@@ -9910,8 +9934,10 @@ QUY TẮC:
             const ratio = dist / (refImgDrag.startDist || 1);
             ab.refScale = Math.max(0.05, Math.min(20, refImgDrag.origScale * ratio));
           } else if (refImgDrag.type === 'rotate') {
-            const angleDeg = Math.atan2(wy - refImgDrag.cy, wx - refImgDrag.cx) * 180 / Math.PI;
-            ab.refRotation = angleDeg + 90;
+            let angleDeg = Math.atan2(wy - refImgDrag.cy, wx - refImgDrag.cx) * 180 / Math.PI + 90;
+            // Giữ Shift để "hít" góc xoay theo từng bước 15° (giống Illustrator)
+            if (e.shiftKey) angleDeg = Math.round(angleDeg / 15) * 15;
+            ab.refRotation = angleDeg;
           }
           syncGlobals();
           updateRefRotUI();
@@ -10047,6 +10073,10 @@ QUY TẮC:
       });
       document.getElementById('embCtxApplyMask')?.addEventListener('click',()=>{closeCtx();applyRectMask();});
       document.getElementById('embCtxClearMask')?.addEventListener('click',()=>{closeCtx();clearRectSelection();});
+      document.getElementById('embCtxRestoreOriginal')?.addEventListener('click',()=>{
+        closeCtx();
+        document.getElementById('embRefRestore')?.click();
+      });
       document.getElementById('embCtxReplaceColor')?.addEventListener('click',()=>{
         closeCtx();
         if(!ctxCell) return;
