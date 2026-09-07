@@ -8456,11 +8456,30 @@ QUY TẮC:
       cells[col][row].cross=null;
       schedRender();
     }
+    // Xoá 1 knot tại (col,row) — sửa TRỰC TIẾP mảng (không reassign) để giữ nguyên
+    // tham chiếu chia sẻ với ab.fk (syncGlobals/flushGlobals trỏ frenchKnots === ab.fk).
+    // "frenchKnots = frenchKnots.filter(...)" tạo mảng MỚI, làm ab.fk không còn trỏ
+    // tới cùng mảng nữa → knot không bao giờ hiện trên canvas (drawArtboard vẽ từ ab.fk).
+    function removeKnotAt(col,row) {
+      const idx = frenchKnots.findIndex(k=>k.col===col&&k.row===row);
+      if (idx>=0) frenchKnots.splice(idx,1);
+    }
+    // Xoá các đường backstitch có CẢ 2 đầu nằm trên 4 góc của ô (col,row)
+    // (mỗi đoạn backstitch vẽ dài đúng 1 ô — theo toolBackstitch bên dưới)
+    function isCornerOfCell(x,y,col,row) {
+      return (x===col||x===col+1) && (y===row||y===row+1);
+    }
+    function removeBackstitchesInCell(col,row) {
+      for (let i=backstitches.length-1;i>=0;i--) {
+        const s=backstitches[i];
+        if (isCornerOfCell(s.x1,s.y1,col,row) && isCornerOfCell(s.x2,s.y2,col,row)) backstitches.splice(i,1);
+      }
+    }
     function toolFrench(e,phase) {
       if (phase==='move') return;
       if (phase==='up') { pushHist(); return; }
       const {col,row}=getCellXY(e); if (!valid(col,row)) return;
-      frenchKnots=frenchKnots.filter(k=>!(k.col===col&&k.row===row));
+      removeKnotAt(col,row);
       frenchKnots.push({col,row,color:currentColor});
       schedRender();
     }
@@ -8527,7 +8546,8 @@ QUY TẮC:
       if (lastCell&&lastCell.col===col&&lastCell.row===row) return;
       lastCell={col,row};
       cells[col][row]={};
-      frenchKnots=frenchKnots.filter(k=>!(k.col===col&&k.row===row));
+      removeKnotAt(col,row);
+      removeBackstitchesInCell(col,row);
       schedRender();
     }
 
@@ -9127,7 +9147,9 @@ QUY TẮC:
           if(ps) ps.value=paper; if(cs) cs.value=stitchCt;
           recalcGrid();
           if(d.cells) d.cells.forEach((col,c)=>{ col.forEach((cell,r)=>{ if(cells[c]&&cells[c][r]) cells[c][r]={...cell}; }); });
-          backstitches=d.backstitches||[]; frenchKnots=d.frenchKnots||[];
+          // Nạp trực tiếp (không reassign mảng) để giữ tham chiếu ab.bs/ab.fk — xem removeKnotAt()
+          backstitches.length=0; backstitches.push(...(d.backstitches||[]));
+          frenchKnots.length=0; frenchKnots.push(...(d.frenchKnots||[]));
           pushHist();
         } catch(err){alert('Lỗi file JSON: '+err.message);}
       };
@@ -9282,8 +9304,11 @@ QUY TẮC:
     function setPaper(p) { paper=p; document.getElementById('embPropPaper').value=p; recalcGrid(); fitToView(); schedRender(); }
     function setCt(ct) { stitchCt=ct; document.getElementById('embPropCount').value=ct; recalcGrid(); fitToView(); schedRender(); }
     function clearAll() {
-      cells=Array.from({length:gridCols},()=>Array.from({length:gridRows},()=>({})));
-      backstitches=[]; frenchKnots=[]; pushHist();
+      // Xoá TRỰC TIẾP nội dung (không reassign mảng) để giữ tham chiếu ab.cells/ab.bs/ab.fk
+      // — xem ghi chú ở removeKnotAt() về lỗi mất đồng bộ khi gán lại mảng mới.
+      for (let c=0;c<gridCols;c++) for (let r=0;r<gridRows;r++) cells[c][r]={};
+      backstitches.length=0; frenchKnots.length=0;
+      pushHist();
     }
 
     // ── Props Panel ──
@@ -9478,7 +9503,8 @@ QUY TẮC:
       for(let c=rectSel.x;c<rectSel.x+rectSel.w&&c<gridCols;c++)
         for(let r=rectSel.y;r<rectSel.y+rectSel.h&&r<gridRows;r++) {
           cells[c][r]={};
-          frenchKnots=frenchKnots.filter(k=>!(k.col===c&&k.row===r));
+          removeKnotAt(c,r);
+          removeBackstitchesInCell(c,r);
         }
       clearRectSelection(); schedRender();
     }
@@ -9726,7 +9752,7 @@ QUY TẮC:
         closeCtx();
         if(!ctxCell) return;
         const {col,row}=ctxCell; if(!valid(col,row)) return;
-        pushHist(); cells[col][row]={}; frenchKnots=frenchKnots.filter(k=>!(k.col===col&&k.row===row));
+        pushHist(); cells[col][row]={}; removeKnotAt(col,row); removeBackstitchesInCell(col,row);
         schedRender();
       });
       document.getElementById('embCtxPickColor')?.addEventListener('click',()=>{
