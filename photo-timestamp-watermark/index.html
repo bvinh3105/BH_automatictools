@@ -2123,6 +2123,7 @@
   .emb-prop-row:last-child { margin-bottom:0; }
   .emb-prop-label { font-size:12px; color:var(--muted); flex-shrink:0; }
   .emb-prop-value { font-size:12.5px; color:var(--text); font-weight:600; }
+  .emb-prop-hint { font-size:11px; color:var(--muted); line-height:1.5; padding:2px 2px 0; }
   .emb-prop-select {
     background:var(--input-bg); border:1px solid var(--border); border-radius:8px;
     color:var(--text); font:inherit; font-size:11.5px; padding:5px 8px;
@@ -3628,6 +3629,13 @@ Việt Nam</textarea>
               <span class="emb-prop-label">Xoay</span>
               <button class="emb-btn-sm" id="embRefRotate" style="flex:1">↻ Xoay 90°</button>
               <span class="emb-prop-value" id="embRefRotVal">0°</span>
+            </div>
+            <div class="emb-prop-row" id="embRefResetRow" style="display:none">
+              <button class="emb-btn-sm" id="embRefReset" style="flex:1">↺ Đặt lại vị trí/cỡ/góc</button>
+            </div>
+            <div class="emb-prop-hint" id="embRefHint" style="display:none">
+              💡 Chọn công cụ <b>Chọn</b> (phím V) rồi kéo góc ảnh để phóng to/thu nhỏ,
+              kéo chấm tròn phía trên để xoay tự do, kéo giữa ảnh để di chuyển.
             </div>
           </div>
           <div class="emb-prop-group">
@@ -7906,7 +7914,10 @@ QUY TẮC:
       {id:'ref',   name:'Reference Img', icon:'🖼', visible:true},
     ];
     let currentTool = 'cross', currentColor = '#B5121B', currentDMC = null;
-    let refImage = null, refOpacity = 0.35, refVisible = true, refRotation = 0; // refRotation: 0|90|180|270
+    let refImage = null, refOpacity = 0.35, refVisible = true;
+    let refRotation = 0;   // độ, bất kỳ giá trị nào (không chỉ 0/90/180/270)
+    let refScale = 1;      // hệ số scale thêm ngoài auto contain-fit
+    let refOffsetX = 0, refOffsetY = 0; // lệch khỏi tâm artboard (px, hệ world/CELL_PX)
     let showGrid = true, showMajor = true, showSymbols = false;
     let viewMode = 'color'; // 'color' | 'symbol' | 'both'
     let fabricColor = '#FFFFFF';
@@ -7919,6 +7930,7 @@ QUY TẮC:
     let activeAbIdx = 0;  // index of active artboard
     let abDrag = null;    // {abIdx, startX, startY, origX, origY} for label drag
     let abResize = null;  // {abIdx, handle, startX, startY, origCols, origRows}
+    let refImgDrag = null; // {type:'move'|'scale'|'rotate', ...} — kéo tương tác ảnh tham chiếu
 
     function makeAbCells(cols, rows) {
       return Array.from({length:cols}, () => Array.from({length:rows}, () => ({})));
@@ -7942,6 +7954,9 @@ QUY TẮC:
         refOpacity: 0.35,
         refVisible: true,
         refRotation: 0,
+        refScale: 1,
+        refOffsetX: 0,
+        refOffsetY: 0,
       };
     }
 
@@ -7967,6 +7982,9 @@ QUY TẮC:
       refOpacity  = ab.refOpacity;
       refVisible  = ab.refVisible;
       refRotation = ab.refRotation || 0;
+      refScale    = ab.refScale || 1;
+      refOffsetX  = ab.refOffsetX || 0;
+      refOffsetY  = ab.refOffsetY || 0;
       orientation = ab.orientation || 'portrait';
     }
 
@@ -7980,6 +7998,9 @@ QUY TẮC:
       ab.refImage    = refImage;
       ab.refOpacity  = refOpacity;
       ab.refVisible  = refVisible;
+      ab.refScale    = refScale;
+      ab.refOffsetX  = refOffsetX;
+      ab.refOffsetY  = refOffsetY;
       ab.refRotation = refRotation;
     }
 
@@ -7990,7 +8011,10 @@ QUY TẮC:
     }
     function updateRefRotUI() {
       const val = document.getElementById('embRefRotVal');
-      if (val) val.textContent = (refRotation||0)+'°';
+      if (val) {
+        const deg = Math.round(((refRotation||0) % 360 + 360) % 360);
+        val.textContent = deg + '°';
+      }
     }
 
     function switchArtboard(idx) {
@@ -8101,6 +8125,99 @@ QUY TẮC:
       updateFinishedSize();
     }
 
+    // Tính hình chữ nhật hiển thị thực tế của ảnh tham chiếu (đã áp rotate/scale/offset),
+    // trong toạ độ world. ox,oy = góc trên-trái artboard; aw,ah = kích thước artboard.
+    // Dùng chung cho render (drawArtboard), hit-test tương tác, và vẽ handle.
+    function getRefBox(ab, ox, oy, aw, ah) {
+      const img = ab.refImage; if (!img) return null;
+      const imgW = img.naturalWidth || img.width, imgH = img.naturalHeight || img.height;
+      if (!imgW || !imgH) return null;
+      const rot = ab.refRotation || 0;
+      const rad = rot * Math.PI / 180;
+      const cos = Math.abs(Math.cos(rad)), sin = Math.abs(Math.sin(rad));
+      const bbW = imgW * cos + imgH * sin, bbH = imgW * sin + imgH * cos;
+      const fitScale = Math.min(aw / bbW, ah / bbH); // contain-fit bounding-box đã xoay vào khung
+      const scale = fitScale * (ab.refScale || 1);
+      return {
+        cx: ox + aw / 2 + (ab.refOffsetX || 0),
+        cy: oy + ah / 2 + (ab.refOffsetY || 0),
+        drawW: imgW * scale, drawH: imgH * scale,
+        rot, rad,
+      };
+    }
+
+    const REF_HANDLE_R = 6;      // bán kính handle góc (scale)
+    const REF_ROT_HANDLE_DIST = 26; // khoảng cách handle xoay tính từ cạnh trên ảnh (px world)
+
+    // Toạ độ 4 góc + handle xoay của ảnh tham chiếu, ĐÃ áp rotate quanh tâm (cx,cy).
+    // Trả về null nếu artboard không có ảnh.
+    function getRefHandlePositions(ab, ox, oy, aw, ah) {
+      const box = getRefBox(ab, ox, oy, aw, ah); if (!box) return null;
+      const { cx, cy, drawW, drawH, rad } = box;
+      const hw = drawW / 2, hh = drawH / 2;
+      const cos = Math.cos(rad), sin = Math.sin(rad);
+      // Xoay 1 điểm local (lx,ly) quanh tâm theo rad, trả về toạ độ world
+      const rp = (lx, ly) => ({ x: cx + lx * cos - ly * sin, y: cy + lx * sin + ly * cos });
+      return {
+        box,
+        nw: rp(-hw, -hh), ne: rp(hw, -hh), se: rp(hw, hh), sw: rp(-hw, hh),
+        rotate: rp(0, -hh - REF_ROT_HANDLE_DIST),
+      };
+    }
+
+    // Hit-test các handle của ảnh tham chiếu (artboard đang active) tại toạ độ world (wx,wy)
+    function hitTestRefHandle(wx, wy) {
+      const ab = artboards[activeAbIdx]; if (!ab || !ab.refImage) return null;
+      const { ox, oy } = abOffset();
+      const aw = ab.cols * CELL_PX, ah = ab.rows * CELL_PX;
+      const hp = getRefHandlePositions(ab, ox, oy, aw, ah); if (!hp) return null;
+      const near = (p, r) => Math.hypot(wx - p.x, wy - p.y) <= r;
+      if (near(hp.rotate, REF_HANDLE_R + 2)) return { type: 'rotate' };
+      for (const id of ['nw', 'ne', 'se', 'sw']) {
+        if (near(hp[id], REF_HANDLE_R + 2)) return { type: 'scale', corner: id };
+      }
+      return null;
+    }
+
+    // Click có nằm TRONG vùng ảnh (đã xoay) không — dùng để chọn/di chuyển ảnh
+    function hitTestRefBody(wx, wy) {
+      const ab = artboards[activeAbIdx]; if (!ab || !ab.refImage) return false;
+      const { ox, oy } = abOffset();
+      const aw = ab.cols * CELL_PX, ah = ab.rows * CELL_PX;
+      const box = getRefBox(ab, ox, oy, aw, ah); if (!box) return false;
+      // Đưa điểm về hệ toạ độ local (chưa xoay) của ảnh để so sánh với nửa kích thước
+      const dx = wx - box.cx, dy = wy - box.cy;
+      const cos = Math.cos(-box.rad), sin = Math.sin(-box.rad);
+      const lx = dx * cos - dy * sin, ly = dx * sin + dy * cos;
+      return Math.abs(lx) <= box.drawW / 2 && Math.abs(ly) <= box.drawH / 2;
+    }
+
+    // Vẽ khung + handle tương tác cho ảnh tham chiếu (khi tool = Chọn)
+    function drawRefHandles(ab, ox, oy, aw, ah) {
+      const hp = getRefHandlePositions(ab, ox, oy, aw, ah); if (!hp) return;
+      mctx.save();
+      mctx.strokeStyle = '#4E8FD8'; mctx.lineWidth = 1.5; mctx.setLineDash([4, 3]);
+      mctx.beginPath();
+      mctx.moveTo(hp.nw.x, hp.nw.y); mctx.lineTo(hp.ne.x, hp.ne.y);
+      mctx.lineTo(hp.se.x, hp.se.y); mctx.lineTo(hp.sw.x, hp.sw.y);
+      mctx.closePath(); mctx.stroke();
+      mctx.setLineDash([]);
+      // Đường nối tới handle xoay
+      const topMid = { x: (hp.nw.x + hp.ne.x) / 2, y: (hp.nw.y + hp.ne.y) / 2 };
+      mctx.beginPath(); mctx.moveTo(topMid.x, topMid.y); mctx.lineTo(hp.rotate.x, hp.rotate.y); mctx.stroke();
+      // 4 handle góc (vuông trắng viền xanh)
+      mctx.fillStyle = '#FFFFFF'; mctx.strokeStyle = '#4E8FD8'; mctx.lineWidth = 1.5;
+      ['nw', 'ne', 'se', 'sw'].forEach(id => {
+        const p = hp[id];
+        mctx.beginPath(); mctx.rect(p.x - REF_HANDLE_R, p.y - REF_HANDLE_R, REF_HANDLE_R * 2, REF_HANDLE_R * 2);
+        mctx.fill(); mctx.stroke();
+      });
+      // Handle xoay (tròn)
+      mctx.beginPath(); mctx.arc(hp.rotate.x, hp.rotate.y, REF_HANDLE_R, 0, Math.PI * 2);
+      mctx.fillStyle = '#4E8FD8'; mctx.fill(); mctx.strokeStyle = '#FFFFFF'; mctx.lineWidth = 1.5; mctx.stroke();
+      mctx.restore();
+    }
+
     function drawArtboard(ab, isActive) {
       const ox = WORLD_PAD + ab.x * CELL_PX;
       const oy = WORLD_PAD + ab.y * CELL_PX;
@@ -8126,27 +8243,20 @@ QUY TẮC:
       mctx.rect(ox, oy, aw, ah);
       mctx.clip();
 
-      // Reference image — giữ đúng tỉ lệ gốc (contain-fit, không kéo giãn méo) + hỗ trợ xoay 90/180/270°
+      // Reference image — contain-fit theo bounding-box đã xoay (mọi góc), + scale/offset chỉnh tay
       if (ab.refImage && ab.refVisible && LAYERS[3].visible) {
-        mctx.save(); mctx.globalAlpha = ab.refOpacity;
-        const img = ab.refImage;
-        const rot = ((ab.refRotation||0) % 360 + 360) % 360;
-        const swapped = (rot===90 || rot===270); // ảnh xoay 90/270° thì đổi chỗ W/H khi tính tỉ lệ khớp khung
-        const imgW = img.naturalWidth || img.width, imgH = img.naturalHeight || img.height;
-        if (imgW && imgH) {
-          const effW = swapped ? imgH : imgW, effH = swapped ? imgW : imgH;
-          const imgAspect = effW / effH, boxAspect = aw / ah;
-          let dw, dh;
-          if (imgAspect > boxAspect) { dw = aw; dh = aw / imgAspect; } // ảnh "rộng" hơn khung -> khớp theo chiều rộng
-          else { dh = ah; dw = ah * imgAspect; }                       // ảnh "cao" hơn khung -> khớp theo chiều cao
-          const drawW = swapped ? dh : dw, drawH = swapped ? dw : dh;
-          mctx.translate(ox + aw/2, oy + ah/2);
-          if (rot) mctx.rotate(rot * Math.PI/180);
-          mctx.drawImage(img, -drawW/2, -drawH/2, drawW, drawH);
+        const box = getRefBox(ab, ox, oy, aw, ah);
+        if (box) {
+          mctx.save(); mctx.globalAlpha = ab.refOpacity;
+          mctx.translate(box.cx, box.cy);
+          if (box.rad) mctx.rotate(box.rad);
+          mctx.drawImage(ab.refImage, -box.drawW/2, -box.drawH/2, box.drawW, box.drawH);
+          mctx.globalAlpha = 1; mctx.restore();
         } else {
-          mctx.drawImage(img, ox, oy, aw, ah);
+          mctx.save(); mctx.globalAlpha = ab.refOpacity;
+          mctx.drawImage(ab.refImage, ox, oy, aw, ah);
+          mctx.globalAlpha = 1; mctx.restore();
         }
-        mctx.globalAlpha = 1; mctx.restore();
       }
 
       // Stitches
@@ -8160,6 +8270,10 @@ QUY TẮC:
       if (showGrid) drawGridAt(ab, ox, oy);
 
       mctx.restore();
+
+      // Handle scale/xoay/di chuyển ảnh tham chiếu — vẽ SAU khi bỏ clip để handle xoay
+      // (có thể nhô ra ngoài mép artboard) không bị cắt mất.
+      if (ab.refImage && currentTool === 'select' && isActive) drawRefHandles(ab, ox, oy, aw, ah);
 
       // Active artboard outline
       if (isActive) {
@@ -8785,16 +8899,22 @@ QUY TẮC:
     }
 
     // ── Import Image ──
+    // Hiện các control liên quan ảnh tham chiếu (mờ/hiện/xoay/đặt lại + gợi ý dùng tool Chọn)
+    function showRefControls() {
+      ['embRefOpRow','embRefVisRow','embRefRotRow','embRefResetRow','embRefHint'].forEach(id=>{
+        const el=document.getElementById(id); if(el) el.style.display='';
+      });
+      updateRefRotUI();
+    }
+
     function importImage(file) {
       const url=URL.createObjectURL(file);
       const img=new Image();
       img.onload=()=>{
-        refImage=img; refVisible=true; refRotation=0; LAYERS[3].visible=true;
+        refImage=img; refVisible=true; refRotation=0; refScale=1; refOffsetX=0; refOffsetY=0;
+        LAYERS[3].visible=true;
         flushGlobals(); // persist refImage into the active artboard so drawArtboard() can see it
-        document.getElementById('embRefOpRow').style.display='';
-        document.getElementById('embRefVisRow').style.display='';
-        document.getElementById('embRefRotRow').style.display='';
-        updateRefRotUI();
+        showRefControls();
         renderLayers(); schedRender(); URL.revokeObjectURL(url);
       };
       img.onerror=()=>{
@@ -9287,6 +9407,7 @@ QUY TẮC:
         cv.style.cursor=cursors[tool]||'crosshair';
       }
       // Keep rect selection visible when switching tools — user clears via Escape or context menu
+      schedRender(); // cần vẽ lại ngay để hiện/ẩn handle ảnh tham chiếu khi vào/ra tool "Chọn"
     }
 
     // ── Panel Tabs ──
@@ -9379,6 +9500,12 @@ QUY TẮC:
       });
       document.getElementById('embRefRotate')?.addEventListener('click',()=>{
         refRotation=((refRotation||0)+90)%360;
+        updateRefRotUI();
+        flushGlobals();
+        schedRender();
+      });
+      document.getElementById('embRefReset')?.addEventListener('click',()=>{
+        refRotation=0; refScale=1; refOffsetX=0; refOffsetY=0;
         updateRefRotUI();
         flushGlobals();
         schedRender();
@@ -9533,26 +9660,18 @@ QUY TẮC:
       if(!rectSel||!refImage) {alert('Cần ảnh tham chiếu và vùng chọn.');return;}
       const ab=artboards[activeAbIdx]; if(!ab) return;
       const aw=ab.cols*CELL_PX, ah=ab.rows*CELL_PX;
-      // Dựng lại ĐÚNG NHỮNG GÌ đang hiển thị trên canvas (đã contain-fit + xoay, xem
-      // drawArtboard) lên 1 canvas tạm cỡ đúng artboard, rồi mới cắt theo vùng chọn.
-      // (Trước đây code vẽ refImage kéo giãn lấp đầy (aw,ah) — sai lệch với những gì
-      // người dùng THẤY và CHỌN trên canvas sau khi refImage được vẽ contain-fit.)
-      const rot = ((refRotation||0)%360+360)%360;
-      const swapped = (rot===90||rot===270);
-      const imgW = refImage.naturalWidth||refImage.width, imgH = refImage.naturalHeight||refImage.height;
+      // Dựng lại ĐÚNG NHỮNG GÌ đang hiển thị trên canvas (contain-fit + xoay + scale/offset,
+      // dùng CHUNG công thức với drawArtboard qua getRefBox()) lên 1 canvas tạm cỡ đúng
+      // artboard, rồi mới cắt theo vùng chọn — khớp chính xác với những gì người dùng thấy.
       const full=document.createElement('canvas');
       full.width=aw; full.height=ah;
       const fctx=full.getContext('2d');
-      if (imgW && imgH) {
-        const effW = swapped?imgH:imgW, effH = swapped?imgW:imgH;
-        const imgAspect = effW/effH, boxAspect = aw/ah;
-        let dw,dh;
-        if (imgAspect>boxAspect) { dw=aw; dh=aw/imgAspect; } else { dh=ah; dw=ah*imgAspect; }
-        const drawW = swapped?dh:dw, drawH = swapped?dw:dh;
+      const box=getRefBox(ab,0,0,aw,ah);
+      if (box) {
         fctx.save();
-        fctx.translate(aw/2, ah/2);
-        if (rot) fctx.rotate(rot*Math.PI/180);
-        fctx.drawImage(refImage, -drawW/2, -drawH/2, drawW, drawH);
+        fctx.translate(box.cx, box.cy);
+        if (box.rad) fctx.rotate(box.rad);
+        fctx.drawImage(refImage, -box.drawW/2, -box.drawH/2, box.drawW, box.drawH);
         fctx.restore();
       } else {
         fctx.drawImage(refImage,0,0,aw,ah);
@@ -9570,12 +9689,10 @@ QUY TẮC:
       const newImg=new Image();
       newImg.onload=()=>{
         refImage=newImg;
-        refRotation=0; // đã "bake" góc xoay vào ảnh mới, reset để xoay tiếp từ đầu
+        // Đã "bake" xoay/scale/offset vào ảnh mới -> reset để chỉnh tiếp từ đầu
+        refRotation=0; refScale=1; refOffsetX=0; refOffsetY=0;
         flushGlobals(); // persist cropped refImage into the active artboard
-        document.getElementById('embRefOpRow').style.display='';
-        document.getElementById('embRefVisRow').style.display='';
-        document.getElementById('embRefRotRow').style.display='';
-        updateRefRotUI();
+        showRefControls();
         LAYERS[3].visible=true; renderLayers(); schedRender();
       };
       newImg.src=tc.toDataURL();
@@ -9702,6 +9819,34 @@ QUY TẮC:
         if (e.button !== 0) return;
         const {wx, wy} = getWorldXY(e);
 
+        // Ref-image transform (scale/xoay/di chuyển) — chỉ khi tool = "Chọn"
+        if (currentTool === 'select') {
+          const ab = artboards[activeAbIdx];
+          if (ab && ab.refImage) {
+            const {ox, oy} = abOffset();
+            const aw = ab.cols*CELL_PX, ah = ab.rows*CELL_PX;
+            const rh = hitTestRefHandle(wx, wy);
+            if (rh) {
+              e.stopImmediatePropagation(); e.preventDefault();
+              const box = getRefBox(ab, ox, oy, aw, ah);
+              if (rh.type === 'rotate') {
+                refImgDrag = {type:'rotate', cx:box.cx, cy:box.cy};
+              } else {
+                const hp = getRefHandlePositions(ab, ox, oy, aw, ah);
+                const startDist = Math.hypot(hp[rh.corner].x-box.cx, hp[rh.corner].y-box.cy);
+                refImgDrag = {type:'scale', cx:box.cx, cy:box.cy, startDist, origScale: ab.refScale||1};
+              }
+              return;
+            }
+            if (hitTestRefBody(wx, wy)) {
+              e.stopImmediatePropagation(); e.preventDefault();
+              refImgDrag = {type:'move', startWX:wx, startWY:wy,
+                origOffsetX: ab.refOffsetX||0, origOffsetY: ab.refOffsetY||0};
+              return;
+            }
+          }
+        }
+
         // Check resize handle first
         const hh = hitTestHandle(wx, wy);
         if (hh) {
@@ -9727,6 +9872,25 @@ QUY TẮC:
       }, true);
 
       document.addEventListener('mousemove', e => {
+        if (refImgDrag) {
+          const ab = artboards[activeAbIdx]; if (!ab) return;
+          const {wx, wy} = getWorldXY(e);
+          if (refImgDrag.type === 'move') {
+            ab.refOffsetX = refImgDrag.origOffsetX + (wx - refImgDrag.startWX);
+            ab.refOffsetY = refImgDrag.origOffsetY + (wy - refImgDrag.startWY);
+          } else if (refImgDrag.type === 'scale') {
+            const dist = Math.hypot(wx - refImgDrag.cx, wy - refImgDrag.cy);
+            const ratio = dist / (refImgDrag.startDist || 1);
+            ab.refScale = Math.max(0.05, Math.min(20, refImgDrag.origScale * ratio));
+          } else if (refImgDrag.type === 'rotate') {
+            const angleDeg = Math.atan2(wy - refImgDrag.cy, wx - refImgDrag.cx) * 180 / Math.PI;
+            ab.refRotation = angleDeg + 90;
+          }
+          syncGlobals();
+          updateRefRotUI();
+          schedRender();
+          return;
+        }
         if (abDrag) {
           const ab = artboards[abDrag.abIdx]; if (!ab) return;
           const dx = (e.clientX - abDrag.startX) / zoom / CELL_PX;
@@ -9773,6 +9937,11 @@ QUY TẮC:
 
         // Update cursor based on what's under mouse
         const {wx, wy} = getWorldXY(e);
+        if (currentTool === 'select') {
+          const rh = hitTestRefHandle(wx, wy);
+          if (rh) { mainCanvas.style.cursor = rh.type==='rotate' ? 'grab' : (rh.corner==='nw'||rh.corner==='se' ? 'nwse-resize' : 'nesw-resize'); return; }
+          if (hitTestRefBody(wx, wy)) { mainCanvas.style.cursor = 'move'; return; }
+        }
         const hh = hitTestHandle(wx, wy);
         if (hh) { mainCanvas.style.cursor = getHandleCursor(hh.handleId); return; }
         const li = hitTestLabel(wx, wy);
@@ -9788,6 +9957,7 @@ QUY TẮC:
       document.addEventListener('mouseup', e => {
         if (abDrag) { abDrag = null; syncAbInspector(); renderArtboardPanel(); }
         if (abResize) { abResize = null; syncAbInspector(); renderArtboardPanel(); }
+        if (refImgDrag) { refImgDrag = null; flushGlobals(); updateRefRotUI(); pushHist(); }
       });
     }
 
