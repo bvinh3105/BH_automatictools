@@ -8022,7 +8022,7 @@ QUY TẮC:
       activeAbIdx = idx;
       syncGlobals();
       updateOrientationUI();
-      updateRefRotUI();
+      syncRefControlsVisibility();
       schedRender();
       renderArtboardPanel();
       updateStatus();
@@ -8038,6 +8038,7 @@ QUY TẮC:
       artboards.push(newAb);
       activeAbIdx = artboards.length - 1;
       syncGlobals();
+      syncRefControlsVisibility();
       recalcWorldCanvas();
       renderArtboardPanel();
       schedRender();
@@ -8048,6 +8049,7 @@ QUY TẮC:
       artboards.splice(idx, 1);
       if (activeAbIdx >= artboards.length) activeAbIdx = artboards.length - 1;
       syncGlobals();
+      syncRefControlsVisibility();
       recalcWorldCanvas();
       renderArtboardPanel();
       schedRender();
@@ -8708,17 +8710,28 @@ QUY TẮC:
     }
 
     // ── Undo/Redo ──
+    // Lưu cả trạng thái ảnh tham chiếu (refImage là object Image, giữ nguyên tham chiếu —
+    // không cần clone vì code luôn tạo Image() MỚI khi đổi nội dung, không sửa in-place)
+    // để Ctrl+Z hoàn tác được cả thao tác xoay/scale/di chuyển/import/crop ảnh.
     function snap() {
       return {
         cells: cells.map(col=>col.map(cell=>({...cell}))),
         bs: JSON.parse(JSON.stringify(backstitches)),
         fk: JSON.parse(JSON.stringify(frenchKnots)),
+        refImage, refOpacity, refVisible, refRotation, refScale, refOffsetX, refOffsetY,
       };
     }
     function restore(s) {
       cells=s.cells.map(col=>col.map(cell=>({...cell})));
       backstitches=JSON.parse(JSON.stringify(s.bs));
       frenchKnots=JSON.parse(JSON.stringify(s.fk));
+      refImage=s.refImage||null;
+      refOpacity=s.refOpacity??0.35;
+      refVisible=s.refVisible??true;
+      refRotation=s.refRotation||0;
+      refScale=s.refScale||1;
+      refOffsetX=s.refOffsetX||0;
+      refOffsetY=s.refOffsetY||0;
     }
     function pushHist() {
       history=history.slice(0,histIdx+1);
@@ -8728,8 +8741,18 @@ QUY TẮC:
       schedRender();
       updateStatus();
     }
-    function undo() { if(histIdx<=0) return; histIdx--; restore(history[histIdx]); flushGlobals(); schedRender(); updateStatus(); }
-    function redo() { if(histIdx>=history.length-1) return; histIdx++; restore(history[histIdx]); flushGlobals(); schedRender(); updateStatus(); }
+    // Hiện/ẩn control ảnh tham chiếu tuỳ theo còn ảnh hay không (dùng sau undo/redo,
+    // vì undo có thể quay lại trạng thái trước khi import ảnh)
+    function syncRefControlsVisibility() {
+      if (refImage) { showRefControls(); }
+      else {
+        ['embRefOpRow','embRefVisRow','embRefRotRow','embRefResetRow','embRefHint'].forEach(id=>{
+          const el=document.getElementById(id); if(el) el.style.display='none';
+        });
+      }
+    }
+    function undo() { if(histIdx<=0) return; histIdx--; restore(history[histIdx]); flushGlobals(); syncRefControlsVisibility(); schedRender(); updateStatus(); }
+    function redo() { if(histIdx>=history.length-1) return; histIdx++; restore(history[histIdx]); flushGlobals(); syncRefControlsVisibility(); schedRender(); updateStatus(); }
 
     // ── Status ──
     function updateStatus() {
@@ -8916,6 +8939,7 @@ QUY TẮC:
         flushGlobals(); // persist refImage into the active artboard so drawArtboard() can see it
         showRefControls();
         renderLayers(); schedRender(); URL.revokeObjectURL(url);
+        pushHist(); // để Ctrl+Z hoàn tác được thao tác import ảnh
       };
       img.onerror=()=>{
         alert('Không đọc được ảnh. Vui lòng thử ảnh JPG/PNG khác.');
@@ -9503,12 +9527,14 @@ QUY TẮC:
         updateRefRotUI();
         flushGlobals();
         schedRender();
+        pushHist();
       });
       document.getElementById('embRefReset')?.addEventListener('click',()=>{
         refRotation=0; refScale=1; refOffsetX=0; refOffsetY=0;
         updateRefRotUI();
         flushGlobals();
         schedRender();
+        pushHist();
       });
       document.querySelectorAll('#embOrientationSeg .emb-seg-btn').forEach(btn=>{
         btn.addEventListener('click',()=>setOrientation(btn.dataset.orientation));
@@ -9694,6 +9720,7 @@ QUY TẮC:
         flushGlobals(); // persist cropped refImage into the active artboard
         showRefControls();
         LAYERS[3].visible=true; renderLayers(); schedRender();
+        pushHist(); // để Ctrl+Z hoàn tác được thao tác crop/mask ảnh
       };
       newImg.src=tc.toDataURL();
       clearRectSelection();
