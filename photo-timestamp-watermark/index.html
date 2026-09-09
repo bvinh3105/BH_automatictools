@@ -7252,6 +7252,31 @@ QUY TẮC:
     }
 
     // Strip tất cả thinking/reasoning tags khỏi output
+    // Phát hiện model bị "kẹt" lặp vô hạn (thường gặp ở vision model nhỏ khi ảnh khó/mơ hồ) —
+    // ví dụ: "...`Convert` is `Convert`? Let's look at the image: ..." lặp lại hàng chục lần.
+    // Heuristic: nếu 1 cụm 6 từ liên tiếp xuất hiện lại từ 4 lần trở lên, gần như chắc chắn
+    // đây không phải text OCR thật mà là model bị lặp — coi như lỗi để kích hoạt fallback.
+    function isDegenerateRepeat(text) {
+      if (!text) return false;
+      const words = text.trim().split(/\s+/);
+      if (words.length < 24) return false;
+      // Dò nhiều độ dài cụm (4-30 từ) — KHÔNG cố định 1 chu kỳ, vì câu bị lặp có thể
+      // ngắn ("lỗi lỗi lỗi...") hoặc dài ("Convert=0? No, Convert is Convert?...").
+      // Chỉ tính là lỗi khi CÙNG 1 cụm xuất hiện NGAY SÁT NHAU liên tục >= 3 lần —
+      // đây là dấu hiệu đặc trưng của model bị "kẹt" lặp, khác với field lặp hợp lệ
+      // trong giấy tờ thật (VD nhiều người cùng địa chỉ) vì field đó luôn bị NGẮT QUÃNG
+      // bởi nội dung khác (tên, số liệu) giữa các lần, không lặp liên tiếp ngay sát nhau.
+      for (let win = 4; win <= 30; win++) {
+        for (let i = 0; i + win * 3 <= words.length; i++) {
+          const a = words.slice(i, i + win).join(' ').toLowerCase();
+          const b = words.slice(i + win, i + win * 2).join(' ').toLowerCase();
+          const c = words.slice(i + win * 2, i + win * 3).join(' ').toLowerCase();
+          if (a === b && b === c) return true;
+        }
+      }
+      return false;
+    }
+
     function stripThinking(text) {
       if (!text) return '';
       // Strip <think>...</think> (Qwen, DeepSeek, etc.)
@@ -7468,6 +7493,11 @@ QUY TẮC:
                 text = await runGroqOCR(rotatedUrl, tryKey);
               } else {
                 text = await runGeminiOCR(rotatedUrl, tryKey);
+              }
+              // Model bị "kẹt" lặp vô hạn (VD: "...`Convert` is `Convert`? Let's look..." x N)
+              // → coi như lỗi để tự động fallback sang provider còn lại, thay vì hiện rác.
+              if (isDegenerateRepeat(text)) {
+                throw new Error(`${providerName} trả về kết quả lặp bất thường (model bị "kẹt"), không phải văn bản thật.`);
               }
               progressBar.style.width = '100%';
               usedEngine = tryProvider;
