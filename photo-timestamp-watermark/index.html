@@ -4759,7 +4759,15 @@ Việt Nam</textarea>
     const supported = typeof document.startViewTransition === 'function'
       && !matchMedia('(prefers-reduced-motion: reduce)').matches;
     if (supported) {
-      document.startViewTransition(() => setThemeAttrs(t));
+      // Bấm đổi theme liên tiếp (trước khi transition trước xong) khiến trình duyệt
+      // tự huỷ transition cũ — ĐÚNG hành vi chuẩn của View Transitions API, không phải
+      // lỗi thật, nhưng promise bị reject (InvalidStateError) mà không ai bắt sẽ thành
+      // "Uncaught (in promise)" trên console. Nuốt lỗi ở cả 3 promise cho chắc (không
+      // ảnh hưởng hiệu ứng — DOM đã được cập nhật ngay trong callback ở trên).
+      const transition = document.startViewTransition(() => setThemeAttrs(t));
+      transition.ready.catch(() => {});
+      transition.updateCallbackDone.catch(() => {});
+      transition.finished.catch(() => {});
     } else {
       // Fallback: CSS color-transition already covers cross-fade
       setThemeAttrs(t);
