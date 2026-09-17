@@ -13,6 +13,11 @@ const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_xlJrUPaFZyNTxO_J1MyCEg_Lu6YDrqz
 
 export const supabase = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
 
+// TẠM TẮT bắt buộc đăng nhập — ai vào cũng dùng được ngay, không bị chặn màn hình
+// gate. Đăng ký/đăng nhập vẫn hoạt động bình thường cho ai muốn (VD: để dùng tier
+// OCR "dùng chung" — tier đó vẫn cần session thật). Bật lại: đổi false → true.
+const REQUIRE_LOGIN = false;
+
 // ── API cho các phần khác của app dùng (VD: nút "Lưu lên tài khoản" ở Cross Stitch) ──
 export async function signUp(email, password) {
   const { data, error } = await supabase.auth.signUp({ email, password });
@@ -128,13 +133,13 @@ function initAuthUI() {
 
 // Phản ứng với mọi thay đổi trạng thái đăng nhập (đăng nhập/đăng xuất/khôi phục phiên khi reload)
 supabase.auth.onAuthStateChange((_event, session) => {
-  showGate(!session);
+  showGate(REQUIRE_LOGIN && !session);
   setAccountUI(session);
 });
 
 document.addEventListener('DOMContentLoaded', async () => {
   initAuthUI();
   const session = await getSession();
-  showGate(!session);
+  showGate(REQUIRE_LOGIN && !session);
   setAccountUI(session);
 });
