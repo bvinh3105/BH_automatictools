@@ -7484,6 +7484,32 @@ QUY TẮC:
       return stripThinking(data.choices?.[0]?.message?.content || '');
     }
 
+    // 2b) Groq dùng chung (qua Supabase Edge Function — key giấu ở server, không
+    // cần người dùng tự xin key). Chỉ hoạt động khi đã đăng nhập.
+    const SHARED_OCR_URL = 'https://mbqpujtqvevzwrnmhlep.supabase.co/functions/v1/ocr-groq';
+    async function runSharedGroqOCR(imageUrl) {
+      const { getSession } = await import('./auth.js');
+      const session = await getSession();
+      if (!session) throw new Error('Chưa đăng nhập, không dùng được OCR dùng chung.');
+      const { base64, mimeType } = await blobUrlToBase64(imageUrl);
+      const resp = await fetch(SHARED_OCR_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session.access_token}` },
+        body: JSON.stringify({ imageBase64: base64, mimeType }),
+      });
+      const data = await resp.json().catch(() => ({}));
+      if (!resp.ok) throw new Error(data.error || `Dịch vụ dùng chung lỗi ${resp.status}`);
+      return data.text || '';
+    }
+
+    // Cache nhẹ trong 1 lượt xử lý ảnh — tránh gọi getSession() nhiều lần liên tiếp
+    async function hasSupabaseSession() {
+      try {
+        const { getSession } = await import('./auth.js');
+        return !!(await getSession());
+      } catch { return false; }
+    }
+
     // 3) Ollama (local)
     async function runOllamaOCR(imageUrl, baseUrl) {
       const { base64 } = await blobUrlToBase64(imageUrl);
@@ -7589,7 +7615,8 @@ QUY TẮC:
         let rotatedUrl;
         try { rotatedUrl = await autoRotateImage(imageUrl); } catch { rotatedUrl = imageUrl; }
 
-        const hasApi = ocrConfig.key || ocrConfig.provider === 'ollama';
+        const sharedAvailable = await hasSupabaseSession();
+        const hasApi = ocrConfig.key || ocrConfig.provider === 'ollama' || sharedAvailable;
         let apiError = null;
 
         // Step 2: Detect rotation bằng Vision API (chỉ 1 call nhỏ, ảnh 512px)
@@ -7611,16 +7638,28 @@ QUY TẮC:
 
         // === Strategy: API có → dùng API, lỗi thì fallback sang provider còn lại ===
         // === API không có → PaddleOCR + post-processing → Tesseract ===
-        if (hasApi) {
-          const providerNames = { groq: 'Groq (Qwen Vision)', gemini: 'Gemini', ollama: 'Ollama (Local)' };
+        // "Chỉ có tier dùng chung, chưa tự cấu hình key riêng" — nếu tier này lỗi (VD:
+        // Edge Function chưa deploy/đang lỗi) thì coi như KHÔNG có API, rơi êm xuống
+        // local, giống hệt trải nghiệm trước khi có tính năng này. Lỗi cứng chỉ hợp lý
+        // khi người dùng CHỦ ĐỘNG tự cấu hình key riêng và key đó lỗi.
+        const zeroConfigShared = !ocrConfig.provider && sharedAvailable;
 
-          // Xây danh sách provider để thử: primary → fallback (nếu có key)
-          const tryList = [{ provider: ocrConfig.provider, key: ocrConfig.key }];
-          if (ocrConfig.provider !== 'ollama') {
-            const altProvider = ocrConfig.provider === 'groq' ? 'gemini' : 'groq';
-            if (ocrKeys[altProvider]) {
-              tryList.push({ provider: altProvider, key: ocrKeys[altProvider] });
+        if (hasApi) {
+          const providerNames = { groq: 'Groq (Qwen Vision)', gemini: 'Gemini', ollama: 'Ollama (Local)', shared: 'Groq dùng chung' };
+
+          // Xây danh sách provider để thử. Nếu người dùng chưa tự cấu hình provider
+          // riêng, ưu tiên tier "dùng chung" trước (đó mới là mục đích của tier này).
+          // Nếu đã tự chọn provider riêng, tôn trọng lựa chọn đó — dùng chung chỉ là fallback.
+          const tryList = [];
+          if (ocrConfig.provider) {
+            tryList.push({ provider: ocrConfig.provider, key: ocrConfig.key });
+            if (sharedAvailable) tryList.push({ provider: 'shared', key: null });
+            if (ocrConfig.provider !== 'ollama') {
+              const altProvider = ocrConfig.provider === 'groq' ? 'gemini' : 'groq';
+              if (ocrKeys[altProvider]) tryList.push({ provider: altProvider, key: ocrKeys[altProvider] });
             }
+          } else if (sharedAvailable) {
+            tryList.push({ provider: 'shared', key: null });
           }
 
           for (let i = 0; i < tryList.length; i++) {
@@ -7634,6 +7673,8 @@ QUY TẮC:
             try {
               if (tryProvider === 'ollama') {
                 text = await runOllamaOCR(rotatedUrl, tryKey);
+              } else if (tryProvider === 'shared') {
+                text = await runSharedGroqOCR(rotatedUrl);
               } else if (tryProvider === 'groq') {
                 text = await runGroqOCR(rotatedUrl, tryKey);
               } else {
@@ -7658,8 +7699,11 @@ QUY TẮC:
               }
             }
           }
-        } else {
-          // Không có API → PaddleOCR (+ post-processing) → Tesseract
+        }
+
+        if (!hasApi || (zeroConfigShared && usedEngine === 'api-error')) {
+          if (zeroConfigShared) { usedEngine = ''; apiError = null; }
+          // Không có API (hoặc tier dùng chung lỗi) → PaddleOCR (+ post-processing) → Tesseract
           let localUrl;
           try { localUrl = await preprocessForLocalOCR(rotatedUrl); } catch { localUrl = rotatedUrl; }
           try {
@@ -7719,7 +7763,7 @@ QUY TẮC:
         } else if (usedEngine === 'tesseract') {
           warnBadge = '<div style="color:#f90;font-size:11px;margin-bottom:6px;font-weight:600">⚠ Đọc bằng Tesseract (offline) — kết quả có thể kém chính xác</div>';
         } else if (usedEngine.endsWith('-fallback')) {
-          const fbName = { 'groq-fallback': 'Groq', 'gemini-fallback': 'Gemini' }[usedEngine] || usedEngine;
+          const fbName = { 'groq-fallback': 'Groq', 'gemini-fallback': 'Gemini', 'shared-fallback': 'Groq dùng chung' }[usedEngine] || usedEngine;
           warnBadge = `<div style="color:#4a9;font-size:11px;margin-bottom:6px;font-weight:600">🔄 Provider chính lỗi → đã dùng ${fbName} thay thế</div>`;
         }
         if (warnBadge) {
