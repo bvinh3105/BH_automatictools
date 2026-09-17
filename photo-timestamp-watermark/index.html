@@ -3102,7 +3102,7 @@
 
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <!-- Auth (Supabase) — ES module riêng, tự cô lập scope, xem auth.js -->
-<script type="module" src="./auth.js"></script>
+<script type="module" src="./auth.js?v=2"></script>
 </head>
 <body>
 <!-- ===== Auth Gate — chặn app cho tới khi đăng nhập (xem auth.js) ===== -->
@@ -7496,7 +7496,7 @@ QUY TẮC:
     // cần người dùng tự xin key). Chỉ hoạt động khi đã đăng nhập.
     const SHARED_OCR_URL = 'https://mbqpujtqvevzwrnmhlep.supabase.co/functions/v1/ocr-groq';
     async function runSharedGroqOCR(imageUrl) {
-      const { getSession } = await import('./auth.js');
+      const { getSession } = await import('./auth.js?v=2');
       const session = await getSession();
       if (!session) throw new Error('Chưa đăng nhập, không dùng được OCR dùng chung.');
       const { base64, mimeType } = await blobUrlToBase64(imageUrl);
@@ -7513,7 +7513,7 @@ QUY TẮC:
     // Cache nhẹ trong 1 lượt xử lý ảnh — tránh gọi getSession() nhiều lần liên tiếp
     async function hasSupabaseSession() {
       try {
-        const { getSession } = await import('./auth.js');
+        const { getSession } = await import('./auth.js?v=2');
         return !!(await getSession());
       } catch { return false; }
     }
