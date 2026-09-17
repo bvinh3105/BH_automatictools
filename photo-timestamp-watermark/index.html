@@ -8,7 +8,7 @@
 <meta http-equiv="Expires" content="0">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800&family=Roboto:wght@300;400;500;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Nunito:wght@400;500;600;700;800&family=Roboto:wght@300;400;500;700&display=swap">
 <title>Thảo Tools</title>
 <style>
   :root {
@@ -23,9 +23,9 @@
     --glass: rgba(255, 255, 253, 0.6);
     --glass-strong: rgba(255, 255, 253, 0.8);
     --glass-hover: rgba(255, 255, 253, 0.7);
-    --border: rgba(60, 80, 40, 0.09);
-    --border-strong: rgba(60, 80, 40, 0.16);
-    --divider: rgba(60, 80, 40, 0.06);
+    --border: rgba(40, 42, 34, 0.11);
+    --border-strong: rgba(40, 42, 34, 0.20);
+    --divider: rgba(40, 42, 34, 0.08);
     --text: #2A3320;
     --muted: #78826A;
     --accent: #78A05C;
@@ -35,7 +35,7 @@
     --accent-2-hover: #5F8548;
     --danger: #C56767;
     --success: #6BA654;
-    --shadow: 0 6px 22px rgba(60, 90, 40, 0.07), 0 2px 5px rgba(60, 90, 40, 0.04);
+    --shadow: 0 10px 32px rgba(30, 32, 26, 0.10), 0 2px 8px rgba(30, 32, 26, 0.06), inset 0 1px 0 rgba(255, 255, 255, 0.6);
     --input-bg: rgba(255, 255, 253, 0.55);
     --radius: 22px;
     --radius-sm: 14px;
@@ -75,9 +75,9 @@
     --glass: rgba(255, 255, 253, 0.6);
     --glass-strong: rgba(255, 255, 253, 0.8);
     --glass-hover: rgba(255, 255, 253, 0.7);
-    --border: rgba(60, 80, 40, 0.09);
-    --border-strong: rgba(60, 80, 40, 0.16);
-    --divider: rgba(60, 80, 40, 0.06);
+    --border: rgba(40, 42, 34, 0.11);
+    --border-strong: rgba(40, 42, 34, 0.20);
+    --divider: rgba(40, 42, 34, 0.08);
     --text: #2A3320;
     --muted: #78826A;
     --accent: #78A05C;
@@ -85,7 +85,7 @@
     --accent-fg: #FFFFFF;
     --accent-2: #78A05C;
     --accent-2-hover: #5F8548;
-    --shadow: 0 6px 22px rgba(60, 90, 40, 0.07), 0 2px 5px rgba(60, 90, 40, 0.04);
+    --shadow: 0 10px 32px rgba(30, 32, 26, 0.10), 0 2px 8px rgba(30, 32, 26, 0.06), inset 0 1px 0 rgba(255, 255, 255, 0.6);
     --input-bg: rgba(255, 255, 253, 0.55);
     --radius: 22px;
     --radius-sm: 14px;
@@ -177,7 +177,7 @@
       var(--bg);
     background-attachment: fixed;
     color: var(--text);
-    font-family: "Nunito", -apple-system, BlinkMacSystemFont, "San Francisco Display Regular", "SF Pro Display", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+    font-family: "Inter", "Nunito", -apple-system, BlinkMacSystemFont, "San Francisco Display Regular", "SF Pro Display", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
     font-size: 14px;
     line-height: 1.5;
     -webkit-font-smoothing: antialiased;
@@ -551,7 +551,7 @@
   textarea {
     resize: vertical;
     min-height: 90px;
-    font-family: "Nunito", -apple-system, BlinkMacSystemFont, "San Francisco Display Regular", "SF Pro Display", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+    font-family: "Inter", "Nunito", -apple-system, BlinkMacSystemFont, "San Francisco Display Regular", "SF Pro Display", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
     line-height: 1.45;
   }
   input[type="range"] { padding: 0; }
@@ -589,11 +589,11 @@
     box-shadow: 0 4px 14px color-mix(in srgb, var(--accent-2) 40%, transparent);
   }
   .btn-ghost {
-    background: color-mix(in srgb, var(--text) 5%, transparent);
+    background: color-mix(in srgb, var(--text) 4%, transparent);
     color: var(--text);
-    border: none;
+    border: 1px solid var(--border);
   }
-  .btn-ghost:hover:not(:disabled) { background: color-mix(in srgb, var(--text) 9%, transparent); }
+  .btn-ghost:hover:not(:disabled) { background: color-mix(in srgb, var(--text) 9%, transparent); border-color: var(--border-strong); }
   .btn-danger {
     background: transparent;
     color: var(--danger);
@@ -908,7 +908,7 @@
   }
   .pos-grid button {
     background: color-mix(in srgb, var(--text) 4%, transparent);
-    border: 1px solid transparent;
+    border: 1px solid var(--border);
     color: var(--muted);
     padding: 12px;
     font-size: 12.5px;
@@ -916,13 +916,17 @@
     border-radius: 14px;
     transition: all 0.2s;
   }
-  .pos-grid button:hover { background: color-mix(in srgb, var(--text) 8%, transparent); color: var(--text); }
+  .pos-grid button:hover {
+    background: color-mix(in srgb, var(--text) 8%, transparent);
+    color: var(--text);
+    border-color: var(--border-strong);
+  }
   .pos-grid button.active {
-    background: color-mix(in srgb, var(--accent-2) 10%, transparent);
+    background: color-mix(in srgb, var(--accent-2) 12%, transparent);
     color: var(--accent-2);
-    border-color: color-mix(in srgb, var(--accent-2) 30%, transparent);
-    font-weight: 600;
-    box-shadow: none;
+    border-color: color-mix(in srgb, var(--accent-2) 38%, transparent);
+    font-weight: 700;
+    box-shadow: 0 2px 8px color-mix(in srgb, var(--accent-2) 20%, transparent);
   }
 
   .split { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
